@@ -122,8 +122,8 @@ if (isset($_GET['hapus'])) {
                                         <div class="modal-content">
                                             <div class="modal-header">
                                                 <h5 class="modal-title" id="labelEdit<?= $row['id_jenis_bayar'] ?>">Edit Jenis Bayar</h5>
-                                                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                                                    <span aria-hidden="true">&times;</span>
+                                                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close" style="background: transparent; border: none;">
+                                                    <i class="mdi mdi-close"></i>
                                                 </button>
                                             </div>
                                             <form action="" method="post">
@@ -165,8 +165,8 @@ if (isset($_GET['hapus'])) {
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="labelTambahJenis">Tambah Jenis Bayar</h5>
-                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close" style="background: transparent; border: none;">
+                    <i class="mdi mdi-close"></i>
                 </button>
             </div>
             <form action="" method="post">

@@ -192,8 +192,8 @@ if (isset($_GET['hapus'])) {
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="modalTambahLabel">Tambah Pengguna</h5>
-                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close" style="background: transparent; border: none;">
+                    <i class="mdi mdi-close"></i>
                 </button>
             </div>
             <form action="" method="post" enctype="multipart/form-data">
@@ -238,8 +238,8 @@ if (isset($_GET['hapus'])) {
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="modalEditLabel">Edit Pengguna</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close" style="background: transparent; border: none;">
+                    <i class="mdi mdi-close"></i>
                 </button>
             </div>
             <form action="" method="post" enctype="multipart/form-data">

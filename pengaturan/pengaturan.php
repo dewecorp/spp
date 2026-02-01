@@ -10,9 +10,10 @@ if (isset($_POST['simpan'])) {
     $nama_sekolah = $_POST['nama_sekolah'];
     $alamat_sekolah = $_POST['alamat_sekolah'];
     $nama_bendahara = $_POST['nama_bendahara'];
+    $tahun_ajaran = $_POST['tahun_ajaran'];
     
     // Default Query
-    $query_update = "UPDATE pengaturan SET nama_sekolah='$nama_sekolah', alamat_sekolah='$alamat_sekolah', nama_bendahara='$nama_bendahara'";
+    $query_update = "UPDATE pengaturan SET nama_sekolah='$nama_sekolah', alamat_sekolah='$alamat_sekolah', nama_bendahara='$nama_bendahara', tahun_ajaran='$tahun_ajaran'";
 
     // Upload Logo
     if (!empty($_FILES['logo']['name'])) {
@@ -75,6 +76,10 @@ if (isset($_POST['simpan'])) {
                     <div class="form-group">
                         <label for="nama_bendahara">Nama Bendahara</label>
                         <input type="text" class="form-control" id="nama_bendahara" name="nama_bendahara" value="<?= $data['nama_bendahara'] ?? '' ?>" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="tahun_ajaran">Tahun Ajaran Aktif</label>
+                        <input type="text" class="form-control" id="tahun_ajaran" name="tahun_ajaran" value="<?= $data['tahun_ajaran'] ?? '' ?>" placeholder="Contoh: 2024/2025" required>
                     </div>
                     <div class="form-group">
                         <label>Logo Sekolah</label>

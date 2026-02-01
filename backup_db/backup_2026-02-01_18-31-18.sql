@@ -30,6 +30,25 @@ INSERT INTO kelas VALUES("6","6");
 
 
 
+DROP TABLE IF EXISTS log_aktivitas;
+
+CREATE TABLE `log_aktivitas` (
+  `id_log` int NOT NULL AUTO_INCREMENT,
+  `id_pengguna` int DEFAULT NULL,
+  `jenis_aktivitas` varchar(50) NOT NULL,
+  `deskripsi` text NOT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id_log`),
+  KEY `id_pengguna` (`id_pengguna`),
+  CONSTRAINT `log_aktivitas_ibfk_1` FOREIGN KEY (`id_pengguna`) REFERENCES `pengguna` (`id_pengguna`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+INSERT INTO log_aktivitas VALUES("1","1","Update","Mengubah data siswa: Budi (123456)","2026-02-01 18:02:05");
+INSERT INTO log_aktivitas VALUES("2","1","Update","Mengedit jenis bayar: Iuran Ekstrakurikuler (2025/2026)","2026-02-01 18:12:38");
+INSERT INTO log_aktivitas VALUES("3","1","Update","Mengedit kelas: 1","2026-02-01 18:12:43");
+
+
+
 DROP TABLE IF EXISTS pembayaran;
 
 CREATE TABLE `pembayaran` (
@@ -62,10 +81,11 @@ CREATE TABLE `pengaturan` (
   `nama_sekolah` varchar(100) DEFAULT NULL,
   `alamat_sekolah` text,
   `logo` varchar(255) DEFAULT NULL,
+  `nama_bendahara` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`id_pengaturan`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-INSERT INTO pengaturan VALUES("1","MI Sultan Fattah Sukosono","Sukosono, Jepara","");
+INSERT INTO pengaturan VALUES("1","MI Sultan Fattah Sukosono","Sukosono, Jepara","logo.png","Zamaah, S.Pd.I");
 
 
 
@@ -78,11 +98,13 @@ CREATE TABLE `pengguna` (
   `nama_lengkap` varchar(100) NOT NULL,
   `role` enum('admin','petugas') NOT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `foto` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id_pengguna`),
   UNIQUE KEY `username` (`username`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-INSERT INTO pengguna VALUES("1","admin","$2y$10$8CDkDNvsxuABPt9TxvEM/OxgfztNhqVW0nWgU0J252sBmXDEQ7z7O","Administrator","admin","2026-01-31 17:14:42");
+INSERT INTO pengguna VALUES("1","admin","$2y$10$8CDkDNvsxuABPt9TxvEM/OxgfztNhqVW0nWgU0J252sBmXDEQ7z7O","Administrator","admin","2026-01-31 17:14:42","");
+INSERT INTO pengguna VALUES("2","petugas","$2y$10$pGsvwbguI4d77Ry9Wqb5QugZI0xXwRVQIS9GBsbSusUOLy6sTcoti","Zamaah, S.Pd.I.","petugas","2026-02-01 17:33:49","");
 
 
 
@@ -100,6 +122,8 @@ CREATE TABLE `siswa` (
   CONSTRAINT `siswa_ibfk_1` FOREIGN KEY (`id_kelas`) REFERENCES `kelas` (`id_kelas`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+INSERT INTO siswa VALUES("123456","-","Budi","1","","");
+INSERT INTO siswa VALUES("1234567","-","Santoso","1","","");
 INSERT INTO siswa VALUES("987654321","321542","SUDARLIM","1","Sukosono Kedung Jepara","086969696969");
 
 

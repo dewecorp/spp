@@ -9,6 +9,7 @@ if (isset($_GET['aksi']) && $_GET['aksi'] == 'hapus' && isset($_GET['file'])) {
     $file = $_GET['file'];
     if (file_exists($backup_dir . $file)) {
         unlink($backup_dir . $file);
+        logActivity($koneksi, 'Delete', "Menghapus file backup: $file");
         echo "<script>
             Swal.fire({
                 title: 'Berhasil!',
@@ -84,6 +85,8 @@ if (isset($_POST['backup'])) {
     fwrite($handle, $return);
     fclose($handle);
     
+    logActivity($koneksi, 'Create', "Membuat backup database: $filename");
+
     echo "<script>
         Swal.fire({
             title: 'Proses Backup...',

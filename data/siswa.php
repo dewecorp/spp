@@ -263,8 +263,8 @@ while($k = mysqli_fetch_assoc($kelas)) {
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Tambah Siswa</h5>
-                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close" style="background: transparent; border: none;">
+                    <i class="mdi mdi-close"></i>
                 </button>
             </div>
             <form action="" method="post">
@@ -302,8 +302,8 @@ while($k = mysqli_fetch_assoc($kelas)) {
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Import Data Siswa</h5>
-                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close" style="background: transparent; border: none;">
+                    <i class="mdi mdi-close"></i>
                 </button>
             </div>
             <form id="formImport" action="" method="post" enctype="multipart/form-data">

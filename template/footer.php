@@ -14,6 +14,7 @@
     </div>
     <!-- container-scroller -->
     <script src="<?= base_url('assets/vendors/js/vendor.bundle.base.js') ?>"></script>
+    <script src="<?= base_url('assets/js/off-canvas.js') ?>"></script>
     <script src="<?= base_url('assets/js/misc.js') ?>"></script>
     <!-- Chart.js -->
     <script src="<?= base_url('assets/vendors/chart.js/chart.umd.js') ?>"></script>

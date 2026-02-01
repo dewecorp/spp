@@ -122,24 +122,6 @@ $jml_aktivitas = mysqli_num_rows($q_aktivitas);
             </div>
         </div>
     </div>
-    <!-- Card Aktivitas (24 Jam) -->
-    <div class="col-xl-3 col-lg-3 col-md-3 col-sm-6 grid-margin stretch-card">
-        <div class="card card-statistics">
-            <div class="card-body">
-                <div class="clearfix">
-                    <div class="float-left">
-                        <i class="mdi mdi-history text-primary icon-lg"></i>
-                    </div>
-                    <div class="float-right">
-                        <p class="mb-0 text-right">Aktivitas (24 Jam)</p>
-                        <div class="fluid-container">
-                            <h3 class="font-weight-medium text-right mb-0"><?= number_format($jml_aktivitas) ?></h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 
 <div class="row">
@@ -167,52 +149,54 @@ $jml_aktivitas = mysqli_num_rows($q_aktivitas);
                 </h4>
                 <p class="card-description">Memantau aktivitas login, logout, dan manajemen data.</p>
                 
-                <ul class="activity-timeline">
-                    <?php if ($jml_aktivitas > 0) : ?>
-                        <?php while ($row = mysqli_fetch_assoc($q_aktivitas)) : 
-                            $jenis = $row['jenis_aktivitas'];
-                            $icon = 'mdi-information';
-                            $bg_color = 'bg-info';
-
-                            if ($jenis == 'Login') {
-                                $icon = 'mdi-login';
-                                $bg_color = 'bg-success';
-                            } elseif ($jenis == 'Logout') {
-                                $icon = 'mdi-logout';
-                                $bg_color = 'bg-secondary';
-                            } elseif ($jenis == 'Create') {
-                                $icon = 'mdi-plus-circle';
-                                $bg_color = 'bg-primary';
-                            } elseif ($jenis == 'Update') {
-                                $icon = 'mdi-pencil';
-                                $bg_color = 'bg-warning';
-                            } elseif ($jenis == 'Delete') {
-                                $icon = 'mdi-delete';
-                                $bg_color = 'bg-danger';
-                            }
-                        ?>
-                        <li>
-                            <div class="activity-timeline-item">
-                                <div class="activity-icon <?= $bg_color ?>">
-                                    <i class="mdi <?= $icon ?>"></i>
+                <div style="height: 400px; overflow-y: auto; overflow-x: hidden;">
+                    <ul class="activity-timeline">
+                        <?php if ($jml_aktivitas > 0) : ?>
+                            <?php while ($row = mysqli_fetch_assoc($q_aktivitas)) : 
+                                $jenis = $row['jenis_aktivitas'];
+                                $icon = 'mdi-information';
+                                $bg_color = 'bg-info';
+    
+                                if ($jenis == 'Login') {
+                                    $icon = 'mdi-login';
+                                    $bg_color = 'bg-success';
+                                } elseif ($jenis == 'Logout') {
+                                    $icon = 'mdi-logout';
+                                    $bg_color = 'bg-secondary';
+                                } elseif ($jenis == 'Create') {
+                                    $icon = 'mdi-plus-circle';
+                                    $bg_color = 'bg-primary';
+                                } elseif ($jenis == 'Update') {
+                                    $icon = 'mdi-pencil';
+                                    $bg_color = 'bg-warning';
+                                } elseif ($jenis == 'Delete') {
+                                    $icon = 'mdi-delete';
+                                    $bg_color = 'bg-danger';
+                                }
+                            ?>
+                            <li>
+                                <div class="activity-timeline-item">
+                                    <div class="activity-icon <?= $bg_color ?>">
+                                        <i class="mdi <?= $icon ?>"></i>
+                                    </div>
+                                    <div class="activity-content">
+                                        <h5 class="font-weight-bold mb-1"><?= $row['nama_lengkap'] ?> <span class="text-muted small">- <?= $jenis ?></span></h5>
+                                        <p class="mb-1 text-dark"><?= $row['deskripsi'] ?></p>
+                                        <small class="text-muted">
+                                            <i class="mdi mdi-clock"></i> <?= date('d/m/Y H:i', strtotime($row['created_at'])) ?> 
+                                            &bull; <?= time_ago($row['created_at']) ?>
+                                        </small>
+                                    </div>
                                 </div>
-                                <div class="activity-content">
-                                    <h5 class="font-weight-bold mb-1"><?= $row['nama_lengkap'] ?> <span class="text-muted small">- <?= $jenis ?></span></h5>
-                                    <p class="mb-1 text-dark"><?= $row['deskripsi'] ?></p>
-                                    <small class="text-muted">
-                                        <i class="mdi mdi-clock"></i> <?= date('d/m/Y H:i', strtotime($row['created_at'])) ?> 
-                                        &bull; <?= time_ago($row['created_at']) ?>
-                                    </small>
-                                </div>
-                            </div>
-                        </li>
-                        <?php endwhile; ?>
-                    <?php else : ?>
-                        <li>
-                            <p class="text-center text-muted">Belum ada aktivitas dalam 24 jam terakhir.</p>
-                        </li>
-                    <?php endif; ?>
-                </ul>
+                            </li>
+                            <?php endwhile; ?>
+                        <?php else : ?>
+                            <li>
+                                <p class="text-center text-muted">Belum ada aktivitas dalam 24 jam terakhir.</p>
+                            </li>
+                        <?php endif; ?>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>

@@ -16,7 +16,7 @@ if (!isset($_SESSION['login']) || !isset($_SESSION['nama_lengkap']) || !isset($_
     <title>Aplikasi SPP - MI Sultan Fattah Sukosono</title>
     <link rel="stylesheet" href="<?= base_url('assets/vendors/mdi/css/materialdesignicons.min.css') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/vendors/css/vendor.bundle.base.css') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/css/style.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('assets/css/style.css') ?>?v=<?= time() ?>">
     <link rel="shortcut icon" href="<?= base_url('assets/images/favicon.png') ?>" />
     <!-- DataTables -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.10.24/css/dataTables.bootstrap4.min.css">
@@ -52,6 +52,18 @@ if (!isset($_SESSION['login']) || !isset($_SESSION['nama_lengkap']) || !isset($_
             .sidebar {
                 top: 70px !important;
                 height: calc(100vh - 70px) !important;
+            }
+            
+            /* Show App Name on Mobile */
+            .navbar .navbar-brand-wrapper {
+                width: auto !important;
+                padding-left: 15px;
+            }
+            .navbar .navbar-brand-wrapper .navbar-brand.brand-logo {
+                display: block !important;
+            }
+            .navbar .navbar-brand-wrapper .navbar-brand.brand-logo-mini {
+                display: none !important;
             }
         }
         
@@ -130,9 +142,9 @@ if (!isset($_SESSION['login']) || !isset($_SESSION['nama_lengkap']) || !isset($_
 <body>
     <div class="container-scroller">
         <nav class="navbar default-layout col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
-            <div class="text-center navbar-brand-wrapper d-flex align-items-top justify-content-center">
+            <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-center">
                 <a class="navbar-brand brand-logo" href="<?= base_url() ?>">
-                    <h3 class="mt-2">APP SPP</h3>
+                    <h3 class="mb-0 font-weight-bold text-white">APP SPP</h3>
                 </a>
                 <a class="navbar-brand brand-logo-mini" href="<?= base_url() ?>">
                     <img src="<?= base_url('assets/images/logo-mini.svg') ?>" alt="logo" />
@@ -146,8 +158,8 @@ if (!isset($_SESSION['login']) || !isset($_SESSION['nama_lengkap']) || !isset($_
                     <li class="nav-item dropdown d-none d-xl-inline-block">
                         <a class="nav-link dropdown-toggle" id="UserDropdown" href="#" data-bs-toggle="dropdown" aria-expanded="false">
                             <div class="d-none d-md-block me-3 text-end">
-                                <p class="mb-0 font-weight-bold text-dark"><?= $_SESSION['nama_lengkap'] ?></p>
-                                <p class="mb-0 text-muted small"><?= $_SESSION['role'] ?></p>
+                                <p class="mb-0 font-weight-bold text-white"><?= $_SESSION['nama_lengkap'] ?></p>
+                                <p class="mb-0 text-white small"><?= $_SESSION['role'] ?></p>
                             </div>
                             <?php
                             $foto = $_SESSION['foto'] ?? '';
