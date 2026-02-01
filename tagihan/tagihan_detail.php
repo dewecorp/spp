@@ -33,7 +33,7 @@ $q_jb = mysqli_query($koneksi, "SELECT * FROM jenis_bayar ORDER BY tipe_bayar AS
                             <i class="mdi mdi-file-excel"></i> Export Excel
                         </a>
                         <a href="export_pdf.php?nisn=<?= $nisn ?>&id_kelas=<?= $id_kelas ?>" class="btn btn-danger" target="_blank">
-                            <i class="mdi mdi-file-pdf"></i> Export PDF
+                            <i class="mdi mdi-printer"></i> Cetak Tagihan
                         </a>
                     </div>
                 </div>

@@ -29,12 +29,6 @@ include '../template/sidebar.php';
                                 </select>
                             </div>
                         </div>
-                        <div class="col-md-2">
-                            <div class="form-group">
-                                <label>&nbsp;</label>
-                                <button type="submit" class="btn btn-primary btn-block">Cari</button>
-                            </div>
-                        </div>
                     </div>
                 </form>
             </div>
@@ -53,7 +47,12 @@ if (isset($_GET['id_kelas'])) {
     <div class="col-lg-12 grid-margin stretch-card">
         <div class="card">
             <div class="card-body">
-                <h4 class="card-title">Data Siswa Kelas: <?= $d_kelas['nama_kelas'] ?></h4>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="card-title mb-0">Data Siswa Kelas: <?= $d_kelas['nama_kelas'] ?></h4>
+                    <a href="cetak_semua.php?id_kelas=<?= $id_kelas ?>" class="btn btn-primary" target="_blank">
+                        <i class="mdi mdi-printer"></i> Cetak Tagihan Semua Siswa
+                    </a>
+                </div>
                 <div class="table-responsive">
                     <table class="table table-bordered table-striped">
                         <thead class="bg-primary text-white">
@@ -100,6 +99,13 @@ if (isset($_GET['id_kelas'])) {
         $('.select2').select2({
             theme: "bootstrap",
             width: '100%'
+        });
+
+        // Auto submit form when class is selected
+        $('#id_kelas').on('change', function() {
+            if ($(this).val()) {
+                $(this).closest('form').submit();
+            }
         });
     });
 </script>

@@ -22,6 +22,13 @@ $nama_kelas = $d_siswa['nama_kelas'];
 $q_jb = mysqli_query($koneksi, "SELECT * FROM jenis_bayar ORDER BY tipe_bayar ASC, nama_pembayaran ASC");
 $months = ['Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni'];
 
+// Get School Settings
+$q_setting = mysqli_query($koneksi, "SELECT * FROM pengaturan WHERE id_pengaturan = 1");
+$d_setting = mysqli_fetch_assoc($q_setting);
+$nama_sekolah = $d_setting['nama_sekolah'] ?? 'SMK NEGERI 1 CONTOH';
+$nama_bendahara = $d_setting['nama_bendahara'] ?? 'Bendahara Sekolah';
+$tahun_ajaran = $d_setting['tahun_ajaran'] ?? '';
+
 ?>
 <!DOCTYPE html>
 <html>
@@ -30,6 +37,7 @@ $months = ['Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember', 'J
     <style>
         body { font-family: sans-serif; font-size: 12px; }
         .header { text-align: center; margin-bottom: 20px; }
+        .header h2, .header h3, .header p { margin: 2px 0; }
         .info-siswa { margin-bottom: 20px; }
         .info-siswa table { width: auto; border: none; }
         .info-siswa td { border: none; padding: 2px 10px 2px 0; }
@@ -44,6 +52,8 @@ $months = ['Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember', 'J
         .text-success { color: green; font-weight: bold; }
         .text-danger { color: red; font-weight: bold; }
         
+        .signature { margin-top: 30px; float: right; text-align: center; width: 200px; }
+        
         @media print {
             @page { size: A4; margin: 2cm; }
         }
@@ -52,7 +62,8 @@ $months = ['Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember', 'J
 <body onload="window.print()">
     <div class="header">
         <h2>LAPORAN TAGIHAN SISWA</h2>
-        <h3><?= strtoupper($nama_sekolah ?? 'SMK NEGERI 1 CONTOH') ?></h3>
+        <h3><?= strtoupper($nama_sekolah) ?></h3>
+        <p>TAHUN AJARAN <?= strtoupper($tahun_ajaran) ?></p>
     </div>
 
     <div class="info-siswa">
@@ -85,6 +96,7 @@ $months = ['Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember', 'J
         <tbody>
             <?php
             $no = 1;
+            $total_tagihan = 0;
             
             // Calculate current month index (relative to school year starting July)
             $current_month_num = date('n'); // 1-12
@@ -123,6 +135,12 @@ $months = ['Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember', 'J
                         if ($index > $limit_index) continue; // Skip future months
 
                         $is_paid = in_array($m, $paid_months);
+                        
+                        // Calculate unpaid amount
+                        if (!$is_paid) {
+                            $total_tagihan += $jb['nominal'];
+                        }
+
                         $symbol = $is_paid ? '&#10004;' : '&#10006;';
                         $color = $is_paid ? 'green' : 'red';
                         
@@ -143,6 +161,10 @@ $months = ['Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember', 'J
                     $total_bayar = $d_total['total'] ?? 0;
                     $sisa = $jb['nominal'] - $total_bayar;
                     
+                    if ($sisa > 0) {
+                        $total_tagihan += $sisa;
+                    }
+
                     echo "Sudah Bayar: Rp " . number_format($total_bayar, 0, ',', '.') . "<br>";
                     if ($sisa <= 0) {
                         echo '<span class="text-success">&#10004; LUNAS</span>';
@@ -155,7 +177,27 @@ $months = ['Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember', 'J
                 echo "</tr>";
             }
             ?>
+            <tr>
+                <td colspan="4" style="text-align: right; font-weight: bold;">Total Tagihan Belum Dibayar</td>
+                <td style="font-weight: bold; color: red;">Rp <?= number_format($total_tagihan, 0, ',', '.') ?></td>
+            </tr>
         </tbody>
     </table>
+
+    <div class="signature">
+        <?php
+        $tgl = date('d');
+        $bulan = [
+            '01' => 'Januari', '02' => 'Februari', '03' => 'Maret', '04' => 'April', '05' => 'Mei', '06' => 'Juni',
+            '07' => 'Juli', '08' => 'Agustus', '09' => 'September', '10' => 'Oktober', '11' => 'November', '12' => 'Desember'
+        ];
+        $bln = $bulan[date('m')];
+        $thn = date('Y');
+        ?>
+        <p><?= $tgl . ' ' . $bln . ' ' . $thn ?></p>
+        <p>Bendahara,</p>
+        <br><br><br>
+        <p><b><?= $nama_bendahara ?></b></p>
+    </div>
 </body>
 </html>
