@@ -93,39 +93,81 @@ if (isset($_POST['tambah'])) {
 if (isset($_POST['update_transaksi'])) {
     $no_transaksi = $_POST['no_transaksi'];
     $tgl_bayar = $_POST['tgl_bayar'];
-    $id_pembayaran = $_POST['id_pembayaran'];
-    $count_success = 0;
+    $nisn = $_POST['nisn']; 
+    $payments_input = isset($_POST['payment']) ? $_POST['payment'] : [];
 
-    foreach ($id_pembayaran as $id) {
-        $nominal = isset($_POST['nominal'][$id]) ? str_replace('.', '', $_POST['nominal'][$id]) : 0;
-        $cicilan_ke = isset($_POST['cicilan_ke'][$id]) ? $_POST['cicilan_ke'][$id] : 0;
-        $bulan_bayar_str = '';
-        
-        // Fetch current item to check type
-        $q_curr = mysqli_query($koneksi, "SELECT p.*, jb.tipe_bayar, jb.nominal as nominal_asli 
-                                          FROM pembayaran p 
-                                          JOIN jenis_bayar jb ON p.id_jenis_bayar = jb.id_jenis_bayar 
-                                          WHERE p.id_pembayaran = '$id'");
-        $curr_item = mysqli_fetch_assoc($q_curr);
-
-        if ($curr_item['tipe_bayar'] == 'Bulanan') {
-             if (isset($_POST['bulan_bayar'][$id])) {
-                 $b_arr = $_POST['bulan_bayar'][$id];
-                 $bulan_bayar_str = implode(', ', $b_arr);
-                 $new_amount = count($b_arr) * $curr_item['nominal_asli'];
-                 $nominal = $new_amount;
-                 $ket = "Lunas (Bulanan) - " . $bulan_bayar_str;
-                 
-                 mysqli_query($koneksi, "UPDATE pembayaran SET tgl_bayar='$tgl_bayar', bulan_bayar='$bulan_bayar_str', jumlah_bayar='$nominal', ket='$ket' WHERE id_pembayaran='$id'");
-             }
-        } else {
-             $ket = "Cicilan ke-$cicilan_ke";
-             mysqli_query($koneksi, "UPDATE pembayaran SET tgl_bayar='$tgl_bayar', cicilan_ke='$cicilan_ke', jumlah_bayar='$nominal', ket='$ket' WHERE id_pembayaran='$id'");
-        }
-        $count_success++;
+    // 1. Get existing IDs for this transaction to track what to keep/delete
+    $q_exist = mysqli_query($koneksi, "SELECT id_pembayaran FROM pembayaran WHERE no_transaksi='$no_transaksi'");
+    $existing_ids = [];
+    while($row = mysqli_fetch_assoc($q_exist)) {
+        $existing_ids[] = $row['id_pembayaran'];
     }
 
-    if ($count_success > 0) {
+    $submitted_ids = [];
+    $success_count = 0;
+
+    foreach ($payments_input as $id_jb => $data) {
+        $id_pembayaran = isset($data['id_pembayaran']) ? $data['id_pembayaran'] : null;
+        
+        // Get Info Jenis Bayar
+        $q_jb = mysqli_query($koneksi, "SELECT * FROM jenis_bayar WHERE id_jenis_bayar='$id_jb'");
+        $d_jb = mysqli_fetch_assoc($q_jb);
+
+        // Prepare common vars
+        $cicilan_ke = 0;
+        $jumlah_bayar = 0;
+        $ket = '';
+        $bulan_bayar_str = '';
+
+        if ($d_jb['tipe_bayar'] == 'Cicilan') {
+            $cicilan_ke = isset($data['cicilan_ke']) ? $data['cicilan_ke'] : 0;
+            $nominal = isset($data['nominal']) ? str_replace('.', '', $data['nominal']) : 0;
+            $jumlah_bayar = $nominal;
+            $ket = "Cicilan ke-$cicilan_ke";
+        } else {
+            // Bulanan
+            $bulan_bayar_arr = isset($data['bulan_bayar']) ? $data['bulan_bayar'] : [];
+            $bulan_bayar_str = implode(', ', $bulan_bayar_arr);
+            $jumlah_bayar = $d_jb['nominal'] * count($bulan_bayar_arr);
+            $ket = "Lunas (Bulanan) - " . $bulan_bayar_str;
+        }
+
+        if ($id_pembayaran && in_array($id_pembayaran, $existing_ids)) {
+            // UPDATE EXISTING ITEM
+            $query = mysqli_query($koneksi, "UPDATE pembayaran SET 
+                tgl_bayar='$tgl_bayar', 
+                jumlah_bayar='$jumlah_bayar', 
+                cicilan_ke='$cicilan_ke', 
+                ket='$ket', 
+                bulan_bayar='$bulan_bayar_str' 
+                WHERE id_pembayaran='$id_pembayaran'");
+            
+            if ($query) {
+                $submitted_ids[] = $id_pembayaran;
+                $success_count++;
+            }
+        } else {
+            // INSERT NEW ITEM (User added a new payment type in edit modal)
+            $id_petugas = $_SESSION['id_pengguna'];
+            $tahun_bayar = date('Y', strtotime($tgl_bayar));
+            
+            $query = mysqli_query($koneksi, "INSERT INTO pembayaran 
+                (id_petugas, nisn, tgl_bayar, id_jenis_bayar, jumlah_bayar, cicilan_ke, ket, bulan_bayar, tahun_bayar, no_transaksi) 
+                VALUES 
+                ('$id_petugas', '$nisn', '$tgl_bayar', '$id_jb', '$jumlah_bayar', '$cicilan_ke', '$ket', '$bulan_bayar_str', '$tahun_bayar', '$no_transaksi')");
+            
+            if ($query) $success_count++;
+        }
+    }
+
+    // DELETE REMOVED ITEMS (User deselected a payment type)
+    $ids_to_delete = array_diff($existing_ids, $submitted_ids);
+    if (!empty($ids_to_delete)) {
+        $ids_str = implode(',', $ids_to_delete);
+        mysqli_query($koneksi, "DELETE FROM pembayaran WHERE id_pembayaran IN ($ids_str)");
+    }
+
+    if ($success_count > 0 || !empty($ids_to_delete)) {
         logActivity($koneksi, 'Update', "Mengedit transaksi No: $no_transaksi");
         echo "<script>
             Swal.fire({
@@ -138,6 +180,8 @@ if (isset($_POST['update_transaksi'])) {
                 window.location='transaksi.php';
             });
         </script>";
+    } else {
+         echo "<script>Swal.fire('Gagal', 'Tidak ada perubahan data', 'info');</script>";
     }
 }
 
@@ -343,6 +387,12 @@ if (isset($_GET['hapus_transaksi'])) {
                 theme: "bootstrap",
                 dropdownParent: $(this).closest('.modal')
             });
+        });
+
+        // Trigger validation/update when Student changes
+        $('#nisnTambah').on('change', function() {
+            // Trigger change on Jenis Bayar to re-validate against the new student's class
+            $('#jbTambah').trigger('change');
         });
 
         // Handler for Edit Button Click
