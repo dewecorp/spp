@@ -121,6 +121,7 @@ if (isset($_POST['no_transaksi'])) {
                 placeholder: "Pilih Jenis Bayar",
                 allowClear: true,
                 theme: "bootstrap",
+                width: '100%',
                 dropdownParent: $('#modalEdit')
             });
 
@@ -129,6 +130,7 @@ if (isset($_POST['no_transaksi'])) {
                 placeholder: "Pilih Bulan",
                 allowClear: true,
                 theme: "bootstrap",
+                width: '100%',
                 dropdownParent: $('#modalEdit')
             });
 
@@ -221,6 +223,7 @@ if (isset($_POST['no_transaksi'])) {
                     placeholder: "Pilih Bulan",
                     allowClear: true,
                     theme: "bootstrap",
+                    width: '100%',
                     dropdownParent: $('#modalEdit')
                 });
             });

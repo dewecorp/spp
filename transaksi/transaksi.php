@@ -6,6 +6,20 @@ include '../template/sidebar.php';
 ?>
 <link rel="stylesheet" href="<?= base_url('assets/vendors/select2/select2.min.css') ?>">
 <link rel="stylesheet" href="<?= base_url('assets/vendors/select2-bootstrap-theme/select2-bootstrap.min.css') ?>">
+<style>
+    /* Fix Select2 width issue in Bootstrap Modals */
+    .select2-container {
+        width: 100% !important;
+    }
+    .select2-selection--multiple {
+        width: 100% !important;
+    }
+    /* Ensure placeholder is visible */
+    .select2-search__field {
+        width: 100% !important;
+        min-width: 200px !important;
+    }
+</style>
 
 <?php
 // Fetch Data Siswa & Jenis Bayar for Modal
@@ -322,7 +336,7 @@ if (isset($_GET['hapus_transaksi'])) {
                     </div>
                     <div class="form-group">
                         <label>Jenis Bayar</label>
-                        <select name="id_jenis_bayar[]" class="form-control select2-multiple" id="jbTambah" multiple="multiple" style="width: 100%;" required>
+                        <select name="id_jenis_bayar[]" class="form-control select2-multiple" id="jbTambah" multiple="multiple" style="width: 100%;" required data-placeholder="Pilih Jenis Bayar">
                             <?php foreach ($jb_list as $jb) : ?>
                                 <option value="<?= $jb['id_jenis_bayar'] ?>" 
                                     data-tipe="<?= $jb['tipe_bayar'] ?>" 
@@ -385,7 +399,21 @@ if (isset($_GET['hapus_transaksi'])) {
         $('.select2-modal').each(function() {
             $(this).select2({
                 theme: "bootstrap",
+                width: '100%',
                 dropdownParent: $(this).closest('.modal')
+            });
+        });
+
+        // Re-adjust Select2 when modal is shown (Crucial for width calculation)
+        $('#modalTambah').on('shown.bs.modal', function () {
+            $('.select2-modal, .select2-multiple').each(function() {
+                $(this).select2({
+                    theme: "bootstrap",
+                    width: '100%',
+                    dropdownParent: $(this).closest('.modal'),
+                    placeholder: $(this).data('placeholder') || "Pilih Options",
+                    allowClear: true
+                });
             });
         });
 
@@ -419,10 +447,12 @@ if (isset($_GET['hapus_transaksi'])) {
 
         // Initialize Select2 Multiple for Bulan
         $('.select2-multiple').each(function() {
+            var placeholder = $(this).data('placeholder') || "Pilih Bulan";
             $(this).select2({
-                placeholder: "Pilih Bulan",
+                placeholder: placeholder,
                 allowClear: true,
                 theme: "bootstrap",
+                width: '100%',
                 dropdownParent: $(this).closest('.modal')
             });
         });

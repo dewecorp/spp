@@ -35,6 +35,12 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="<?= base_url('tagihan/tagihan.php') ?>">
+                            <i class="menu-icon mdi mdi-file-document"></i>
+                            <span class="menu-title">Tagihan Siswa</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="<?= base_url('transaksi/riwayat.php') ?>">
                             <i class="menu-icon mdi mdi-chart-line"></i>
                             <span class="menu-title">Riwayat Bayar</span>
