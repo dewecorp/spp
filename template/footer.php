@@ -25,5 +25,54 @@
             $('.table').DataTable();
         });
     </script>
+    <script>
+        function confirmLogout(event) {
+            event.preventDefault();
+            const url = event.currentTarget.getAttribute('href');
+            Swal.fire({
+                title: 'Konfirmasi Logout',
+                text: "Apakah anda yakin ingin keluar dari aplikasi?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Ya, Logout!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = url;
+                }
+            });
+        }
+
+        function updateDateTime() {
+            const now = new Date();
+            const dateOptions = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                timeZone: 'Asia/Jakarta'
+            };
+            const timeOptions = { 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit', 
+                hour12: false,
+                timeZone: 'Asia/Jakarta'
+            };
+            
+            const dateStr = now.toLocaleDateString('id-ID', dateOptions);
+            const timeStr = now.toLocaleTimeString('id-ID', timeOptions).replace(/\./g, ':');
+            
+            const element = document.getElementById('current-datetime');
+            if (element) {
+                element.textContent = `${dateStr} - ${timeStr} WIB`;
+            }
+        }
+        
+        setInterval(updateDateTime, 1000);
+        updateDateTime();
+    </script>
 </body>
 </html>

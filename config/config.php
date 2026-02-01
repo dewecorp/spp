@@ -29,4 +29,7 @@ function base_url($path = "") {
     global $base_url;
     return $base_url . $path;
 }
+
+// Include Helper
+include_once __DIR__ . '/../include/activity_helper.php';
 ?>

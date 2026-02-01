@@ -26287,3 +26287,75 @@ dl li {
   flex-grow: 1;
 }
 /*# sourceMappingURL=maps/style.css.map */
+
+/* Timeline Modern */
+.activity-timeline {
+  list-style-type: none;
+  position: relative;
+  padding: 20px 0 20px 20px;
+  margin: 0;
+}
+
+/* Vertical Line */
+.activity-timeline:before {
+  content: ' ';
+  background: #e9ecef;
+  display: inline-block;
+  position: absolute;
+  left: 20px;
+  width: 2px;
+  height: 100%;
+  z-index: 1;
+  top: 0;
+}
+
+.activity-timeline > li {
+  margin-bottom: 20px;
+  position: relative;
+  padding-left: 40px;
+}
+
+/* Remove old circle before */
+.activity-timeline > li:before {
+  content: none;
+}
+
+.activity-timeline-item {
+    position: relative;
+    /* Optional: Card style for the item */
+    /* background: #f8f9fa; */
+    /* padding: 10px; */
+    /* border-radius: 4px; */
+}
+
+.activity-icon {
+    position: absolute;
+    left: -18px;
+    top: 15px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 36px;
+    color: #fff;
+    z-index: 2;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Re-override for precise positioning if needed */
+.activity-timeline > li .activity-icon {
+    left: -58px; /* Relative to LI content which has padding-left: 40px.
+                    If line is at UL left 20px.
+                    LI is inside UL.
+                    If LI has padding-left: 40px.
+                    Icon 0 is at LI content start.
+                    -40px is LI left edge.
+                    We need to hit the line at 20px from UL left.
+                    So -20px from LI left edge?
+                    Let's simplify.
+                 */
+}
+
+
+
+

@@ -10,6 +10,7 @@ if (isset($_POST['tambah'])) {
     
     $query = mysqli_query($koneksi, "INSERT INTO jenis_bayar (nama_pembayaran, nominal, tahun_ajaran) VALUES ('$nama_pembayaran', '$nominal', '$tahun_ajaran')");
     if ($query) {
+        logActivity($koneksi, 'Create', "Menambah jenis bayar: $nama_pembayaran ($tahun_ajaran)");
         echo "<script>
             Swal.fire({
                 title: 'Berhasil',
@@ -35,6 +36,7 @@ if (isset($_POST['edit'])) {
 
     $query = mysqli_query($koneksi, "UPDATE jenis_bayar SET nama_pembayaran='$nama_pembayaran', nominal='$nominal', tahun_ajaran='$tahun_ajaran' WHERE id_jenis_bayar='$id_jenis_bayar'");
     if ($query) {
+        logActivity($koneksi, 'Update', "Mengedit jenis bayar: $nama_pembayaran ($tahun_ajaran)");
         echo "<script>
             Swal.fire({
                 title: 'Berhasil',
@@ -56,6 +58,7 @@ if (isset($_GET['hapus'])) {
     $id_jenis_bayar = $_GET['hapus'];
     $query = mysqli_query($koneksi, "DELETE FROM jenis_bayar WHERE id_jenis_bayar='$id_jenis_bayar'");
     if ($query) {
+        logActivity($koneksi, 'Delete', "Menghapus jenis bayar ID: $id_jenis_bayar");
         echo "<script>
             Swal.fire({
                 title: 'Berhasil',

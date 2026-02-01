@@ -1,21 +1,5 @@
             <nav class="sidebar sidebar-offcanvas" id="sidebar">
                 <ul class="nav">
-                    <li class="nav-item nav-profile">
-                        <div class="nav-link">
-                            <div class="user-wrapper">
-                                <div class="profile-image">
-                                    <img src="<?= base_url('assets/images/faces/face1.jpg') ?>" alt="profile image">
-                                </div>
-                                <div class="text-wrapper">
-                                    <p class="profile-name"><?= $_SESSION['nama_lengkap'] ?></p>
-                                    <div>
-                                        <small class="designation text-muted"><?= ucfirst($_SESSION['role']) ?></small>
-                                        <span class="status-indicator online"></span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </li>
                     <li class="nav-item">
                         <a class="nav-link" href="<?= base_url('index.php') ?>">
                             <i class="menu-icon mdi mdi-television"></i>
@@ -69,9 +53,15 @@
                             <span class="menu-title">Pengaturan</span>
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="<?= base_url('pengaturan/backup_restore.php') ?>">
+                            <i class="menu-icon mdi mdi-database"></i>
+                            <span class="menu-title">Backup Restore</span>
+                        </a>
+                    </li>
                     <?php endif; ?>
                     <li class="nav-item">
-                        <a class="nav-link" href="<?= base_url('auth/logout.php') ?>">
+                        <a class="nav-link" href="<?= base_url('auth/logout.php') ?>" onclick="confirmLogout(event)">
                             <i class="menu-icon mdi mdi-logout"></i>
                             <span class="menu-title">Logout</span>
                         </a>

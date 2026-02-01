@@ -2,7 +2,8 @@
 session_start();
 include_once __DIR__ . '/../config/config.php';
 
-if (!isset($_SESSION['login'])) {
+if (!isset($_SESSION['login']) || !isset($_SESSION['nama_lengkap']) || !isset($_SESSION['role'])) {
+    session_destroy();
     header("Location: " . base_url('auth/login.php'));
     exit;
 }
@@ -138,14 +139,31 @@ if (!isset($_SESSION['login'])) {
                 </a>
             </div>
             <div class="navbar-menu-wrapper d-flex align-items-center">
+                <div class="d-none d-lg-block me-auto">
+                    <span class="text-white fw-bold" id="current-datetime" style="font-size: 0.9rem;"></span>
+                </div>
                 <ul class="navbar-nav navbar-nav-right">
                     <li class="nav-item dropdown d-none d-xl-inline-block">
                         <a class="nav-link dropdown-toggle" id="UserDropdown" href="#" data-bs-toggle="dropdown" aria-expanded="false">
-                            <span class="profile-text">Hello, <?= $_SESSION['nama_lengkap'] ?> !</span>
-                            <img class="img-xs rounded-circle" src="<?= base_url('assets/images/faces/face1.jpg') ?>" alt="Profile image">
+                            <div class="d-none d-md-block me-3 text-end">
+                                <p class="mb-0 font-weight-bold text-dark"><?= $_SESSION['nama_lengkap'] ?></p>
+                                <p class="mb-0 text-muted small"><?= $_SESSION['role'] ?></p>
+                            </div>
+                            <?php
+                            $foto = $_SESSION['foto'] ?? '';
+                            // Cek fisik file (karena include, __DIR__ adalah folder template)
+                            $path_fisik = __DIR__ . '/../assets/images/faces/' . $foto;
+                            
+                            if (!empty($foto) && file_exists($path_fisik)) {
+                                $foto_url = base_url('assets/images/faces/' . $foto);
+                            } else {
+                                $foto_url = "https://ui-avatars.com/api/?name=" . urlencode($_SESSION['nama_lengkap']) . "&background=random&color=fff";
+                            }
+                            ?>
+                            <img class="img-xs rounded-circle" src="<?= $foto_url ?>" alt="Profile image" style="object-fit: cover;">
                         </a>
                         <div class="dropdown-menu dropdown-menu-right navbar-dropdown" aria-labelledby="UserDropdown">
-                            <a class="dropdown-item mt-2" href="<?= base_url('auth/logout.php') ?>">
+                            <a class="dropdown-item mt-2" href="<?= base_url('auth/logout.php') ?>" onclick="confirmLogout(event)">
                                 Sign Out
                             </a>
                         </div>

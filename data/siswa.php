@@ -2,14 +2,84 @@
 include '../template/header.php';
 include '../template/sidebar.php';
 
+require __DIR__ . '/../vendor/autoload.php';
+
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
+// Proses Import
+if (isset($_POST['import'])) {
+    $file = $_FILES['file_excel']['tmp_name'];
+    $ext = pathinfo($_FILES['file_excel']['name'], PATHINFO_EXTENSION);
+    
+    if (in_array(strtolower($ext), ['xls', 'xlsx'])) {
+        try {
+            $spreadsheet = IOFactory::load($file);
+            $sheet = $spreadsheet->getActiveSheet();
+            $rows = $sheet->toArray();
+            
+            $success_count = 0;
+            
+            foreach ($rows as $key => $row) {
+                // Skip header
+                if ($key == 0) continue;
+                
+                $nisn = trim($row[0] ?? '');
+                $nama = trim($row[1] ?? '');
+                $nama_kelas = trim($row[2] ?? '');
+                $alamat = trim($row[3] ?? '');
+                
+                // Validate essential data
+                if (empty($nisn) || empty($nama)) continue;
+                
+                // Defaults
+                $nis = '-';
+                $no_telp = '';
+                
+                // Cari ID Kelas
+                $q_kelas = mysqli_query($koneksi, "SELECT id_kelas FROM kelas WHERE nama_kelas = '$nama_kelas'");
+                if (mysqli_num_rows($q_kelas) > 0) {
+                    $d_kelas = mysqli_fetch_assoc($q_kelas);
+                    $id_kelas = $d_kelas['id_kelas'];
+                    
+                    // Cek Duplicate NISN
+                    $cek = mysqli_query($koneksi, "SELECT nisn FROM siswa WHERE nisn = '$nisn'");
+                    if (mysqli_num_rows($cek) == 0) {
+                        $insert = mysqli_query($koneksi, "INSERT INTO siswa (nisn, nis, nama, id_kelas, alamat, no_telp) VALUES ('$nisn', '$nis', '$nama', '$id_kelas', '$alamat', '$no_telp')");
+                        if ($insert) $success_count++;
+                    }
+                }
+            }
+            
+            echo "<script>
+                Swal.fire({
+                    title: 'Selesai',
+                    text: 'Berhasil mengimport $success_count data siswa',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                }).then(() => {
+                    window.location='siswa.php';
+                });
+            </script>";
+            
+            logActivity($koneksi, 'Create', "Import $success_count data siswa via Excel");
+            
+        } catch (Exception $e) {
+            echo "<script>Swal.fire('Gagal', 'Terjadi kesalahan saat membaca file: " . $e->getMessage() . "', 'error');</script>";
+        }
+    } else {
+        echo "<script>Swal.fire('Gagal', 'Format file harus Excel (.xls / .xlsx)', 'error');</script>";
+    }
+}
+
 // Proses Tambah
 if (isset($_POST['tambah'])) {
     $nisn = $_POST['nisn'];
-    $nis = $_POST['nis'];
+    $nis = '-'; // Default
     $nama = $_POST['nama'];
     $id_kelas = $_POST['id_kelas'];
-    $alamat = $_POST['alamat'];
-    $no_telp = $_POST['no_telp'];
+    $alamat = '-'; // Default
+    $no_telp = ''; // Default
     
     // Cek duplikasi NISN
     $cek = mysqli_query($koneksi, "SELECT * FROM siswa WHERE nisn='$nisn'");
@@ -18,6 +88,7 @@ if (isset($_POST['tambah'])) {
     } else {
         $query = mysqli_query($koneksi, "INSERT INTO siswa VALUES ('$nisn', '$nis', '$nama', '$id_kelas', '$alamat', '$no_telp')");
         if ($query) {
+            logActivity($koneksi, 'Create', "Menambah data siswa baru: $nama ($nisn)");
             echo "<script>
                 Swal.fire({
                     title: 'Berhasil',
@@ -39,14 +110,12 @@ if (isset($_POST['tambah'])) {
 if (isset($_POST['edit'])) {
     $nisn_lama = $_POST['nisn_lama'];
     $nisn = $_POST['nisn'];
-    $nis = $_POST['nis'];
     $nama = $_POST['nama'];
     $id_kelas = $_POST['id_kelas'];
-    $alamat = $_POST['alamat'];
-    $no_telp = $_POST['no_telp'];
 
-    $query = mysqli_query($koneksi, "UPDATE siswa SET nisn='$nisn', nis='$nis', nama='$nama', id_kelas='$id_kelas', alamat='$alamat', no_telp='$no_telp' WHERE nisn='$nisn_lama'");
+    $query = mysqli_query($koneksi, "UPDATE siswa SET nisn='$nisn', nama='$nama', id_kelas='$id_kelas' WHERE nisn='$nisn_lama'");
     if ($query) {
+        logActivity($koneksi, 'Update', "Mengubah data siswa: $nama ($nisn)");
         echo "<script>
             Swal.fire({
                 title: 'Berhasil',
@@ -68,6 +137,7 @@ if (isset($_GET['hapus'])) {
     $nisn = $_GET['hapus'];
     $query = mysqli_query($koneksi, "DELETE FROM siswa WHERE nisn='$nisn'");
     if ($query) {
+        logActivity($koneksi, 'Delete', "Menghapus data siswa dengan NISN: $nisn");
         echo "<script>
             Swal.fire({
                 title: 'Berhasil',
@@ -97,19 +167,23 @@ while($k = mysqli_fetch_assoc($kelas)) {
         <div class="card">
             <div class="card-body">
                 <h4 class="card-title">Data Siswa</h4>
-                <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#modalTambah">
-                    <i class="mdi mdi-plus"></i> Tambah Siswa
-                </button>
+                <div class="d-flex justify-content-between mb-3">
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalTambah">
+                        <i class="mdi mdi-plus"></i> Tambah Siswa
+                    </button>
+                    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalImport">
+                        <i class="mdi mdi-file-excel"></i> Import Data
+                    </button>
+                </div>
+                
                 <div class="table-responsive">
                     <table class="table table-striped">
                         <thead>
                             <tr>
                                 <th>No</th>
                                 <th>NISN</th>
-                                <th>NIS</th>
                                 <th>Nama</th>
                                 <th>Kelas</th>
-                                <th>No Telp</th>
                                 <th>Aksi</th>
                             </tr>
                         </thead>
@@ -122,10 +196,8 @@ while($k = mysqli_fetch_assoc($kelas)) {
                                 <tr>
                                     <td><?= $no++ ?></td>
                                     <td><?= $row['nisn'] ?></td>
-                                    <td><?= $row['nis'] ?></td>
                                     <td><?= $row['nama'] ?></td>
                                     <td><?= $row['nama_kelas'] ?></td>
-                                    <td><?= $row['no_telp'] ?></td>
                                     <td>
                                         <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEdit<?= $row['nisn'] ?>">
                                             <i class="mdi mdi-pencil"></i>
@@ -137,11 +209,11 @@ while($k = mysqli_fetch_assoc($kelas)) {
                                 </tr>
 
                                 <!-- Modal Edit -->
-                                <div class="modal fade" id="modalEdit<?= $row['nisn'] ?>" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                <div class="modal fade" id="modalEdit<?= $row['nisn'] ?>" tabindex="-1" role="dialog" aria-hidden="true">
                                     <div class="modal-dialog" role="document">
                                         <div class="modal-content">
                                             <div class="modal-header">
-                                                <h5 class="modal-title" id="exampleModalLabel">Edit Siswa</h5>
+                                                <h5 class="modal-title">Edit Siswa</h5>
                                                 <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
                                                     <span aria-hidden="true">&times;</span>
                                                 </button>
@@ -152,10 +224,6 @@ while($k = mysqli_fetch_assoc($kelas)) {
                                                     <div class="form-group">
                                                         <label>NISN</label>
                                                         <input type="text" name="nisn" class="form-control" value="<?= $row['nisn'] ?>" required>
-                                                    </div>
-                                                    <div class="form-group">
-                                                        <label>NIS</label>
-                                                        <input type="text" name="nis" class="form-control" value="<?= $row['nis'] ?>" required>
                                                     </div>
                                                     <div class="form-group">
                                                         <label>Nama Siswa</label>
@@ -170,14 +238,6 @@ while($k = mysqli_fetch_assoc($kelas)) {
                                                                 </option>
                                                             <?php endforeach; ?>
                                                         </select>
-                                                    </div>
-                                                    <div class="form-group">
-                                                        <label>Alamat</label>
-                                                        <textarea name="alamat" class="form-control" required><?= $row['alamat'] ?></textarea>
-                                                    </div>
-                                                    <div class="form-group">
-                                                        <label>No Telp</label>
-                                                        <input type="text" name="no_telp" class="form-control" value="<?= $row['no_telp'] ?>" required>
                                                     </div>
                                                 </div>
                                                 <div class="modal-footer">
@@ -198,12 +258,12 @@ while($k = mysqli_fetch_assoc($kelas)) {
 </div>
 
 <!-- Modal Tambah -->
-<div class="modal fade" id="modalTambah" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade" id="modalTambah" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Tambah Siswa</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <h5 class="modal-title">Tambah Siswa</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -212,10 +272,6 @@ while($k = mysqli_fetch_assoc($kelas)) {
                     <div class="form-group">
                         <label>NISN</label>
                         <input type="text" name="nisn" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label>NIS</label>
-                        <input type="text" name="nis" class="form-control" required>
                     </div>
                     <div class="form-group">
                         <label>Nama Siswa</label>
@@ -230,14 +286,6 @@ while($k = mysqli_fetch_assoc($kelas)) {
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label>Alamat</label>
-                        <textarea name="alamat" class="form-control" required></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>No Telp</label>
-                        <input type="text" name="no_telp" class="form-control" required>
-                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -248,24 +296,61 @@ while($k = mysqli_fetch_assoc($kelas)) {
     </div>
 </div>
 
-<?php include '../template/footer.php'; ?>
+<!-- Modal Import -->
+<div class="modal fade" id="modalImport" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Import Data Siswa</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="formImport" action="" method="post" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        Gunakan file template Excel berikut untuk mengimport data: <br>
+                        <a href="template_siswa.xlsx" class="btn btn-sm btn-success mt-2">
+                            <i class="mdi mdi-download"></i> Download Template
+                        </a>
+                    </div>
+                    <div class="form-group">
+                        <label>File Excel</label>
+                        <input type="file" name="file_excel" id="file_excel" class="form-control" accept=".xls, .xlsx" required>
+                    </div>
+                    <!-- Progress Bar -->
+                    <div class="progress d-none" id="progressContainer" style="height: 20px;">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" 
+                             style="width: 0%;" id="progressBar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" name="import" class="btn btn-primary" onclick="startProgress()">Import</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 <script>
-    $('.btn-hapus').on('click', function(e) {
-        e.preventDefault();
-        const href = $(this).attr('href');
-        Swal.fire({
-            title: 'Apakah anda yakin?',
-            text: "Data yang dihapus tidak dapat dikembalikan!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Ya, hapus!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.href = href;
+function startProgress() {
+    var fileInput = document.getElementById('file_excel');
+    if(fileInput.files.length > 0) {
+        document.getElementById('progressContainer').classList.remove('d-none');
+        var bar = document.getElementById('progressBar');
+        var width = 0;
+        var interval = setInterval(function() {
+            if (width >= 90) {
+                clearInterval(interval);
+            } else {
+                width++;
+                bar.style.width = width + '%';
+                bar.innerText = width + '%';
             }
-        })
-    });
+        }, 50); // Simulate progress
+    }
+}
 </script>
+
+<?php include '../template/footer.php'; ?>

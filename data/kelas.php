@@ -7,6 +7,7 @@ if (isset($_POST['tambah'])) {
     $nama_kelas = $_POST['nama_kelas'];
     $query = mysqli_query($koneksi, "INSERT INTO kelas (nama_kelas) VALUES ('$nama_kelas')");
     if ($query) {
+        logActivity($koneksi, 'Create', "Menambah kelas: $nama_kelas");
         echo "<script>
             Swal.fire({
                 title: 'Berhasil',
@@ -29,6 +30,7 @@ if (isset($_POST['edit'])) {
     $nama_kelas = $_POST['nama_kelas'];
     $query = mysqli_query($koneksi, "UPDATE kelas SET nama_kelas='$nama_kelas' WHERE id_kelas='$id_kelas'");
     if ($query) {
+        logActivity($koneksi, 'Update', "Mengedit kelas: $nama_kelas");
         echo "<script>
             Swal.fire({
                 title: 'Berhasil',
@@ -50,6 +52,7 @@ if (isset($_GET['hapus'])) {
     $id_kelas = $_GET['hapus'];
     $query = mysqli_query($koneksi, "DELETE FROM kelas WHERE id_kelas='$id_kelas'");
     if ($query) {
+        logActivity($koneksi, 'Delete', "Menghapus kelas ID: $id_kelas");
         echo "<script>
             Swal.fire({
                 title: 'Berhasil',

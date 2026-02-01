@@ -8,9 +8,28 @@ if (isset($_POST['tambah'])) {
     $username = $_POST['username'];
     $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
     $role = $_POST['role'];
+    $foto = '';
 
-    $query = "INSERT INTO pengguna (nama_lengkap, username, password, role) VALUES ('$nama', '$username', '$password', '$role')";
+    // Upload Foto
+    if (!empty($_FILES['foto']['name'])) {
+        $file_name = $_FILES['foto']['name'];
+        $file_tmp = $_FILES['foto']['tmp_name'];
+        $file_ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
+        $allowed_ext = ['jpg', 'jpeg', 'png'];
+
+        if (in_array($file_ext, $allowed_ext)) {
+            $new_name = uniqid() . '.' . $file_ext;
+            $upload_path = "../assets/images/faces/" . $new_name;
+
+            if (move_uploaded_file($file_tmp, $upload_path)) {
+                $foto = $new_name;
+            }
+        }
+    }
+
+    $query = "INSERT INTO pengguna (nama_lengkap, username, password, role, foto) VALUES ('$nama', '$username', '$password', '$role', '$foto')";
     if (mysqli_query($koneksi, $query)) {
+        logActivity($koneksi, 'Create', "Menambah pengguna baru: $username ($role)");
         echo "<script>
             Swal.fire({
                 title: 'Berhasil',
@@ -23,7 +42,7 @@ if (isset($_POST['tambah'])) {
             });
         </script>";
     } else {
-        echo "<script>Swal.fire('Gagal', 'Data gagal ditambahkan', 'error');</script>";
+        echo "<script>Swal.fire('Gagal', 'Data gagal ditambahkan: " . mysqli_error($koneksi) . "', 'error');</script>";
     }
 }
 
@@ -33,14 +52,34 @@ if (isset($_POST['edit'])) {
     $username = $_POST['username'];
     $role = $_POST['role'];
     
-    $query = "UPDATE pengguna SET nama_lengkap='$nama', username='$username', role='$role' WHERE id_pengguna='$id'";
+    $query = "UPDATE pengguna SET nama_lengkap='$nama', username='$username', role='$role'";
+
+    // Upload Foto
+    if (!empty($_FILES['foto']['name'])) {
+        $file_name = $_FILES['foto']['name'];
+        $file_tmp = $_FILES['foto']['tmp_name'];
+        $file_ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
+        $allowed_ext = ['jpg', 'jpeg', 'png'];
+
+        if (in_array($file_ext, $allowed_ext)) {
+            $new_name = uniqid() . '.' . $file_ext;
+            $upload_path = "../assets/images/faces/" . $new_name;
+
+            if (move_uploaded_file($file_tmp, $upload_path)) {
+                $query .= ", foto='$new_name'";
+            }
+        }
+    }
     
     if (!empty($_POST['password'])) {
         $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
-        $query = "UPDATE pengguna SET nama_lengkap='$nama', username='$username', password='$password', role='$role' WHERE id_pengguna='$id'";
+        $query .= ", password='$password'";
     }
 
+    $query .= " WHERE id_pengguna='$id'";
+
     if (mysqli_query($koneksi, $query)) {
+        logActivity($koneksi, 'Update', "Mengubah data pengguna: $username");
         echo "<script>
             Swal.fire({
                 title: 'Berhasil',
@@ -53,7 +92,7 @@ if (isset($_POST['edit'])) {
             });
         </script>";
     } else {
-        echo "<script>Swal.fire('Gagal', 'Data gagal diubah', 'error');</script>";
+        echo "<script>Swal.fire('Gagal', 'Data gagal diubah: " . mysqli_error($koneksi) . "', 'error');</script>";
     }
 }
 
@@ -61,6 +100,7 @@ if (isset($_GET['hapus'])) {
     $id = $_GET['hapus'];
     $query = "DELETE FROM pengguna WHERE id_pengguna='$id'";
     if (mysqli_query($koneksi, $query)) {
+        logActivity($koneksi, 'Delete', "Menghapus pengguna ID: $id");
         echo "<script>
             Swal.fire({
                 title: 'Berhasil',
@@ -91,6 +131,7 @@ if (isset($_GET['hapus'])) {
                         <thead>
                             <tr>
                                 <th>No</th>
+                                <th>Foto</th>
                                 <th>Nama Lengkap</th>
                                 <th>Username</th>
                                 <th>Role</th>
@@ -102,9 +143,18 @@ if (isset($_GET['hapus'])) {
                             $no = 1;
                             $query = mysqli_query($koneksi, "SELECT * FROM pengguna ORDER BY id_pengguna DESC");
                             while ($row = mysqli_fetch_assoc($query)) :
+                                $foto = $row['foto'];
+                                if (!empty($foto) && file_exists("../assets/images/faces/$foto")) {
+                                    $foto_url = "../assets/images/faces/$foto";
+                                } else {
+                                    $foto_url = "https://ui-avatars.com/api/?name=" . urlencode($row['nama_lengkap']) . "&background=random&color=fff";
+                                }
                             ?>
                                 <tr>
                                     <td><?= $no++ ?></td>
+                                    <td>
+                                        <img src="<?= $foto_url ?>" alt="Foto Profil" class="img-lg rounded-circle" style="width: 50px; height: 50px; object-fit: cover;">
+                                    </td>
                                     <td><?= $row['nama_lengkap'] ?></td>
                                     <td><?= $row['username'] ?></td>
                                     <td>
@@ -146,7 +196,7 @@ if (isset($_GET['hapus'])) {
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form action="" method="post">
+            <form action="" method="post" enctype="multipart/form-data">
                 <div class="modal-body">
                     <div class="form-group">
                         <label>Nama Lengkap</label>
@@ -166,6 +216,11 @@ if (isset($_GET['hapus'])) {
                             <option value="admin">Admin</option>
                             <option value="petugas">Petugas</option>
                         </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Foto Profil (Opsional)</label>
+                        <input type="file" name="foto" class="form-control" accept=".jpg, .jpeg, .png">
+                        <small class="text-muted">Format: JPG, JPEG, PNG.</small>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -187,7 +242,7 @@ if (isset($_GET['hapus'])) {
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form action="" method="post">
+            <form action="" method="post" enctype="multipart/form-data">
                 <div class="modal-body">
                     <input type="hidden" name="id_pengguna" id="edit_id">
                     <div class="form-group">
@@ -208,6 +263,11 @@ if (isset($_GET['hapus'])) {
                             <option value="admin">Admin</option>
                             <option value="petugas">Petugas</option>
                         </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Ganti Foto (Opsional)</label>
+                        <input type="file" name="foto" class="form-control" accept=".jpg, .jpeg, .png">
+                        <small class="text-muted">Format: JPG, JPEG, PNG. Biarkan kosong jika tidak ingin mengganti foto.</small>
                     </div>
                 </div>
                 <div class="modal-footer">

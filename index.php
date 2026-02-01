@@ -2,6 +2,9 @@
 include 'template/header.php';
 include 'template/sidebar.php';
 
+// Auto-delete aktivitas lebih dari 24 jam
+mysqli_query($koneksi, "DELETE FROM log_aktivitas WHERE created_at < NOW() - INTERVAL 24 HOUR");
+
 // 1. Hitung Jumlah Siswa
 $q_siswa = mysqli_query($koneksi, "SELECT COUNT(*) as total FROM siswa");
 $d_siswa = mysqli_fetch_assoc($q_siswa);
@@ -36,16 +39,14 @@ for ($i = 1; $i <= 12; $i++) {
     $chart_data[] = $d_chart['total'] ?? 0;
 }
 
-// Data Aktivitas Terakhir (5 Transaksi Terakhir)
+// Data Aktivitas Pengguna (24 Jam Terakhir)
 $q_aktivitas = mysqli_query($koneksi, "
-    SELECT p.*, s.nama, j.nama_pembayaran, u.nama_lengkap as nama_petugas
-    FROM pembayaran p
-    JOIN siswa s ON p.nisn = s.nisn
-    JOIN jenis_bayar j ON p.id_jenis_bayar = j.id_jenis_bayar
-    JOIN pengguna u ON p.id_petugas = u.id_pengguna
-    ORDER BY p.created_at DESC
-    LIMIT 5
+    SELECT l.*, p.nama_lengkap 
+    FROM log_aktivitas l
+    LEFT JOIN pengguna p ON l.id_pengguna = p.id_pengguna
+    ORDER BY l.created_at DESC
 ");
+$jml_aktivitas = mysqli_num_rows($q_aktivitas);
 ?>
 
 <div class="row">
@@ -121,6 +122,24 @@ $q_aktivitas = mysqli_query($koneksi, "
             </div>
         </div>
     </div>
+    <!-- Card Aktivitas (24 Jam) -->
+    <div class="col-xl-3 col-lg-3 col-md-3 col-sm-6 grid-margin stretch-card">
+        <div class="card card-statistics">
+            <div class="card-body">
+                <div class="clearfix">
+                    <div class="float-left">
+                        <i class="mdi mdi-history text-primary icon-lg"></i>
+                    </div>
+                    <div class="float-right">
+                        <p class="mb-0 text-right">Aktivitas (24 Jam)</p>
+                        <div class="fluid-container">
+                            <h3 class="font-weight-medium text-right mb-0"><?= number_format($jml_aktivitas) ?></h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="row">
@@ -138,41 +157,62 @@ $q_aktivitas = mysqli_query($koneksi, "
 </div>
 
 <div class="row">
-    <!-- Box Data Aktivitas -->
+    <!-- Timeline Aktivitas -->
     <div class="col-md-12 grid-margin stretch-card">
         <div class="card">
             <div class="card-body">
-                <h4 class="card-title">Aktivitas Pembayaran Terakhir</h4>
-                <div class="table-responsive">
-                    <table class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th>Tanggal</th>
-                                <th>Siswa</th>
-                                <th>Pembayaran</th>
-                                <th>Jumlah</th>
-                                <th>Petugas</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php if (mysqli_num_rows($q_aktivitas) > 0) : ?>
-                                <?php while ($row = mysqli_fetch_assoc($q_aktivitas)) : ?>
-                                    <tr>
-                                        <td><?= date('d/m/Y H:i', strtotime($row['created_at'])) ?></td>
-                                        <td><?= $row['nama'] ?></td>
-                                        <td><?= $row['nama_pembayaran'] ?></td>
-                                        <td>Rp <?= number_format($row['jumlah_bayar'], 0, ',', '.') ?></td>
-                                        <td><?= $row['nama_petugas'] ?></td>
-                                    </tr>
-                                <?php endwhile; ?>
-                            <?php else : ?>
-                                <tr>
-                                    <td colspan="5" class="text-center">Belum ada aktivitas pembayaran.</td>
-                                </tr>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
-                </div>
+                <h4 class="card-title">
+                    Aktivitas Pengguna (24 Jam Terakhir)
+                    <span class="badge badge-primary ml-2"><?= $jml_aktivitas ?></span>
+                </h4>
+                <p class="card-description">Memantau aktivitas login, logout, dan manajemen data.</p>
+                
+                <ul class="activity-timeline">
+                    <?php if ($jml_aktivitas > 0) : ?>
+                        <?php while ($row = mysqli_fetch_assoc($q_aktivitas)) : 
+                            $jenis = $row['jenis_aktivitas'];
+                            $icon = 'mdi-information';
+                            $bg_color = 'bg-info';
+
+                            if ($jenis == 'Login') {
+                                $icon = 'mdi-login';
+                                $bg_color = 'bg-success';
+                            } elseif ($jenis == 'Logout') {
+                                $icon = 'mdi-logout';
+                                $bg_color = 'bg-secondary';
+                            } elseif ($jenis == 'Create') {
+                                $icon = 'mdi-plus-circle';
+                                $bg_color = 'bg-primary';
+                            } elseif ($jenis == 'Update') {
+                                $icon = 'mdi-pencil';
+                                $bg_color = 'bg-warning';
+                            } elseif ($jenis == 'Delete') {
+                                $icon = 'mdi-delete';
+                                $bg_color = 'bg-danger';
+                            }
+                        ?>
+                        <li>
+                            <div class="activity-timeline-item">
+                                <div class="activity-icon <?= $bg_color ?>">
+                                    <i class="mdi <?= $icon ?>"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <h5 class="font-weight-bold mb-1"><?= $row['nama_lengkap'] ?> <span class="text-muted small">- <?= $jenis ?></span></h5>
+                                    <p class="mb-1 text-dark"><?= $row['deskripsi'] ?></p>
+                                    <small class="text-muted">
+                                        <i class="mdi mdi-clock"></i> <?= date('d/m/Y H:i', strtotime($row['created_at'])) ?> 
+                                        &bull; <?= time_ago($row['created_at']) ?>
+                                    </small>
+                                </div>
+                            </div>
+                        </li>
+                        <?php endwhile; ?>
+                    <?php else : ?>
+                        <li>
+                            <p class="text-center text-muted">Belum ada aktivitas dalam 24 jam terakhir.</p>
+                        </li>
+                    <?php endif; ?>
+                </ul>
             </div>
         </div>
     </div>

@@ -23,6 +23,10 @@ if (isset($_POST['login'])) {
             $_SESSION['username'] = $username;
             $_SESSION['nama_lengkap'] = $data['nama_lengkap'];
             $_SESSION['role'] = $data['role'];
+            $_SESSION['foto'] = $data['foto'];
+
+            // Log Aktivitas
+            logActivity($koneksi, 'Login', 'Login berhasil');
 
             $script = "<script>
                 Swal.fire({
