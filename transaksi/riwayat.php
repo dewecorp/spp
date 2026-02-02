@@ -30,7 +30,7 @@ include '../template/sidebar.php';
                                 JOIN kelas ON siswa.id_kelas = kelas.id_kelas
                                 JOIN jenis_bayar ON pembayaran.id_jenis_bayar = jenis_bayar.id_jenis_bayar 
                                 JOIN pengguna ON pembayaran.id_petugas = pengguna.id_pengguna 
-                                ORDER BY tgl_bayar DESC");
+                                ORDER BY created_at DESC");
                             while ($row = mysqli_fetch_assoc($query)) :
                             ?>
                                 <tr>
@@ -38,6 +38,7 @@ include '../template/sidebar.php';
                                     <td><?= $row['nama'] ?> <br> <small><?= $row['nisn'] ?></small></td>
                                     <td><?= $row['nama_kelas'] ?></td>
                                     <td><?= date('d/m/Y', strtotime($row['tgl_bayar'])) ?></td>
+                                    <td><?= date('H:i', strtotime($row['created_at'])) ?></td>
                                     <td><?= $row['nama_pembayaran'] ?> <br> <small><?= $row['bulan_bayar'] ?> <?= $row['tahun_bayar'] ?></small></td>
                                     <td>Rp <?= number_format($row['jumlah_bayar'], 0, ',', '.') ?></td>
                                     <td><?= $row['nama_lengkap'] ?></td>
