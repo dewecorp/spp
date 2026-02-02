@@ -1,0 +1,22 @@
+Array
+(
+    [tgl_bayar] => 2026-02-02
+    [nisn] => 3132163433
+    [id_jenis_bayar] => Array
+        (
+            [0] => 4
+        )
+
+    [payment] => Array
+        (
+            [4] => Array
+                (
+                    [id_jenis_bayar] => 4
+                    [cicilan_ke] => 1
+                    [nominal] => 100000
+                )
+
+        )
+
+    [tambah] => 
+)

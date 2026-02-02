@@ -7,6 +7,15 @@ include '../template/sidebar.php';
 ?>
 <link rel="stylesheet" href="<?= base_url('assets/vendors/select2/select2.min.css') ?>">
 <link rel="stylesheet" href="<?= base_url('assets/vendors/select2-bootstrap-theme/select2-bootstrap.min.css') ?>">
+<style>
+    /* Fix Select2 width in Modals */
+    .select2-container {
+        width: 100% !important;
+    }
+    .select2-search__field {
+        width: 100% !important;
+    }
+</style>
 
 <?php
 // Fetch Kelas Data
@@ -138,9 +147,15 @@ if (isset($_GET['hapus'])) {
                                     </td>
                                     <td>
                                         <?php if (!empty($row['tagihan_kelas'])) : ?>
-                                            <span class="badge badge-info" title="<?= $row['tagihan_kelas'] ?>">
-                                                <?= count($selected_kelas) ?> Kelas
-                                            </span>
+                                            <?php if (count($selected_kelas) <= 5) : ?>
+                                                <?php foreach ($selected_kelas as $kls) : ?>
+                                                    <span class="badge badge-info mb-1" style="margin-right: 2px;"><?= $kls ?></span>
+                                                <?php endforeach; ?>
+                                            <?php else : ?>
+                                                <span class="badge badge-info" title="<?= $row['tagihan_kelas'] ?>">
+                                                    <?= count($selected_kelas) ?> Kelas
+                                                </span>
+                                            <?php endif; ?>
                                         <?php else : ?>
                                             <span class="badge badge-secondary">Semua / Kosong</span>
                                         <?php endif; ?>
@@ -285,7 +300,8 @@ if (isset($_GET['hapus'])) {
                 placeholder: "Pilih Kelas",
                 allowClear: true,
                 theme: "bootstrap",
-                dropdownParent: $(this).closest('.modal')
+                dropdownParent: $(this).closest('.modal'),
+                width: '100%'
             });
         });
 
