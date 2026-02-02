@@ -75,8 +75,6 @@ $q_jb = mysqli_query($koneksi, "SELECT * FROM jenis_bayar ORDER BY tipe_bayar AS
                                 echo "<td>";
 
                                 if ($jb['tipe_bayar'] == 'Bulanan') {
-                                    echo '<div class="row">';
-                                    
                                     // Get payments for this student and this payment type
                                     $q_bayar = mysqli_query($koneksi, "SELECT bulan_bayar FROM pembayaran WHERE nisn='$nisn' AND id_jenis_bayar='" . $jb['id_jenis_bayar'] . "'");
                                     $paid_months = [];
@@ -87,20 +85,35 @@ $q_jb = mysqli_query($koneksi, "SELECT * FROM jenis_bayar ORDER BY tipe_bayar AS
                                         }
                                     }
 
+                                    // Check if there are any unpaid months to display
+                                    $has_unpaid = false;
                                     foreach ($months as $index => $m) {
-                                        if ($index > $limit_index) continue; // Skip future months
+                                        if ($index > $limit_index) continue;
+                                        if (!in_array($m, $paid_months)) {
+                                            $has_unpaid = true;
+                                            break;
+                                        }
+                                    }
 
-                                        $status = in_array($m, $paid_months);
-                                        $icon = $status ? '<i class="mdi mdi-check-circle text-success" style="font-size: 1.2em;"></i>' : '<i class="mdi mdi-close-circle text-danger" style="font-size: 1.2em;"></i>';
-                                        
-                                        echo '<div class="col-md-3 col-sm-4 mb-2">';
-                                        echo '<div class="d-flex align-items-center">';
-                                        echo '<span class="me-2" style="margin-right: 5px;">' . $icon . '</span>';
-                                        echo '<span>' . $m . '</span>';
-                                        echo '</div>';
+                                    if (!$has_unpaid) {
+                                        echo '<span class="text-success font-weight-bold"><i class="mdi mdi-check-circle"></i> LUNAS</span>';
+                                    } else {
+                                        echo '<div class="d-flex flex-wrap">';
+                                        foreach ($months as $index => $m) {
+                                            if ($index > $limit_index) continue; // Skip future months
+                                            if (in_array($m, $paid_months)) continue; // Skip paid months
+
+                                            $icon = '<i class="mdi mdi-close-circle text-danger" style="font-size: 1.2em;"></i>';
+                                            
+                                            echo '<div class="me-3 mb-2 d-inline-block">';
+                                            echo '<div class="d-flex align-items-center">';
+                                            echo '<span class="me-2" style="margin-right: 5px;">' . $icon . '</span>';
+                                            echo '<span>' . $m . '</span>';
+                                            echo '</div>';
+                                            echo '</div>';
+                                        }
                                         echo '</div>';
                                     }
-                                    echo '</div>';
                                 } else {
                                     // Cicilan / Bebas
                                     $q_total = mysqli_query($koneksi, "SELECT SUM(jumlah_bayar) as total FROM pembayaran WHERE nisn='$nisn' AND id_jenis_bayar='" . $jb['id_jenis_bayar'] . "'");
