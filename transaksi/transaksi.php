@@ -206,9 +206,17 @@ if (isset($_POST['update_transaksi'])) {
 // Proses Hapus
 if (isset($_GET['hapus_transaksi'])) {
     $no_transaksi = $_GET['hapus_transaksi'];
-    $query = mysqli_query($koneksi, "DELETE FROM pembayaran WHERE no_transaksi='$no_transaksi'");
+    
+    if (empty($no_transaksi)) {
+        $query = mysqli_query($koneksi, "DELETE FROM pembayaran WHERE no_transaksi IS NULL OR no_transaksi = ''");
+        $log_desc = "Menghapus transaksi tanpa nomor (Legacy/Null)";
+    } else {
+        $query = mysqli_query($koneksi, "DELETE FROM pembayaran WHERE no_transaksi='$no_transaksi'");
+        $log_desc = "Menghapus transaksi No: $no_transaksi";
+    }
+
     if ($query) {
-        logActivity($koneksi, 'Delete', "Menghapus transaksi No: $no_transaksi");
+        logActivity($koneksi, 'Delete', $log_desc);
         echo "<script>
             Swal.fire({
                 title: 'Berhasil',

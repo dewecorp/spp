@@ -14,6 +14,7 @@ include '../template/sidebar.php';
                         <thead>
                             <tr>
                                 <th>No</th>
+                                <th>No Transaksi</th>
                                 <th>Siswa</th>
                                 <th>Kelas</th>
                                 <th>Tanggal</th>
@@ -36,6 +37,7 @@ include '../template/sidebar.php';
                             ?>
                                 <tr>
                                     <td><?= $no++ ?></td>
+                                    <td><?= $row['no_transaksi'] ? $row['no_transaksi'] : '<span class="badge badge-warning">Old/Null</span>' ?></td>
                                     <td><?= $row['nama'] ?> <br> <small><?= $row['nisn'] ?></small></td>
                                     <td><?= $row['nama_kelas'] ?></td>
                                     <td><?= date('d/m/Y', strtotime($row['tgl_bayar'])) ?></td>
