@@ -17,6 +17,7 @@ include '../template/sidebar.php';
                                 <th>Siswa</th>
                                 <th>Kelas</th>
                                 <th>Tanggal</th>
+                                <th>Waktu</th>
                                 <th>Jenis Pembayaran</th>
                                 <th>Jumlah</th>
                                 <th>Petugas</th>
