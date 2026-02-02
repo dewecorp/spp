@@ -2,6 +2,11 @@
 session_start();
 include_once __DIR__ . '/../config/config.php';
 
+// Ambil data pengaturan untuk logo
+$q_setting = mysqli_query($koneksi, "SELECT logo FROM pengaturan WHERE id_pengaturan = 1");
+$d_setting = mysqli_fetch_assoc($q_setting);
+$logo_sekolah = $d_setting['logo'] ?? '';
+
 if (!isset($_SESSION['login']) || !isset($_SESSION['nama_lengkap']) || !isset($_SESSION['role'])) {
     session_destroy();
     header("Location: " . base_url('auth/login.php'));
@@ -142,12 +147,19 @@ if (!isset($_SESSION['login']) || !isset($_SESSION['nama_lengkap']) || !isset($_
 <body>
     <div class="container-scroller">
         <nav class="navbar default-layout col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
-            <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-center">
-                <a class="navbar-brand brand-logo" href="<?= base_url() ?>">
-                    <h3 class="mb-0 font-weight-bold text-white">APP SPP</h3>
+            <div class="navbar-brand-wrapper d-flex align-items-center justify-content-start">
+                <a class="navbar-brand brand-logo d-flex align-items-center justify-content-start" href="<?= base_url() ?>" style="padding-left: 15px;">
+                    <?php if (!empty($logo_sekolah)) : ?>
+                        <img src="<?= base_url('assets/images/' . $logo_sekolah) ?>" alt="logo" style="width: 40px; height: 40px; margin: 0 10px 0 0 !important; filter: drop-shadow(0px 0px 5px white);" />
+                    <?php endif; ?>
+                    <h3 class="mb-0 font-weight-bold text-white">SIBAYAR</h3>
                 </a>
                 <a class="navbar-brand brand-logo-mini" href="<?= base_url() ?>">
-                    <img src="<?= base_url('assets/images/logo-mini.svg') ?>" alt="logo" />
+                    <?php if (!empty($logo_sekolah)) : ?>
+                        <img src="<?= base_url('assets/images/' . $logo_sekolah) ?>" alt="logo" style="width: 40px; height: 40px; margin: 0 !important; filter: drop-shadow(0px 0px 5px white);" />
+                    <?php else: ?>
+                        <img src="<?= base_url('assets/images/logo-mini.svg') ?>" alt="logo" />
+                    <?php endif; ?>
                 </a>
             </div>
             <div class="navbar-menu-wrapper d-flex align-items-center">

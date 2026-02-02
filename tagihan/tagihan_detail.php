@@ -59,6 +59,8 @@ $q_jb = mysqli_query($koneksi, "SELECT * FROM jenis_bayar ORDER BY tipe_bayar AS
                             $current_month_num = date('n'); // 1-12
                             $limit_index = ($current_month_num >= 7) ? $current_month_num - 7 : $current_month_num + 5;
 
+                            $displayed_bills = 0;
+
                             while ($jb = mysqli_fetch_assoc($q_jb)) {
                                 // Filter by Class
                                 if (!empty($jb['tagihan_kelas'])) {
@@ -68,17 +70,15 @@ $q_jb = mysqli_query($koneksi, "SELECT * FROM jenis_bayar ORDER BY tipe_bayar AS
                                     }
                                 }
 
-                                echo "<tr>";
-                                echo "<td>" . $no++ . "</td>";
-                                echo "<td>" . $jb['nama_pembayaran'] . "</td>";
-                                echo "<td>" . $jb['tipe_bayar'] . "</td>";
-                                echo "<td>Rp " . number_format($jb['nominal'], 0, ',', '.') . "</td>";
-                                echo "<td>";
+                                // Check status before displaying
+                                $is_fully_paid = false;
+                                $paid_months = []; // For Bulanan
+                                $total_bayar = 0; // For Cicilan/Bebas
+                                $sisa = 0; // For Cicilan/Bebas
 
                                 if ($jb['tipe_bayar'] == 'Bulanan') {
                                     // Get payments for this student and this payment type
                                     $q_bayar = mysqli_query($koneksi, "SELECT bulan_bayar FROM pembayaran WHERE nisn='$nisn' AND id_jenis_bayar='" . $jb['id_jenis_bayar'] . "'");
-                                    $paid_months = [];
                                     while ($row = mysqli_fetch_assoc($q_bayar)) {
                                         if (!empty($row['bulan_bayar'])) {
                                             $ms = array_map('trim', explode(',', $row['bulan_bayar']));
@@ -97,23 +97,7 @@ $q_jb = mysqli_query($koneksi, "SELECT * FROM jenis_bayar ORDER BY tipe_bayar AS
                                     }
 
                                     if (!$has_unpaid) {
-                                        echo '<span class="text-success font-weight-bold"><i class="mdi mdi-check-circle"></i> LUNAS</span>';
-                                    } else {
-                                        echo '<div class="d-flex flex-wrap">';
-                                        foreach ($months as $index => $m) {
-                                            if ($index > $limit_index) continue; // Skip future months
-                                            if (in_array($m, $paid_months)) continue; // Skip paid months
-
-                                            $icon = '<i class="mdi mdi-close-circle text-danger" style="font-size: 1.2em;"></i>';
-                                            
-                                            echo '<div class="me-3 mb-2 d-inline-block">';
-                                            echo '<div class="d-flex align-items-center">';
-                                            echo '<span class="me-2" style="margin-right: 5px;">' . $icon . '</span>';
-                                            echo '<span>' . $m . '</span>';
-                                            echo '</div>';
-                                            echo '</div>';
-                                        }
-                                        echo '</div>';
+                                        $is_fully_paid = true;
                                     }
                                 } else {
                                     // Cicilan / Bebas
@@ -122,19 +106,54 @@ $q_jb = mysqli_query($koneksi, "SELECT * FROM jenis_bayar ORDER BY tipe_bayar AS
                                     $total_bayar = $d_total['total'] ?? 0;
                                     $sisa = $jb['nominal'] - $total_bayar;
 
+                                    if ($sisa <= 0) {
+                                        $is_fully_paid = true;
+                                    }
+                                }
+
+                                // Skip if fully paid
+                                if ($is_fully_paid) {
+                                    continue;
+                                }
+
+                                $displayed_bills++;
+
+                                echo "<tr>";
+                                echo "<td>" . $no++ . "</td>";
+                                echo "<td>" . $jb['nama_pembayaran'] . "</td>";
+                                echo "<td>" . $jb['tipe_bayar'] . "</td>";
+                                echo "<td>Rp " . number_format($jb['nominal'], 0, ',', '.') . "</td>";
+                                echo "<td>";
+
+                                if ($jb['tipe_bayar'] == 'Bulanan') {
+                                    echo '<div class="d-flex flex-wrap">';
+                                    foreach ($months as $index => $m) {
+                                        if ($index > $limit_index) continue; // Skip future months
+                                        if (in_array($m, $paid_months)) continue; // Skip paid months
+
+                                        $icon = '<i class="mdi mdi-close-circle text-danger" style="font-size: 1.2em;"></i>';
+                                        
+                                        echo '<div class="me-3 mb-2 d-inline-block">';
+                                        echo '<div class="d-flex align-items-center">';
+                                        echo '<span class="me-2" style="margin-right: 5px;">' . $icon . '</span>';
+                                        echo '<span>' . $m . '</span>';
+                                        echo '</div>';
+                                        echo '</div>';
+                                    }
+                                    echo '</div>';
+                                } else {
                                     echo '<div class="d-flex flex-column">';
                                     echo '<span>Sudah Bayar: Rp ' . number_format($total_bayar, 0, ',', '.') . '</span>';
-                                    
-                                    if ($sisa <= 0) {
-                                        echo '<span class="text-success font-weight-bold"><i class="mdi mdi-check-circle"></i> LUNAS</span>';
-                                    } else {
-                                        echo '<span class="text-danger font-weight-bold"><i class="mdi mdi-close-circle"></i> Kurang: Rp ' . number_format($sisa, 0, ',', '.') . '</span>';
-                                    }
+                                    echo '<span class="text-danger font-weight-bold"><i class="mdi mdi-close-circle"></i> Kurang: Rp ' . number_format($sisa, 0, ',', '.') . '</span>';
                                     echo '</div>';
                                 }
 
                                 echo "</td>";
                                 echo "</tr>";
+                            }
+
+                            if ($displayed_bills == 0) {
+                                echo '<tr><td colspan="5" class="text-center font-weight-bold text-danger">Tidak ada tagihan (Lunas Semua)</td></tr>';
                             }
                             ?>
                         </tbody>

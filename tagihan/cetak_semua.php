@@ -147,6 +147,7 @@ while ($d_siswa = mysqli_fetch_assoc($q_siswa)) {
     
     $no = 1;
     $total_tagihan = 0;
+    $displayed_bills = 0;
     
     foreach ($jb_data as $jb) {
         // Filter by Class
@@ -157,6 +158,52 @@ while ($d_siswa = mysqli_fetch_assoc($q_siswa)) {
             }
         }
         
+        // Check status before displaying
+        $is_fully_paid = false;
+        $paid_months = []; // For Bulanan
+        $total_bayar = 0; // For Cicilan/Bebas
+        $sisa = 0; // For Cicilan/Bebas
+        
+        if ($jb['tipe_bayar'] == 'Bulanan') {
+            $q_bayar = mysqli_query($koneksi, "SELECT bulan_bayar FROM pembayaran WHERE nisn='$nisn' AND id_jenis_bayar='" . $jb['id_jenis_bayar'] . "'");
+            while ($r = mysqli_fetch_assoc($q_bayar)) {
+                if (!empty($r['bulan_bayar'])) {
+                    $ms = array_map('trim', explode(',', $r['bulan_bayar']));
+                    $paid_months = array_merge($paid_months, $ms);
+                }
+            }
+            
+            $has_unpaid = false;
+            foreach ($months as $index => $m) {
+                if ($index > $limit_index) continue; // Skip future months
+                if (!in_array($m, $paid_months)) {
+                    $has_unpaid = true;
+                    break;
+                }
+            }
+            
+            if (!$has_unpaid) {
+                $is_fully_paid = true;
+            }
+            
+        } else {
+            $q_total = mysqli_query($koneksi, "SELECT SUM(jumlah_bayar) as total FROM pembayaran WHERE nisn='$nisn' AND id_jenis_bayar='" . $jb['id_jenis_bayar'] . "'");
+            $d_total = mysqli_fetch_assoc($q_total);
+            $total_bayar = $d_total['total'] ?? 0;
+            $sisa = $jb['nominal'] - $total_bayar;
+            
+            if ($sisa <= 0) {
+                $is_fully_paid = true;
+            }
+        }
+        
+        // Skip if fully paid
+        if ($is_fully_paid) {
+            continue;
+        }
+        
+        $displayed_bills++;
+        
         echo "<tr>";
         echo "<td>" . $no++ . "</td>";
         echo "<td>" . $jb['nama_pembayaran'] . "</td>";
@@ -165,15 +212,6 @@ while ($d_siswa = mysqli_fetch_assoc($q_siswa)) {
         echo "<td>";
 
         if ($jb['tipe_bayar'] == 'Bulanan') {
-            $q_bayar = mysqli_query($koneksi, "SELECT bulan_bayar FROM pembayaran WHERE nisn='$nisn' AND id_jenis_bayar='" . $jb['id_jenis_bayar'] . "'");
-            $paid_months = [];
-            while ($r = mysqli_fetch_assoc($q_bayar)) {
-                if (!empty($r['bulan_bayar'])) {
-                    $ms = array_map('trim', explode(',', $r['bulan_bayar']));
-                    $paid_months = array_merge($paid_months, $ms);
-                }
-            }
-            
             echo '<div style="display: table; width: 100%;">';
             $month_counter = 0;
             echo '<div style="display: table-row;">';
@@ -201,11 +239,6 @@ while ($d_siswa = mysqli_fetch_assoc($q_siswa)) {
             echo '</div></div>';
             
         } else {
-            $q_total = mysqli_query($koneksi, "SELECT SUM(jumlah_bayar) as total FROM pembayaran WHERE nisn='$nisn' AND id_jenis_bayar='" . $jb['id_jenis_bayar'] . "'");
-            $d_total = mysqli_fetch_assoc($q_total);
-            $total_bayar = $d_total['total'] ?? 0;
-            $sisa = $jb['nominal'] - $total_bayar;
-            
             if ($sisa > 0) {
                 $total_tagihan += $sisa;
             }
@@ -220,6 +253,10 @@ while ($d_siswa = mysqli_fetch_assoc($q_siswa)) {
 
         echo "</td>";
         echo "</tr>";
+    }
+    
+    if ($displayed_bills == 0) {
+        echo '<tr><td colspan="5" style="text-align: center; font-weight: bold; color: red;">TIDAK ADA TAGIHAN (LUNAS SEMUA)</td></tr>';
     }
     
     echo '<tr>';
