@@ -83,7 +83,7 @@ if (isset($_POST['no_transaksi'])) {
                             <label>Bulan Bayar</label>
                             <select name="payment[<?= $id_jb ?>][bulan_bayar][]" class="form-control select2-edit-bulan" multiple="multiple" style="width: 100%;" required>
                                 <?php 
-                                $months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+                                $months = ['Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni'];
                                 $selected_months = explode(', ', $item['bulan_bayar']);
                                 foreach ($months as $m) {
                                     $selected = in_array($m, $selected_months) ? 'selected' : '';
@@ -201,8 +201,8 @@ if (isset($_POST['no_transaksi'])) {
                         html += '<div class="form-group">';
                         html += '<label>Bayar Bulan</label>';
                         html += '<select name="payment[' + id + '][bulan_bayar][]" class="form-control select2-dynamic-bulan-edit" multiple="multiple" style="width: 100%;" required>';
-                        var months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-                        var currentMonthIndex = new Date().getMonth();
+                        var months = ['Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni'];
+                        var currentMonthIndex = (new Date().getMonth() + 6) % 12;
                         months.forEach(function(m, i) {
                              var selected = (i === currentMonthIndex) ? 'selected' : '';
                              html += '<option value="' + m + '" ' + selected + '>' + m + '</option>';

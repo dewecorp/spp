@@ -38,6 +38,9 @@ while ($jb = mysqli_fetch_assoc($q_jb)) {
 
 // Proses Tambah
 if (isset($_POST['tambah'])) {
+    // Debug Logging
+    file_put_contents('debug_post_log.txt', print_r($_POST, true), FILE_APPEND);
+
     $id_petugas = $_SESSION['id_pengguna'];
     $nisn = $_POST['nisn'];
     $tgl_bayar = $_POST['tgl_bayar'];
@@ -310,16 +313,15 @@ if (isset($_GET['hapus_transaksi'])) {
 
 <!-- Modal Tambah -->
 <div class="modal fade" id="modalTambah" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
+    <div class="modal-dialog modal-dialog-scrollable" role="document">
+        <form class="modal-content" action="" method="post">
             <div class="modal-header">
                 <h5 class="modal-title">Tambah Transaksi</h5>
                 <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close" style="background: transparent; border: none;">
                     <i class="mdi mdi-close"></i>
                 </button>
             </div>
-            <form action="" method="post">
-                <div class="modal-body">
+            <div class="modal-body">
                     <div class="form-group">
                         <label>Tanggal Bayar</label>
                         <input type="date" name="tgl_bayar" class="form-control" value="<?= date('Y-m-d') ?>" required>
@@ -358,23 +360,21 @@ if (isset($_GET['hapus_transaksi'])) {
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
                     <button type="submit" name="tambah" class="btn btn-primary">Simpan</button>
                 </div>
-            </form>
-        </div>
+        </form>
     </div>
 </div>
 
 <!-- Modal Edit -->
 <div class="modal fade" id="modalEdit" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
+    <div class="modal-dialog modal-dialog-scrollable" role="document">
+        <form class="modal-content" action="" method="post">
             <div class="modal-header">
                 <h5 class="modal-title">Edit Transaksi</h5>
                 <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close" style="background: transparent; border: none;">
                     <i class="mdi mdi-close"></i>
                 </button>
             </div>
-            <form action="" method="post">
-                <div class="modal-body" id="modalEditBody">
+            <div class="modal-body" id="modalEditBody">
                     <div class="text-center py-5">
                         <div class="spinner-border text-primary" role="status">
                             <span class="sr-only">Loading...</span>
@@ -385,8 +385,7 @@ if (isset($_GET['hapus_transaksi'])) {
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
                     <button type="submit" name="update_transaksi" class="btn btn-primary">Simpan Perubahan</button>
                 </div>
-            </form>
-        </div>
+        </form>
     </div>
 </div>
 
@@ -501,9 +500,9 @@ if (isset($_GET['hapus_transaksi'])) {
                 if (tipe === 'Bulanan') {
                     html += '<div class="form-group">';
                     html += '<label>Bayar Bulan</label>';
-                    html += '<select name="payment[' + id + '][bulan_bayar][]" class="form-control select2-dynamic-bulan" multiple="multiple" style="width: 100%;" required>';
-                    var months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-                    var currentMonthIndex = new Date().getMonth();
+                    html += '<select name="payment[' + id + '][bulan_bayar][]" id="bulan_bayar_' + id + '" class="form-control select2-dynamic-bulan" multiple="multiple" style="width: 100%;" required>';
+                    var months = ['Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni'];
+                    var currentMonthIndex = (new Date().getMonth() + 6) % 12;
                     months.forEach(function(m, i) {
                          var selected = (i === currentMonthIndex) ? 'selected' : '';
                          html += '<option value="' + m + '" ' + selected + '>' + m + '</option>';

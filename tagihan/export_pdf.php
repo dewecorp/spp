@@ -110,6 +110,50 @@ $tahun_ajaran = $d_setting['tahun_ajaran'] ?? '';
                         continue;
                     }
                 }
+
+                // Check status before displaying
+                $is_fully_paid = false;
+                $paid_months = [];
+                $total_bayar = 0;
+                $sisa = 0;
+
+                if ($jb['tipe_bayar'] == 'Bulanan') {
+                    $q_bayar = mysqli_query($koneksi, "SELECT bulan_bayar FROM pembayaran WHERE nisn='$nisn' AND id_jenis_bayar='" . $jb['id_jenis_bayar'] . "'");
+                    while ($r = mysqli_fetch_assoc($q_bayar)) {
+                        if (!empty($r['bulan_bayar'])) {
+                            $ms = array_map('trim', explode(',', $r['bulan_bayar']));
+                            $paid_months = array_merge($paid_months, $ms);
+                        }
+                    }
+                    
+                    $has_unpaid = false;
+                    foreach ($months as $index => $m) {
+                        if ($index > $limit_index) continue;
+                        if (!in_array($m, $paid_months)) {
+                            $has_unpaid = true;
+                            break;
+                        }
+                    }
+                    
+                    if (!$has_unpaid) {
+                        $is_fully_paid = true;
+                    }
+
+                } else {
+                    $q_total = mysqli_query($koneksi, "SELECT SUM(jumlah_bayar) as total FROM pembayaran WHERE nisn='$nisn' AND id_jenis_bayar='" . $jb['id_jenis_bayar'] . "'");
+                    $d_total = mysqli_fetch_assoc($q_total);
+                    $total_bayar = $d_total['total'] ?? 0;
+                    $sisa = $jb['nominal'] - $total_bayar;
+                    
+                    if ($sisa <= 0) {
+                        $is_fully_paid = true;
+                    }
+                }
+
+                // Skip if fully paid
+                if ($is_fully_paid) {
+                    continue;
+                }
                 
                 echo "<tr>";
                 echo "<td>" . $no++ . "</td>";
@@ -119,15 +163,6 @@ $tahun_ajaran = $d_setting['tahun_ajaran'] ?? '';
                 echo "<td>";
 
                 if ($jb['tipe_bayar'] == 'Bulanan') {
-                    $q_bayar = mysqli_query($koneksi, "SELECT bulan_bayar FROM pembayaran WHERE nisn='$nisn' AND id_jenis_bayar='" . $jb['id_jenis_bayar'] . "'");
-                    $paid_months = [];
-                    while ($r = mysqli_fetch_assoc($q_bayar)) {
-                        if (!empty($r['bulan_bayar'])) {
-                            $ms = array_map('trim', explode(',', $r['bulan_bayar']));
-                            $paid_months = array_merge($paid_months, $ms);
-                        }
-                    }
-                    
                     echo '<div style="display: table; width: 100%;">';
                     $counter = 0;
                     echo '<div style="display: table-row;">';
@@ -136,13 +171,13 @@ $tahun_ajaran = $d_setting['tahun_ajaran'] ?? '';
 
                         $is_paid = in_array($m, $paid_months);
                         
-                        // Calculate unpaid amount
-                        if (!$is_paid) {
-                            $total_tagihan += $jb['nominal'];
-                        }
+                        // Skip if paid
+                        if ($is_paid) continue;
 
-                        $symbol = $is_paid ? '&#10004;' : '&#10006;';
-                        $color = $is_paid ? 'green' : 'red';
+                        $total_tagihan += $jb['nominal'];
+
+                        $symbol = '&#10006;';
+                        $color = 'red';
                         
                         echo '<div style="display: table-cell; width: 25%; padding-bottom: 5px;">';
                         echo '<span style="color: '.$color.';">'.$symbol.'</span> ' . $m;
@@ -156,16 +191,11 @@ $tahun_ajaran = $d_setting['tahun_ajaran'] ?? '';
                     echo '</div></div>';
                     
                 } else {
-                    $q_total = mysqli_query($koneksi, "SELECT SUM(jumlah_bayar) as total FROM pembayaran WHERE nisn='$nisn' AND id_jenis_bayar='" . $jb['id_jenis_bayar'] . "'");
-                    $d_total = mysqli_fetch_assoc($q_total);
-                    $total_bayar = $d_total['total'] ?? 0;
-                    $sisa = $jb['nominal'] - $total_bayar;
-                    
                     if ($sisa > 0) {
                         $total_tagihan += $sisa;
                     }
 
-                    echo "Sudah Bayar: Rp " . number_format($total_bayar, 0, ',', '.') . "<br>";
+                    // echo "Sudah Bayar: Rp " . number_format($total_bayar, 0, ',', '.') . "<br>";
                     if ($sisa <= 0) {
                         echo '<span class="text-success">&#10004; LUNAS</span>';
                     } else {

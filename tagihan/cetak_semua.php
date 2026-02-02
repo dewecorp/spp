@@ -220,12 +220,15 @@ while ($d_siswa = mysqli_fetch_assoc($q_siswa)) {
 
                 $is_paid = in_array($m, $paid_months);
                 
+                // Skip if paid
+                if ($is_paid) continue;
+
                 if (!$is_paid) {
                     $total_tagihan += $jb['nominal'];
                 }
 
-                $symbol = $is_paid ? '&#10004;' : '&#10006;';
-                $color = $is_paid ? 'green' : 'red';
+                $symbol = '&#10006;';
+                $color = 'red';
                 
                 echo '<div style="display: table-cell; width: 50%; padding-bottom: 1px; font-size: 9px;">';
                 echo '<span style="color: '.$color.';">'.$symbol.'</span> ' . $m;
@@ -243,7 +246,7 @@ while ($d_siswa = mysqli_fetch_assoc($q_siswa)) {
                 $total_tagihan += $sisa;
             }
 
-            echo "Sudah Bayar: Rp " . number_format($total_bayar, 0, ',', '.') . "<br>";
+            // echo "Sudah Bayar: Rp " . number_format($total_bayar, 0, ',', '.') . "<br>";
             if ($sisa <= 0) {
                 echo '<span class="text-success">&#10004; LUNAS</span>';
             } else {
