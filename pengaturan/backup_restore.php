@@ -1,4 +1,5 @@
 <?php
+$title = 'Backup & Restore';
 include '../template/header.php';
 include '../template/sidebar.php';
 

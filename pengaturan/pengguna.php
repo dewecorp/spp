@@ -1,4 +1,5 @@
 <?php
+$title = 'Data Pengguna';
 include '../template/header.php';
 include '../template/sidebar.php';
 

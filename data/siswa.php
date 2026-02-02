@@ -1,4 +1,5 @@
 <?php
+$title = 'Data Siswa';
 include '../template/header.php';
 include '../template/sidebar.php';
 

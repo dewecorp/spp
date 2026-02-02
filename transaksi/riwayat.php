@@ -1,4 +1,5 @@
 <?php
+$title = 'Riwayat Pembayaran';
 include '../template/header.php';
 include '../template/sidebar.php';
 ?>

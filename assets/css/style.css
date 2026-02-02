@@ -8839,6 +8839,7 @@ button,
 [type=reset],
 [type=submit] {
   -webkit-appearance: button;
+  appearance: button;
 }
 button:not(:disabled),
 [type=button]:not(:disabled),
@@ -8909,6 +8910,7 @@ legend + * {
 */
 ::-webkit-search-decoration {
   -webkit-appearance: none;
+  appearance: none;
 }
 
 ::-webkit-color-swatch-wrapper {
@@ -24283,7 +24285,6 @@ dl li {
   border-radius: 100%;
   display: block;
   margin: auto;
-  vertical-align: middle;
   position: absolute;
   top: 1px;
   bottom: 1px;
@@ -24307,7 +24308,6 @@ dl li {
   border-radius: 100%;
   display: block;
   margin: auto;
-  vertical-align: middle;
   position: absolute;
   top: 1px;
   bottom: 1px;
