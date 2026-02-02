@@ -24335,7 +24335,6 @@ dl li {
   border-radius: 4px;
   display: block;
   margin: auto;
-  vertical-align: middle;
   position: absolute;
   top: 6px;
   z-index: -1;
@@ -24356,7 +24355,6 @@ dl li {
   border-radius: 4px;
   display: block;
   margin: auto;
-  vertical-align: middle;
   position: absolute;
   top: 6px;
   z-index: -1;
