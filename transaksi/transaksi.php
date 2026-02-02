@@ -53,8 +53,24 @@ if (isset($_POST['tambah'])) {
         $id_jenis_bayar_input = [$id_jenis_bayar_input];
     }
     
-    // Generate No Transaksi
-    $no_transaksi = 'TRX-' . date('YmdHis') . '-' . rand(100, 999);
+    // Generate No Transaksi (Format: TRX-YYYYMM-NNN)
+    $prefix_trx = 'TRX-' . date('Ym') . '-';
+    
+    // Cari nomor terakhir bulan ini
+    // Order by length desc first to handle sequence > 999 (e.g. 1000 comes after 999)
+    $q_last_trx = mysqli_query($koneksi, "SELECT no_transaksi FROM pembayaran WHERE no_transaksi LIKE '$prefix_trx%' ORDER BY LENGTH(no_transaksi) DESC, no_transaksi DESC LIMIT 1");
+    $d_last_trx = mysqli_fetch_assoc($q_last_trx);
+    
+    if ($d_last_trx) {
+        $last_no = $d_last_trx['no_transaksi']; // e.g., TRX-202602-001
+        // Ambil urutan terakhir
+        $last_urut_str = substr($last_no, strlen($prefix_trx));
+        $next_urut = (int)$last_urut_str + 1;
+    } else {
+        $next_urut = 1;
+    }
+    
+    $no_transaksi = $prefix_trx . sprintf("%03d", $next_urut);
     
     $success_count = 0;
     
@@ -260,6 +276,7 @@ if (isset($_GET['hapus_transaksi'])) {
                         <thead>
                             <tr>
                                 <th>No</th>
+                                <th>No Transaksi</th>
                                 <th>Nama Siswa</th>
                                 <th>Kelas</th>
                                 <th>Jenis Bayar</th>
@@ -293,6 +310,7 @@ if (isset($_GET['hapus_transaksi'])) {
                             ?>
                                 <tr>
                                     <td><?= $no++ ?></td>
+                                    <td><?= $row['no_transaksi'] ? $row['no_transaksi'] : '<span class="badge badge-warning">Old/Null</span>' ?></td>
                                     <td><?= $row['nama_siswa'] ?></td>
                                     <td><?= $row['nama_kelas'] ?></td>
                                     <td><?= $row['nama_pembayaran'] ?></td>

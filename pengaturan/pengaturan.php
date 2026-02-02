@@ -40,6 +40,7 @@ if (isset($_POST['simpan'])) {
     $query_update .= " WHERE id_pengaturan = 1";
     
     if (mysqli_query($koneksi, $query_update)) {
+        logActivity($koneksi, 'Update', "Memperbarui pengaturan sekolah");
         echo "<script>
             Swal.fire({
                 title: 'Berhasil',
@@ -53,6 +54,35 @@ if (isset($_POST['simpan'])) {
         </script>";
     } else {
         echo "<script>Swal.fire('Gagal', 'Gagal memperbarui pengaturan: " . mysqli_error($koneksi) . "', 'error');</script>";
+    }
+}
+
+// Logic Reset Data Transaksi
+if (isset($_POST['reset_data'])) {
+    if ($_SESSION['role'] == 'admin') {
+        // Disable foreign key checks to allow truncate/delete
+        mysqli_query($koneksi, "SET FOREIGN_KEY_CHECKS = 0");
+        $q_reset = mysqli_query($koneksi, "TRUNCATE TABLE pembayaran");
+        mysqli_query($koneksi, "SET FOREIGN_KEY_CHECKS = 1");
+        
+        if ($q_reset) {
+            logActivity($koneksi, 'Reset', "Mereset (menghapus) semua data transaksi pembayaran untuk tahun ajaran baru");
+             echo "<script>
+                Swal.fire({
+                    title: 'Berhasil',
+                    text: 'Semua data transaksi pembayaran berhasil dihapus!',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                }).then(() => {
+                    window.location.href = 'pengaturan.php';
+                });
+            </script>";
+        } else {
+             echo "<script>Swal.fire('Gagal', 'Gagal mereset data: " . mysqli_error($koneksi) . "', 'error');</script>";
+        }
+    } else {
+         echo "<script>Swal.fire('Akses Ditolak', 'Hanya Admin yang dapat melakukan reset data!', 'warning');</script>";
     }
 }
 ?>
@@ -110,6 +140,46 @@ if (isset($_POST['simpan'])) {
             </div>
         </div>
     </div>
+    
+    <div class="col-md-12 grid-margin stretch-card">
+        <div class="card card-danger">
+            <div class="card-body">
+                <h4 class="card-title text-danger">Reset Data Transaksi</h4>
+                <p class="card-description">
+                    Hapus semua data transaksi pembayaran. Fitur ini digunakan saat pergantian tahun ajaran baru.
+                    <br><strong class="text-danger">PERINGATAN: Data yang dihapus tidak dapat dikembalikan!</strong>
+                </p>
+                <form method="post" id="form-reset">
+                    <button type="button" class="btn btn-danger mr-2" onclick="confirmReset()">Reset Data Transaksi</button>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
+
+<script>
+function confirmReset() {
+    Swal.fire({
+        title: 'Apakah Anda Yakin?',
+        text: "Semua data transaksi pembayaran akan dihapus permanen! Pastikan Anda sudah melakukan backup/export data terlebih dahulu.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Ya, Hapus Semuanya!',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Create a hidden input to simulate the button click
+            var input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'reset_data';
+            input.value = 'true';
+            document.getElementById('form-reset').appendChild(input);
+            document.getElementById('form-reset').submit();
+        }
+    })
+}
+</script>
 
 <?php include '../template/footer.php'; ?>
