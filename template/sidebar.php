@@ -1,7 +1,7 @@
             <nav class="sidebar sidebar-offcanvas" id="sidebar">
                 <ul class="nav">
                     <li class="nav-item">
-                        <a class="nav-link" href="<?= base_url('index.php') ?>">
+                        <a class="nav-link" href="<?= base_url('index.php?v=1') ?>">
                             <i class="menu-icon mdi mdi-television"></i>
                             <span class="menu-title">Dashboard</span>
                         </a>
@@ -16,58 +16,58 @@
                         <div class="collapse" id="ui-basic">
                             <ul class="nav flex-column sub-menu">
                                 <li class="nav-item">
-                                    <a class="nav-link" href="<?= base_url('data/siswa.php') ?>">Data Siswa</a>
+                                    <a class="nav-link" href="<?= base_url('data/siswa.php?v=1') ?>">Data Siswa</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link" href="<?= base_url('data/kelas.php') ?>">Data Kelas</a>
+                                    <a class="nav-link" href="<?= base_url('data/kelas.php?v=1') ?>">Data Kelas</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link" href="<?= base_url('data/jenis_bayar.php') ?>">Jenis Bayar</a>
+                                    <a class="nav-link" href="<?= base_url('data/jenis_bayar.php?v=1') ?>">Jenis Bayar</a>
                                 </li>
                             </ul>
                         </div>
                     </li>
                     <?php endif; ?>
                     <li class="nav-item">
-                        <a class="nav-link" href="<?= base_url('transaksi/transaksi.php') ?>">
+                        <a class="nav-link" href="<?= base_url('transaksi/transaksi.php?v=1') ?>">
                             <i class="menu-icon mdi mdi-backup-restore"></i>
                             <span class="menu-title">Transaksi Bayar</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="<?= base_url('tagihan/tagihan.php') ?>">
+                        <a class="nav-link" href="<?= base_url('tagihan/tagihan.php?v=1') ?>">
                             <i class="menu-icon mdi mdi-file-document"></i>
                             <span class="menu-title">Tagihan Siswa</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="<?= base_url('transaksi/riwayat.php') ?>">
+                        <a class="nav-link" href="<?= base_url('transaksi/riwayat.php?v=1') ?>">
                             <i class="menu-icon mdi mdi-chart-line"></i>
                             <span class="menu-title">Riwayat Bayar</span>
                         </a>
                     </li>
                     <?php if ($_SESSION['role'] == 'admin') : ?>
                     <li class="nav-item">
-                        <a class="nav-link" href="<?= base_url('pengaturan/pengguna.php') ?>">
+                        <a class="nav-link" href="<?= base_url('pengaturan/pengguna.php?v=1') ?>">
                             <i class="menu-icon mdi mdi-account-multiple"></i>
                             <span class="menu-title">Pengguna</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="<?= base_url('pengaturan/pengaturan.php') ?>">
+                        <a class="nav-link" href="<?= base_url('pengaturan/pengaturan.php?v=1') ?>">
                             <i class="menu-icon mdi mdi-cogs"></i>
                             <span class="menu-title">Pengaturan</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="<?= base_url('pengaturan/backup_restore.php') ?>">
+                        <a class="nav-link" href="<?= base_url('pengaturan/backup_restore.php?v=1') ?>">
                             <i class="menu-icon mdi mdi-database"></i>
                             <span class="menu-title">Backup Restore</span>
                         </a>
                     </li>
                     <?php endif; ?>
                     <li class="nav-item">
-                        <a class="nav-link" href="<?= base_url('auth/logout.php') ?>" onclick="confirmLogout(event)">
+                        <a class="nav-link" href="<?= base_url('auth/logout.php?v=1') ?>" onclick="confirmLogout(event)">
                             <i class="menu-icon mdi mdi-logout"></i>
                             <span class="menu-title">Logout</span>
                         </a>

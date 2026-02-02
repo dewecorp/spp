@@ -36,7 +36,24 @@ $tahun_ajaran = $d_setting['tahun_ajaran'] ?? '';
     <title>Laporan Tagihan - <?= $d_siswa['nama'] ?></title>
     <style>
         body { font-family: sans-serif; font-size: 12px; }
-        .header { text-align: center; margin-bottom: 20px; }
+        .header { 
+            text-align: center; 
+            margin-bottom: 20px; 
+            position: relative;
+            min-height: 80px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+        }
+        .header img {
+            position: absolute;
+            left: 0;
+            top: 0;
+            max-height: 80px;
+            max-width: 80px;
+        }
+        .header-content {
+            margin-left: 90px;
+        }
         .header h2, .header h3, .header p { margin: 2px 0; }
         .info-siswa { margin-bottom: 20px; }
         .info-siswa table { width: auto; border: none; }
@@ -61,9 +78,14 @@ $tahun_ajaran = $d_setting['tahun_ajaran'] ?? '';
 </head>
 <body onload="window.print()">
     <div class="header">
-        <h2>LAPORAN TAGIHAN SISWA</h2>
-        <h3><?= strtoupper($nama_sekolah) ?></h3>
-        <p>TAHUN AJARAN <?= strtoupper($tahun_ajaran) ?></p>
+        <?php if (!empty($d_setting['logo'])): ?>
+            <img src="../assets/images/<?= $d_setting['logo'] ?>" alt="Logo">
+        <?php endif; ?>
+        <div class="header-content">
+            <h2>LAPORAN TAGIHAN SISWA</h2>
+            <h3><?= strtoupper($nama_sekolah) ?></h3>
+            <p>TAHUN AJARAN <?= strtoupper($tahun_ajaran) ?></p>
+        </div>
     </div>
 
     <div class="info-siswa">

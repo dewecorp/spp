@@ -37,6 +37,27 @@ if (isset($_POST['simpan'])) {
         }
     }
     
+    // Upload Background Login
+    if (!empty($_FILES['bg_login']['name'])) {
+        $bg_name = $_FILES['bg_login']['name'];
+        $bg_tmp = $_FILES['bg_login']['tmp_name'];
+        $bg_ext = strtolower(pathinfo($bg_name, PATHINFO_EXTENSION));
+        $allowed_ext = ['jpg', 'jpeg', 'png'];
+
+        if (in_array($bg_ext, $allowed_ext)) {
+            $new_bg_name = "bg_login." . $bg_ext;
+            $bg_upload_path = "../assets/images/" . $new_bg_name;
+
+            if (move_uploaded_file($bg_tmp, $bg_upload_path)) {
+                $query_update .= ", bg_login='$new_bg_name'";
+            } else {
+                echo "<script>Swal.fire('Gagal', 'Gagal mengupload background login', 'error');</script>";
+            }
+        } else {
+            echo "<script>Swal.fire('Gagal', 'Format background harus JPG/JPEG/PNG', 'error');</script>";
+        }
+    }
+    
     $query_update .= " WHERE id_pengaturan = 1";
     
     if (mysqli_query($koneksi, $query_update)) {
@@ -128,10 +149,32 @@ if (isset($_POST['reset_data'])) {
                         </div>
                         <small class="text-muted">Format: JPG, JPEG, PNG.</small>
                     </div>
+                    
+                    <div class="form-group">
+                        <label>Background Login</label>
+                        <?php if (!empty($data['bg_login'])) : ?>
+                            <div class="mb-2">
+                                <img src="../assets/images/<?= $data['bg_login'] ?>" alt="Background Login" style="max-width: 150px; border: 1px solid #eee; padding: 5px;">
+                            </div>
+                        <?php endif; ?>
+                        <input type="file" name="bg_login" class="file-upload-default" id="bgInput" accept=".jpg, .jpeg, .png" style="display:none">
+                        <div class="input-group col-xs-12">
+                            <input type="text" class="form-control file-upload-info-bg" disabled placeholder="Upload Background Login">
+                            <span class="input-group-append">
+                                <button class="file-upload-browse btn btn-primary" type="button" onclick="document.getElementById('bgInput').click()">Upload</button>
+                            </span>
+                        </div>
+                        <small class="text-muted">Format: JPG, JPEG, PNG.</small>
+                    </div>
+
                     <script>
                         document.getElementById('logoInput').addEventListener('change', function() {
                             var fileName = this.files[0].name;
                             document.querySelector('.file-upload-info').value = fileName;
+                        });
+                        document.getElementById('bgInput').addEventListener('change', function() {
+                            var fileName = this.files[0].name;
+                            document.querySelector('.file-upload-info-bg').value = fileName;
                         });
                     </script>
                     <button type="submit" name="simpan" class="btn btn-primary mr-2">Simpan Perubahan</button>

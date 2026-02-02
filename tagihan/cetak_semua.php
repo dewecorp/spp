@@ -77,7 +77,22 @@ $tanggal_str = $tgl . ' ' . $bln . ' ' . $thn;
             position: relative;
         }
         
-        .header { text-align: center; margin-bottom: 5px; }
+        .header { 
+            text-align: center; 
+            margin-bottom: 5px; 
+            position: relative;
+            min-height: 50px;
+        }
+        .header img {
+            position: absolute;
+            left: 0;
+            top: 0;
+            max-height: 40px;
+            max-width: 40px;
+        }
+        .header-content {
+            margin-left: 45px; /* Space for logo */
+        }
         .header h2 { font-size: 14px; margin: 0; }
         .header h3 { font-size: 12px; margin: 2px 0; }
         .header p { font-size: 10px; margin: 0; font-weight: bold; }
@@ -118,9 +133,14 @@ while ($d_siswa = mysqli_fetch_assoc($q_siswa)) {
     
     // Header
     echo '<div class="header">';
+    if (!empty($d_setting['logo'])) {
+        echo '<img src="../assets/images/' . $d_setting['logo'] . '" alt="Logo">';
+    }
+    echo '<div class="header-content">';
     echo '<h2>LAPORAN TAGIHAN SISWA</h2>';
     echo '<h3>' . strtoupper($nama_sekolah) . '</h3>';
     echo '<p>TAHUN AJARAN ' . strtoupper($tahun_ajaran) . '</p>';
+    echo '</div>';
     echo '</div>';
     
     // Info Siswa

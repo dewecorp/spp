@@ -56,9 +56,22 @@ $setting = mysqli_fetch_assoc($q_setting);
             margin-bottom: 20px;
             border-bottom: 2px solid #000;
             padding-bottom: 10px;
+            position: relative;
+            min-height: 100px;
+        }
+        .header img {
+            position: absolute;
+            left: 0;
+            top: 0;
+            max-height: 80px;
+            max-width: 80px;
         }
         .header h2, .header h3, .header p {
             margin: 2px;
+        }
+        .header-content {
+            margin-left: 90px; /* Adjust based on logo width + gap */
+            text-align: center;
         }
         .info-table {
             width: 100%;
@@ -97,9 +110,14 @@ $setting = mysqli_fetch_assoc($q_setting);
 </head>
 <body>
     <div class="header">
-        <h2><?= strtoupper($setting['nama_sekolah']) ?></h2>
-        <p><?= $setting['alamat_sekolah'] ?></p>
-        <h3>BUKTI PEMBAYARAN</h3>
+        <?php if (!empty($setting['logo'])): ?>
+            <img src="../assets/images/<?= $setting['logo'] ?>" alt="Logo Sekolah">
+        <?php endif; ?>
+        <div class="header-content">
+            <h2><?= strtoupper($setting['nama_sekolah']) ?></h2>
+            <p><?= $setting['alamat_sekolah'] ?></p>
+            <h3>BUKTI PEMBAYARAN</h3>
+        </div>
     </div>
 
     <table class="info-table">

@@ -9,6 +9,13 @@ if (isset($_SESSION['login'])) {
 
 $script = "";
 
+// Ambil pengaturan
+$q_setting = mysqli_query($koneksi, "SELECT * FROM pengaturan WHERE id_pengaturan = 1");
+$d_setting = mysqli_fetch_assoc($q_setting);
+$bg_login = $d_setting['bg_login'] ?? '';
+$nama_sekolah = $d_setting['nama_sekolah'] ?? 'Sekolah';
+$logo_sekolah = $d_setting['logo'] ?? '';
+
 if (isset($_POST['login'])) {
     $username = $_POST['username'];
     $password = $_POST['password'];
@@ -35,7 +42,7 @@ if (isset($_POST['login'])) {
                     timer: 1500,
                     showConfirmButton: false
                 }).then(() => {
-                    window.location='" . base_url('index.php') . "';
+                    window.location='" . base_url('index.php?v=' . time()) . "';
                 });
             </script>";
         } else {
@@ -62,40 +69,46 @@ if (isset($_POST['login'])) {
 <body>
     <div class="container-scroller">
         <div class="container-fluid page-body-wrapper full-page-wrapper">
-            <div class="content-wrapper d-flex align-items-center auth auth-bg-1 theme-one">
+            <div class="content-wrapper d-flex align-items-center auth auth-bg-1 theme-one" style="<?= !empty($bg_login) ? "background-image: url('" . base_url('assets/images/' . $bg_login) . "'); background-size: cover; background-position: center;" : "" ?>">
                 <div class="row w-100">
                     <div class="col-lg-4 mx-auto">
-                        <div class="auto-form-wrapper">
-                            <h3 class="text-center mb-4">Login SPP</h3>
+                        <div class="auto-form-wrapper" style="background-color: rgba(255, 255, 255, 0.9); padding: 30px; border-radius: 10px; box-shadow: 0px 0px 20px rgba(0,0,0,0.3);">
+                            <div class="text-center mb-4">
+                                <?php if(!empty($logo_sekolah)): ?>
+                                    <img src="<?= base_url('assets/images/'.$logo_sekolah) ?>" alt="logo" style="width: 80px; margin-bottom: 10px;">
+                                <?php endif; ?>
+                                <h4 class="font-weight-bold text-dark text-uppercase"><?= $nama_sekolah ?></h4>
+                                <h6 class="font-weight-light text-dark">Sistem Informasi Pembayaran</h6>
+                            </div>
                             <form action="" method="post">
                                 <div class="form-group">
-                                    <label class="label">Username</label>
+                                    <label class="label text-dark font-weight-bold">Username</label>
                                     <div class="input-group">
-                                        <input type="text" name="username" class="form-control" placeholder="Username" required>
+                                        <input type="text" name="username" class="form-control" placeholder="Username" required style="border-color: #ccc;">
                                         <div class="input-group-append">
-                                            <span class="input-group-text">
-                                                <i class="mdi mdi-check-circle-outline"></i>
+                                            <span class="input-group-text" style="border-color: #ccc;">
+                                                <i class="mdi mdi-check-circle-outline text-primary"></i>
                                             </span>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label class="label">Password</label>
+                                    <label class="label text-dark font-weight-bold">Password</label>
                                     <div class="input-group">
-                                        <input type="password" name="password" class="form-control" placeholder="********" required>
+                                        <input type="password" name="password" class="form-control" placeholder="********" required style="border-color: #ccc;">
                                         <div class="input-group-append">
-                                            <span class="input-group-text">
-                                                <i class="mdi mdi-check-circle-outline"></i>
+                                            <span class="input-group-text" style="border-color: #ccc;">
+                                                <i class="mdi mdi-check-circle-outline text-primary"></i>
                                             </span>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="form-group">
-                                    <button type="submit" name="login" class="btn btn-primary submit-btn btn-block">Login</button>
+                                <div class="form-group text-center">
+                                    <button type="submit" name="login" class="btn btn-primary submit-btn shadow-sm px-5">MASUK APLIKASI</button>
                                 </div>
                             </form>
                         </div>
-                        <p class="text-center mt-2 text-white">Default: admin / admin123</p>
+                        <!-- Info default user removed -->
                     </div>
                 </div>
             </div>
