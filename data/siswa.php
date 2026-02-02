@@ -249,7 +249,7 @@ $jumlah_siswa = mysqli_num_rows($query_siswa);
             <div class="card-body">
                 <h4 class="card-title">Data Siswa</h4>
                 
-                <div class="d-flex justify-content-between mb-3 align-items-center">
+                <div class="toolbar d-flex justify-content-between mb-3 align-items-center">
                     <div>
                         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalTambah">
                             <i class="mdi mdi-plus"></i> Tambah Siswa
@@ -277,7 +277,7 @@ $jumlah_siswa = mysqli_num_rows($query_siswa);
                 </div>
                 
                 <form action="" method="post" id="formMultiHapus">
-                    <div class="mb-2 d-flex justify-content-between align-items-center">
+                    <div class="toolbar-secondary mb-2 d-flex justify-content-between align-items-center">
                         <div>
                             <button type="button" id="btnMultiHapus" class="btn btn-danger btn-sm">
                                 <i class="mdi mdi-delete"></i> Hapus Terpilih

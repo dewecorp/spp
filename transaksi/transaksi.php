@@ -231,11 +231,13 @@ if (isset($_GET['hapus_transaksi'])) {
         <div class="card">
             <div class="card-body">
                 <h4 class="card-title">Data Transaksi Pembayaran</h4>
-                <div class="d-flex justify-content-between mb-3">
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalTambah">
-                        <i class="mdi mdi-plus"></i> Tambah Transaksi
-                    </button>
-                    <div>
+                <div class="toolbar d-flex justify-content-between mb-3 align-items-center" style="gap: .5rem;">
+                    <div class="d-flex align-items-center" style="gap: .5rem;">
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalTambah">
+                            <i class="mdi mdi-plus"></i> Tambah Transaksi
+                        </button>
+                    </div>
+                    <div class="d-flex align-items-center" style="gap: .5rem;">
                         <a href="export_excel.php" class="btn btn-success" target="_blank">
                             <i class="mdi mdi-file-excel"></i> Export Excel
                         </a>

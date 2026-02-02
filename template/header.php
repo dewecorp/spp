@@ -65,10 +65,29 @@ if (!isset($_SESSION['login']) || !isset($_SESSION['nama_lengkap']) || !isset($_
                 padding-left: 15px;
             }
             .navbar .navbar-brand-wrapper .navbar-brand.brand-logo {
-                display: block !important;
+                display: flex !important;
+                align-items: center !important;
             }
             .navbar .navbar-brand-wrapper .navbar-brand.brand-logo-mini {
                 display: none !important;
+            }
+            .navbar .navbar-brand-wrapper .navbar-brand.brand-logo img {
+                width: 36px !important;
+                height: 36px !important;
+                margin-right: 8px !important;
+            }
+            .navbar .navbar-brand-wrapper h3 {
+                font-size: 1.25rem !important;
+                line-height: 1.2 !important;
+                letter-spacing: .5px !important;
+                margin: 0 !important;
+                white-space: nowrap !important;
+            }
+            .navbar .navbar-menu-wrapper {
+                padding-right: 10px !important;
+            }
+            .navbar .navbar-menu-wrapper .navbar-toggler {
+                margin-left: auto !important;
             }
         }
         
@@ -141,6 +160,26 @@ if (!isset($_SESSION['login']) || !isset($_SESSION['nama_lengkap']) || !isset($_
         }
         .navbar.default-layout .navbar-menu-wrapper .mdi {
             color: #ffffff !important;
+        }
+
+        /* Responsive toolbars and buttons on mobile */
+        @media (max-width: 768px) {
+            .toolbar,
+            .toolbar-secondary {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: .5rem !important;
+            }
+            .toolbar .btn,
+            .toolbar-secondary .btn {
+                width: 100% !important;
+            }
+            .toolbar .input-group {
+                width: 100% !important;
+            }
+            .toolbar select {
+                width: 100% !important;
+            }
         }
     </style>
 </head>
