@@ -41,6 +41,12 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="<?= base_url('laporan/laporan.php?v=1') ?>">
+                            <i class="menu-icon mdi mdi-printer"></i>
+                            <span class="menu-title">Laporan</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="<?= base_url('transaksi/riwayat.php?v=1') ?>">
                             <i class="menu-icon mdi mdi-chart-line"></i>
                             <span class="menu-title">Riwayat Bayar</span>
