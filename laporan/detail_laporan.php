@@ -97,7 +97,14 @@ if (!$d_siswa) {
                                         <tbody>
                                             <?php
                                             $bulan = ['Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni'];
-                                            foreach ($bulan as $bln) {
+                                            
+                                            // Calculate current month index (relative to school year starting July)
+                                            $current_month_num = date('n'); // 1-12
+                                            $limit_index = ($current_month_num >= 7) ? $current_month_num - 7 : $current_month_num + 5;
+                                            
+                                            foreach ($bulan as $index => $bln) {
+                                                if ($index > $limit_index) continue; // Skip future months
+                                                
                                                 $q_bayar = mysqli_query($koneksi, "SELECT * FROM pembayaran WHERE nisn = '$nisn' AND id_jenis_bayar = '" . $d_jenis['id_jenis_bayar'] . "' AND bulan_bayar = '$bln'");
                                                 $d_bayar = mysqli_fetch_assoc($q_bayar);
                                                 
