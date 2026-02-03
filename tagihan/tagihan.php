@@ -74,7 +74,7 @@ if (isset($_GET['id_kelas'])) {
                                     <td><?= $s['nisn'] ?></td>
                                     <td><?= $s['nama'] ?></td>
                                     <td>
-                                        <a href="tagihan_detail.php?nisn=<?= $s['nisn'] ?>&id_kelas=<?= $id_kelas ?>" class="btn btn-info btn-sm">
+                                        <a href="tagihan_detail.php?v=1&nisn=<?= $s['nisn'] ?>&id_kelas=<?= $id_kelas ?>" class="btn btn-info btn-sm">
                                             <i class="mdi mdi-eye"></i> Lihat Tagihan
                                         </a>
                                     </td>

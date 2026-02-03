@@ -8,5 +8,5 @@ if (isset($_SESSION['id_pengguna'])) {
 }
 
 session_destroy();
-header("Location: login.php");
+header("Location: " . base_url('auth/login.php'));
 ?>

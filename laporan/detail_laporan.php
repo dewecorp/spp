@@ -23,7 +23,7 @@ if (!$d_siswa) {
                         <a href="cetak_laporan.php?nisn=<?= $nisn ?>" target="_blank" class="btn btn-warning btn-icon-text">
                             <i class="mdi mdi-printer btn-icon-prepend"></i> Cetak Laporan
                         </a>
-                        <a href="laporan.php?id_kelas=<?= $d_siswa['id_kelas'] ?>" class="btn btn-light">Kembali</a>
+                        <a href="laporan.php?v=1&id_kelas=<?= $d_siswa['id_kelas'] ?>" class="btn btn-light">Kembali</a>
                     </div>
                 </div>
 

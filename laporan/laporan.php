@@ -30,7 +30,7 @@ $id_kelas = isset($_GET['id_kelas']) ? $_GET['id_kelas'] : '';
                         </div>
                         <div class="col-md-8 d-flex align-items-center">
                             <?php if (!empty($id_kelas)): ?>
-                                <a href="cetak_semua.php?id_kelas=<?= $id_kelas ?>" target="_blank" class="btn btn-primary btn-icon-text mt-3">
+                                <a href="cetak_semua.php?v=1&id_kelas=<?= $id_kelas ?>" target="_blank" class="btn btn-primary btn-icon-text mt-3">
                                     <i class="mdi mdi-printer btn-icon-prepend"></i> Cetak Semua Laporan
                                 </a>
                             <?php endif; ?>

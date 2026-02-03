@@ -19,7 +19,7 @@ if (isset($_GET['aksi']) && $_GET['aksi'] == 'hapus' && isset($_GET['file'])) {
                 timer: 1500,
                 showConfirmButton: false
             }).then(() => {
-                window.location = 'backup_restore.php';
+                window.location = 'backup_restore.php?v=1';
             });
         </script>";
     }
@@ -260,7 +260,7 @@ if (isset($_POST['restore'])) {
             cancelButtonText: 'Batal'
         }).then((result) => {
             if (result.isConfirmed) {
-                window.location = '?aksi=hapus&file=' + file;
+                window.location = 'backup_restore.php?v=1&aksi=hapus&file=' + file;
             }
         })
     }

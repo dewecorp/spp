@@ -59,11 +59,11 @@ if (isset($_POST['import'])) {
                     timer: 2000,
                     showConfirmButton: false
                 }).then(() => {
-                    window.location='siswa.php';
-                });
-            </script>";
-            
-            logActivity($koneksi, 'Create', "Import $success_count data siswa via Excel");
+                window.location='siswa.php?v=1';
+            });
+        </script>";
+        
+        logActivity($koneksi, 'Create', "Import $success_count data siswa via Excel");
             
         } catch (Exception $e) {
             echo "<script>Swal.fire('Gagal', 'Terjadi kesalahan saat membaca file: " . $e->getMessage() . "', 'error');</script>";
@@ -98,13 +98,13 @@ if (isset($_POST['tambah'])) {
                     timer: 1500,
                     showConfirmButton: false
                 }).then(() => {
-                    window.location='siswa.php';
-                });
-            </script>";
-        } else {
-            echo "<script>Swal.fire('Gagal', 'Data gagal ditambahkan', 'error');</script>";
-        }
+                window.location='siswa.php?v=1';
+            });
+        </script>";
+    } else {
+        echo "<script>Swal.fire('Gagal', 'Data gagal ditambahkan', 'error');</script>";
     }
+}
 }
 
 // Proses Edit
@@ -330,7 +330,7 @@ $jumlah_siswa = mysqli_num_rows($query_siswa);
                                         <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEdit<?= $row['nisn'] ?>">
                                             <i class="mdi mdi-pencil"></i>
                                         </button>
-                                        <a href="siswa.php?hapus=<?= $row['nisn'] ?>" class="btn btn-danger btn-sm btn-hapus">
+                                        <a href="siswa.php?v=1&hapus=<?= $row['nisn'] ?>" class="btn btn-danger btn-sm btn-hapus">
                                             <i class="mdi mdi-delete"></i>
                                         </a>
                                     </td>

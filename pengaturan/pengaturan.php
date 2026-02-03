@@ -70,7 +70,7 @@ if (isset($_POST['simpan'])) {
                 timer: 1500,
                 showConfirmButton: false
             }).then(() => {
-                window.location.href = 'pengaturan.php';
+                window.location.href = 'pengaturan.php?v=1';
             });
         </script>";
     } else {
@@ -96,7 +96,7 @@ if (isset($_POST['reset_data'])) {
                     timer: 2000,
                     showConfirmButton: false
                 }).then(() => {
-                    window.location.href = 'pengaturan.php';
+                    window.location.href = 'pengaturan.php?v=1';
                 });
             </script>";
         } else {

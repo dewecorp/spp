@@ -115,7 +115,7 @@ if (isset($_POST['tambah'])) {
                 timer: 1500,
                 showConfirmButton: false
             }).then(() => {
-                window.location='transaksi.php';
+                window.location.href = '" . base_url('transaksi/transaksi.php?v=1') . "';
             });
         </script>";
     } else {
@@ -211,7 +211,7 @@ if (isset($_POST['update_transaksi'])) {
                 timer: 1500,
                 showConfirmButton: false
             }).then(() => {
-                window.location='transaksi.php';
+                window.location.href = '" . base_url('transaksi/transaksi.php?v=1') . "';
             });
         </script>";
     } else {
@@ -241,7 +241,7 @@ if (isset($_GET['hapus_transaksi'])) {
                 timer: 1500,
                 showConfirmButton: false
             }).then(() => {
-                window.location='transaksi.php';
+                window.location='" . base_url('transaksi/transaksi.php?v=1') . "';
             });
         </script>";
     } else {
@@ -325,7 +325,7 @@ if (isset($_GET['hapus_transaksi'])) {
                                         <button type="button" class="btn btn-warning btn-sm btn-edit-transaksi" data-id="<?= $row['no_transaksi'] ?>" data-bs-toggle="modal" data-bs-target="#modalEdit">
                                             <i class="mdi mdi-pencil"></i>
                                         </button>
-                                        <a href="transaksi.php?hapus_transaksi=<?= $row['no_transaksi'] ?>" class="btn btn-danger btn-sm btn-hapus">
+                                        <a href="<?= base_url('transaksi/transaksi.php?hapus_transaksi=' . $row['no_transaksi'] . '&v=1') ?>" class="btn btn-danger btn-sm btn-hapus">
                                             <i class="mdi mdi-delete"></i>
                                         </a>
                                     </td>
@@ -342,7 +342,7 @@ if (isset($_GET['hapus_transaksi'])) {
 <!-- Modal Tambah -->
 <div class="modal fade" id="modalTambah" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-scrollable" role="document">
-        <form class="modal-content" action="" method="post">
+        <form class="modal-content" action="<?= base_url('transaksi/transaksi.php') ?>" method="post">
             <div class="modal-header">
                 <h5 class="modal-title">Tambah Transaksi</h5>
                 <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close" style="background: transparent; border: none;">
@@ -395,7 +395,7 @@ if (isset($_GET['hapus_transaksi'])) {
 <!-- Modal Edit -->
 <div class="modal fade" id="modalEdit" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-scrollable" role="document">
-        <form class="modal-content" action="" method="post">
+        <form class="modal-content" action="<?= base_url('transaksi/transaksi.php') ?>" method="post">
             <div class="modal-header">
                 <h5 class="modal-title">Edit Transaksi</h5>
                 <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close" style="background: transparent; border: none;">

@@ -110,7 +110,7 @@ if (isset($_GET['hapus'])) {
                 timer: 1500,
                 showConfirmButton: false
             }).then(() => {
-                window.location.href = 'pengguna.php';
+                window.location.href = 'pengguna.php?v=1';
             });
         </script>";
     } else {
@@ -173,7 +173,7 @@ if (isset($_GET['hapus'])) {
                                             data-role="<?= $row['role'] ?>">
                                             <i class="mdi mdi-pencil"></i>
                                         </button>
-                                        <a href="pengguna.php?hapus=<?= $row['id_pengguna'] ?>" class="btn btn-danger btn-sm btn-hapus">
+                                        <a href="pengguna.php?v=1&hapus=<?= $row['id_pengguna'] ?>" class="btn btn-danger btn-sm btn-hapus">
                                             <i class="mdi mdi-delete"></i>
                                         </a>
                                     </td>
