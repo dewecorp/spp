@@ -19,8 +19,22 @@ $d_info = mysqli_fetch_assoc($q_info);
     <title>Laporan Pembayaran - <?= $d_siswa['nama'] ?></title>
     <style>
         body { font-family: Arial, sans-serif; font-size: 12px; }
-        .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; }
-        .header h2 { margin: 0; }
+        .header { 
+            text-align: center; 
+            margin-bottom: 20px; 
+            border-bottom: 2px solid #000; 
+            padding-bottom: 10px; 
+            position: relative;
+            min-height: 80px;
+        }
+        .header img {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 80px;
+            width: auto;
+        }
+        .header h2 { margin: 0; padding-top: 15px; }
         .header p { margin: 5px 0; }
         .info-siswa { margin-bottom: 20px; width: 100%; }
         .info-siswa td { padding: 3px; }
@@ -39,8 +53,10 @@ $d_info = mysqli_fetch_assoc($q_info);
 <body onload="window.print()">
 
     <div class="header">
+        <?php if (!empty($d_info['logo'])): ?>
+            <img src="../assets/images/<?= $d_info['logo'] ?>" alt="Logo">
+        <?php endif; ?>
         <h2><?= strtoupper($d_info['nama_sekolah']) ?></h2>
-        <p><?= $d_info['alamat_sekolah'] ?></p>
         <h3>LAPORAN STATUS PEMBAYARAN SISWA</h3>
     </div>
 
@@ -55,7 +71,7 @@ $d_info = mysqli_fetch_assoc($q_info);
             <td>Nama Siswa</td>
             <td>: <?= $d_siswa['nama'] ?></td>
             <td>Tahun Ajaran</td>
-            <td>: <?= date('Y') ?></td>
+            <td>: <?= $d_info['tahun_ajaran'] ?></td>
         </tr>
     </table>
 
@@ -140,8 +156,8 @@ $d_info = mysqli_fetch_assoc($q_info);
     ?>
     
     <div style="margin-top: 30px; float: right; text-align: center;">
-        <p><?= $d_info['alamat_sekolah'] ?>, <?= date('d F Y') ?></p>
-        <p>Bendahara Sekolah</p>
+        <p>Jepara, <?= date('d F Y') ?></p>
+        <p>Bendahara</p>
         <br><br><br>
         <p><b><?= $d_info['nama_bendahara'] ?></b></p>
     </div>
