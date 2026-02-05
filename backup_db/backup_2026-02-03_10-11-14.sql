@@ -45,25 +45,8 @@ CREATE TABLE `log_aktivitas` (
   PRIMARY KEY (`id_log`),
   KEY `id_pengguna` (`id_pengguna`),
   CONSTRAINT `log_aktivitas_ibfk_1` FOREIGN KEY (`id_pengguna`) REFERENCES `pengguna` (`id_pengguna`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=34 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=67 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-INSERT INTO log_aktivitas VALUES("1","1","Update","Mengubah data siswa: Budi (123456)","2026-02-01 18:02:05");
-INSERT INTO log_aktivitas VALUES("2","1","Update","Mengedit jenis bayar: Iuran Ekstrakurikuler (2025/2026)","2026-02-01 18:12:38");
-INSERT INTO log_aktivitas VALUES("3","1","Update","Mengedit kelas: 1","2026-02-01 18:12:43");
-INSERT INTO log_aktivitas VALUES("4","1","Create","Membuat backup database: backup_2026-02-01_18-31-18.sql","2026-02-01 18:31:18");
-INSERT INTO log_aktivitas VALUES("5","1","Create","Membuat backup database: backup_2026-02-01_18-31-23.sql","2026-02-01 18:31:23");
-INSERT INTO log_aktivitas VALUES("6","1","Delete","Menghapus file backup: backup_2026-02-01_10-08-37.sql","2026-02-01 18:31:30");
-INSERT INTO log_aktivitas VALUES("7","1","Update","Mengedit jenis bayar: LKS (Cicilan)","2026-02-01 19:20:45");
-INSERT INTO log_aktivitas VALUES("8","1","Update","Mengedit jenis bayar: LKS (Cicilan)","2026-02-01 19:25:08");
-INSERT INTO log_aktivitas VALUES("9","1","Update","Mengedit jenis bayar: Iuran Ekstrakurikuler (Bulanan)","2026-02-01 19:25:14");
-INSERT INTO log_aktivitas VALUES("10","1","Create","Menambah jenis bayar: Biaya Ujian 2026 (Bulanan)","2026-02-01 19:27:37");
-INSERT INTO log_aktivitas VALUES("11","1","Update","Mengedit jenis bayar: Biaya Ujian 2026 (Cicilan)","2026-02-01 19:36:14");
-INSERT INTO log_aktivitas VALUES("12","1","Create","Menambah transaksi pembayaran NISN: 123456","2026-02-01 19:39:31");
-INSERT INTO log_aktivitas VALUES("13","1","Create","Menambah transaksi pembayaran NISN: 987654321","2026-02-01 19:40:45");
-INSERT INTO log_aktivitas VALUES("14","1","Create","Menambah 2 transaksi pembayaran NISN: 123456","2026-02-01 20:44:34");
-INSERT INTO log_aktivitas VALUES("15","1","Update","Mengedit transaksi No: TRX-OLD-4-9450","2026-02-01 21:44:17");
-INSERT INTO log_aktivitas VALUES("16","1","Delete","Menghapus transaksi No: TRX-OLD-3-1635","2026-02-01 21:45:33");
-INSERT INTO log_aktivitas VALUES("17","1","Create","Import 19 data siswa via Excel","2026-02-02 09:37:05");
 INSERT INTO log_aktivitas VALUES("18","1","Update","Multi update 2 data siswa","2026-02-02 10:38:03");
 INSERT INTO log_aktivitas VALUES("19","1","Create","Menambah 1 transaksi pembayaran NISN: 3146588936","2026-02-02 10:42:53");
 INSERT INTO log_aktivitas VALUES("20","1","Update","Mengedit transaksi No: TRX-20260202104253-993","2026-02-02 10:43:50");
@@ -80,6 +63,39 @@ INSERT INTO log_aktivitas VALUES("30","2","Login","Login berhasil","2026-02-02 1
 INSERT INTO log_aktivitas VALUES("31","2","Create","Menambah 1 transaksi pembayaran NISN: 123456","2026-02-02 13:45:22");
 INSERT INTO log_aktivitas VALUES("32","2","Logout","Logout berhasil","2026-02-02 13:46:59");
 INSERT INTO log_aktivitas VALUES("33","1","Login","Login berhasil","2026-02-02 13:47:18");
+INSERT INTO log_aktivitas VALUES("34","1","Create","Membuat backup database: backup_2026-02-02_13-47-30.sql","2026-02-02 13:47:30");
+INSERT INTO log_aktivitas VALUES("35","1","Delete","Menghapus file backup: backup_2026-02-01_18-31-18.sql","2026-02-02 13:47:38");
+INSERT INTO log_aktivitas VALUES("36","1","Delete","Menghapus transaksi No: TRX-OLD-1-3397","2026-02-02 17:34:54");
+INSERT INTO log_aktivitas VALUES("37","1","Delete","Menghapus transaksi No: TRX-OLD-2-8813","2026-02-02 17:47:06");
+INSERT INTO log_aktivitas VALUES("38","1","Delete","Menghapus transaksi No: TRX-OLD-4-9450","2026-02-02 17:47:24");
+INSERT INTO log_aktivitas VALUES("39","1","Create","Menambah 2 transaksi pembayaran NISN: 3135628625","2026-02-02 18:00:39");
+INSERT INTO log_aktivitas VALUES("40","1","Create","Menambah 1 transaksi pembayaran NISN: 3137563185","2026-02-02 18:02:51");
+INSERT INTO log_aktivitas VALUES("41","1","Create","Menambah 2 transaksi pembayaran NISN: 3133372371","2026-02-02 18:03:47");
+INSERT INTO log_aktivitas VALUES("42","1","Logout","Logout berhasil","2026-02-02 18:31:49");
+INSERT INTO log_aktivitas VALUES("43","1","Login","Login berhasil","2026-02-02 18:31:57");
+INSERT INTO log_aktivitas VALUES("44","1","Logout","Logout berhasil","2026-02-02 18:34:19");
+INSERT INTO log_aktivitas VALUES("45","1","Login","Login berhasil","2026-02-02 18:34:25");
+INSERT INTO log_aktivitas VALUES("46","1","Update","Memperbarui pengaturan sekolah","2026-02-02 19:53:17");
+INSERT INTO log_aktivitas VALUES("47","1","Logout","Logout berhasil","2026-02-02 19:53:23");
+INSERT INTO log_aktivitas VALUES("48","1","Login","Login berhasil","2026-02-02 20:12:39");
+INSERT INTO log_aktivitas VALUES("49","1","Logout","Logout berhasil","2026-02-02 20:12:49");
+INSERT INTO log_aktivitas VALUES("50","1","Login","Login berhasil","2026-02-02 20:13:07");
+INSERT INTO log_aktivitas VALUES("51","1","Update","Memperbarui pengaturan sekolah","2026-02-02 20:27:24");
+INSERT INTO log_aktivitas VALUES("52","1","Logout","Logout berhasil","2026-02-02 20:35:19");
+INSERT INTO log_aktivitas VALUES("53","1","Login","Login berhasil","2026-02-02 20:35:42");
+INSERT INTO log_aktivitas VALUES("54","1","Logout","Logout berhasil","2026-02-03 05:57:46");
+INSERT INTO log_aktivitas VALUES("55","1","Login","Login berhasil","2026-02-03 05:57:55");
+INSERT INTO log_aktivitas VALUES("56","1","Create","Menambah 1 transaksi pembayaran NISN: 3149297726","2026-02-03 08:56:00");
+INSERT INTO log_aktivitas VALUES("57","1","Create","Menambah 1 transaksi pembayaran NISN: 3130180823","2026-02-03 09:20:13");
+INSERT INTO log_aktivitas VALUES("58","1","Create","Menambah 1 transaksi pembayaran NISN: 3133041280","2026-02-03 09:24:30");
+INSERT INTO log_aktivitas VALUES("59","1","Create","Menambah 1 transaksi pembayaran NISN: 3137207114","2026-02-03 09:37:44");
+INSERT INTO log_aktivitas VALUES("60","1","Update","Mengedit transaksi No: TRX-202602-007","2026-02-03 09:43:26");
+INSERT INTO log_aktivitas VALUES("61","1","Update","Mengedit transaksi No: TRX-202602-007","2026-02-03 10:02:28");
+INSERT INTO log_aktivitas VALUES("62","1","Create","Menambah 2 transaksi pembayaran NISN: 3136264986","2026-02-03 10:03:02");
+INSERT INTO log_aktivitas VALUES("63","1","Update","Mengedit kelas: 1","2026-02-03 10:04:19");
+INSERT INTO log_aktivitas VALUES("64","1","Update","Mengedit jenis bayar: Iuran Rekreasi (Cicilan)","2026-02-03 10:04:26");
+INSERT INTO log_aktivitas VALUES("65","1","Update","Mengubah data siswa: Budi (123456)","2026-02-03 10:04:32");
+INSERT INTO log_aktivitas VALUES("66","1","Update","Mengubah data pengguna: petugas","2026-02-03 10:11:07");
 
 
 
@@ -105,17 +121,24 @@ CREATE TABLE `pembayaran` (
   CONSTRAINT `pembayaran_ibfk_1` FOREIGN KEY (`id_petugas`) REFERENCES `pengguna` (`id_pengguna`),
   CONSTRAINT `pembayaran_ibfk_2` FOREIGN KEY (`nisn`) REFERENCES `siswa` (`nisn`) ON DELETE CASCADE,
   CONSTRAINT `pembayaran_ibfk_3` FOREIGN KEY (`id_jenis_bayar`) REFERENCES `jenis_bayar` (`id_jenis_bayar`)
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-INSERT INTO pembayaran VALUES("1","TRX-OLD-1-3397","1","123456","2026-02-01","","","2","50000","1","Cicilan ke-1","2026-02-01 19:39:31");
-INSERT INTO pembayaran VALUES("2","TRX-OLD-2-8813","1","987654321","2026-02-01","","","1","10000","0","Lunas (Bulanan)","2026-02-01 19:40:45");
-INSERT INTO pembayaran VALUES("5","TRX-OLD-4-9450","1","123456","2026-02-01","Januari, Februari","2026","1","20000","0","Lunas (Bulanan) - Januari, Februari","2026-02-01 21:44:17");
-INSERT INTO pembayaran VALUES("6","TRX-OLD-4-9450","1","123456","2026-02-01","","2026","2","50000","1","Cicilan ke-1","2026-02-01 21:44:17");
 INSERT INTO pembayaran VALUES("9","TRX-20260202104253-993","1","3146588936","2026-02-02","","2026","3","100000","1","Cicilan ke-1","2026-02-02 10:59:08");
 INSERT INTO pembayaran VALUES("10","TRX-20260202104253-993","1","3146588936","2026-02-02","November, Desember, Januari, Februari","2026","1","40000","0","Lunas (Bulanan) - November, Desember, Januari, Februari","2026-02-02 10:59:08");
 INSERT INTO pembayaran VALUES("11","TRX-20260202104253-993","1","3146588936","2026-02-02","","2026","2","50000","1","Cicilan ke-1","2026-02-02 10:59:32");
 INSERT INTO pembayaran VALUES("12","TRX-20260202111328-152","1","3132163433","2026-02-02","","2026","4","100000","1","Cicilan ke-1","2026-02-02 11:13:28");
 INSERT INTO pembayaran VALUES("13","TRX-20260202134522-528","2","123456","2026-02-02","Februari","2026","1","10000","0","Lunas (Bulanan) - Februari","2026-02-02 13:45:22");
+INSERT INTO pembayaran VALUES("14","TRX-202602-001","1","3135628625","2026-02-02","","2026","3","200000","1","Cicilan ke-1","2026-02-02 18:00:39");
+INSERT INTO pembayaran VALUES("15","TRX-202602-001","1","3135628625","2026-02-02","","2026","4","200000","1","Cicilan ke-1","2026-02-02 18:00:39");
+INSERT INTO pembayaran VALUES("16","TRX-202602-002","1","3137563185","2026-02-02","Januari, Februari","2026","1","20000","0","Lunas (Bulanan) - Januari, Februari","2026-02-02 18:02:51");
+INSERT INTO pembayaran VALUES("17","TRX-202602-003","1","3133372371","2026-02-02","","2026","4","50000","1","Cicilan ke-1","2026-02-02 18:03:47");
+INSERT INTO pembayaran VALUES("18","TRX-202602-003","1","3133372371","2026-02-02","","2026","2","100000","1","Cicilan ke-1","2026-02-02 18:03:47");
+INSERT INTO pembayaran VALUES("19","TRX-202602-004","1","3149297726","2026-02-03","","2026","4","150000","1","Cicilan ke-1","2026-02-03 08:56:00");
+INSERT INTO pembayaran VALUES("20","TRX-202602-005","1","3130180823","2026-02-03","","2026","2","50000","1","Cicilan ke-1","2026-02-03 09:20:12");
+INSERT INTO pembayaran VALUES("21","TRX-202602-006","1","3133041280","2026-02-03","","2026","3","100000","1","Cicilan ke-1","2026-02-03 09:24:30");
+INSERT INTO pembayaran VALUES("22","TRX-202602-007","1","3137207114","2026-02-03","","2026","3","100000","1","Cicilan ke-1","2026-02-03 09:37:44");
+INSERT INTO pembayaran VALUES("23","TRX-202602-008","1","3136264986","2026-02-03","","2026","3","50000","1","Cicilan ke-1","2026-02-03 10:03:02");
+INSERT INTO pembayaran VALUES("24","TRX-202602-008","1","3136264986","2026-02-03","","2026","4","100000","1","Cicilan ke-1","2026-02-03 10:03:02");
 
 
 
@@ -128,10 +151,11 @@ CREATE TABLE `pengaturan` (
   `logo` varchar(255) DEFAULT NULL,
   `nama_bendahara` varchar(100) DEFAULT NULL,
   `tahun_ajaran` varchar(20) DEFAULT '',
+  `bg_login` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id_pengaturan`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-INSERT INTO pengaturan VALUES("1","MI Sultan Fattah Sukosono","Sukosono Kedung Jepara 59463","logo.png","Zamaah, S.Pd.I","2025/2026");
+INSERT INTO pengaturan VALUES("1","MI Sultan Fattah Sukosono","Jln. Kauman RT. 10 RW. 03 Sukosono Kedung Jepara 59463","logo.png","Zamaah, S.Pd.I","2025/2026","bg_login.jpg");
 
 
 
@@ -150,7 +174,7 @@ CREATE TABLE `pengguna` (
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 INSERT INTO pengguna VALUES("1","admin","$2y$10$8CDkDNvsxuABPt9TxvEM/OxgfztNhqVW0nWgU0J252sBmXDEQ7z7O","Administrator","admin","2026-01-31 17:14:42","");
-INSERT INTO pengguna VALUES("2","petugas","$2y$10$pGsvwbguI4d77Ry9Wqb5QugZI0xXwRVQIS9GBsbSusUOLy6sTcoti","Zamaah, S.Pd.I.","petugas","2026-02-01 17:33:49","");
+INSERT INTO pengguna VALUES("2","petugas","$2y$10$VzeZYp1DeKNE4djL6JI9Meu5vjMw30wi.R1LxXTsAtkBUFNCdOAqS","Zamaah, S.Pd.I.","petugas","2026-02-01 17:33:49","");
 
 
 

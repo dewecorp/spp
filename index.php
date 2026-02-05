@@ -149,6 +149,29 @@ $jml_aktivitas = mysqli_num_rows($q_aktivitas);
                     <span class="badge badge-primary ml-2"><?= $jml_aktivitas ?></span>
                 </h4>
                 <p class="card-description">Memantau aktivitas login, logout, dan manajemen data.</p>
+                <style>
+                    .activity-timeline { list-style: none; margin: 0; padding: 0 0 0 56px; position: relative; }
+                    .activity-timeline:before { content: ""; position: absolute; left: 28px; top: 0; bottom: 0; width: 2px; background: #f0f0f0; }
+                    .activity-timeline li { position: relative; margin-bottom: 16px; }
+                    .activity-item-card { background: #ffffff; border: 1px solid #eee; border-radius: 12px; padding: 12px 16px; padding-left: 56px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); display: flex; gap: 12px; align-items: flex-start; position: relative; }
+                    .activity-icon { position: absolute; left: 16px; top: 16px; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; }
+                    .activity-content { flex: 1; }
+                    .activity-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+                    .badge-type { display: inline-block; padding: 4px 8px; border-radius: 999px; font-size: 12px; line-height: 1; }
+                    .type-Login .badge-type { background: #eaf7f0; color: #2ecc71; }
+                    .type-Logout .badge-type { background: #eef0f2; color: #6c757d; }
+                    .type-Create .badge-type { background: #e9f0ff; color: #4e73df; }
+                    .type-Update .badge-type { background: #fff7e6; color: #f6c23e; }
+                    .type-Delete .badge-type { background: #ffecec; color: #e74a3b; }
+                    .type-Login .activity-item-card { border-left: 4px solid #2ecc71; }
+                    .type-Logout .activity-item-card { border-left: 4px solid #6c757d; }
+                    .type-Create .activity-item-card { border-left: 4px solid #4e73df; }
+                    .type-Update .activity-item-card { border-left: 4px solid #f6c23e; }
+                    .type-Delete .activity-item-card { border-left: 4px solid #e74a3b; }
+                    .activity-title { font-weight: 600; font-size: 14px; }
+                    .activity-desc { margin: 4px 0 6px; color: #2c2e33; }
+                    .activity-meta { font-size: 12px; color: #6c757d; display: flex; align-items: center; gap: 6px; }
+                </style>
                 
                 <div style="height: 400px; overflow-y: auto; overflow-x: hidden;">
                     <ul class="activity-timeline">
@@ -175,18 +198,23 @@ $jml_aktivitas = mysqli_num_rows($q_aktivitas);
                                     $bg_color = 'bg-danger';
                                 }
                             ?>
-                            <li>
-                                <div class="activity-timeline-item">
+                            <li class="type-<?= $jenis ?>">
+                                <div class="activity-item-card">
                                     <div class="activity-icon <?= $bg_color ?>">
                                         <i class="mdi <?= $icon ?>"></i>
                                     </div>
                                     <div class="activity-content">
-                                        <h5 class="font-weight-bold mb-1"><?= $row['nama_lengkap'] ?> <span class="text-muted small">- <?= $jenis ?></span></h5>
-                                        <p class="mb-1 text-dark"><?= $row['deskripsi'] ?></p>
-                                        <small class="text-muted">
-                                            <i class="mdi mdi-clock"></i> <?= date('d/m/Y H:i', strtotime($row['created_at'])) ?> 
-                                            &bull; <?= time_ago($row['created_at']) ?>
-                                        </small>
+                                        <div class="activity-header">
+                                            <span class="badge-type"><?= strtoupper($jenis) ?></span>
+                                            <span class="activity-title"><?= $row['nama_lengkap'] ?></span>
+                                        </div>
+                                        <div class="activity-desc"><?= $row['deskripsi'] ?></div>
+                                        <div class="activity-meta">
+                                            <i class="mdi mdi-clock"></i>
+                                            <span><?= date('d/m/Y H:i', strtotime($row['created_at'])) ?></span>
+                                            <span>&bull;</span>
+                                            <span><?= time_ago($row['created_at']) ?></span>
+                                        </div>
                                     </div>
                                 </div>
                             </li>
