@@ -31,7 +31,10 @@ $tgl_cetak = date('d') . ' ' . $bulan_indo[date('m')] . ' ' . date('Y');
 <head>
     <title>Cetak Semua Laporan - <?= $d_kelas['nama_kelas'] ?></title>
     <style>
-        @page { size: 215mm 330mm; margin: 5mm; }
+        @page { 
+            size: 215mm 330mm;
+            margin: 0mm 20mm 15mm 20mm; /* kurangi margin bawah 0.5 cm */
+        }
         body { font-family: Arial, sans-serif; font-size: 10px; margin: 0; padding: 0; }
         
         .container-grid {
@@ -41,14 +44,14 @@ $tgl_cetak = date('d') . ' ' . $bulan_indo[date('m')] . ' ' . date('Y');
 
         .bill-wrapper {
             float: left;
-            width: 48%;
-            margin: 0.5%;
+            width: 47%;
+            margin: 0 1.5% 15mm 1.5%; /* gap horisontal lebih lebar, vertikal ~1.5 cm */
             border: 1px solid #999;
             padding: 5px;
             box-sizing: border-box;
             page-break-inside: avoid;
+            break-inside: avoid;
             position: relative;
-            margin-bottom: 10px;
         }
 
         .header { 
@@ -69,9 +72,9 @@ $tgl_cetak = date('d') . ' ' . $bulan_indo[date('m')] . ' ' . date('Y');
         .header h2 { font-size: 12px; margin: 0; padding-top: 5px; }
         .header h3 { font-size: 10px; margin: 2px 0; }
         
-        .info-siswa { margin-bottom: 5px; }
+        .info-siswa { margin-bottom: 4px; }
         .info-siswa table { width: 100%; font-size: 10px; }
-        .info-siswa td { padding: 1px; }
+        .info-siswa td { padding: 1px 2px; }
 
         .payment-section { margin-bottom: 5px; }
         .payment-section h4 { margin: 2px 0; font-size: 10px; background: #eee; padding: 2px; }
@@ -81,19 +84,24 @@ $tgl_cetak = date('d') . ' ' . $bulan_indo[date('m')] . ' ' . date('Y');
         .table th { background-color: #f0f0f0; text-align: center; }
         .table td { text-align: center; }
         
-        .signature { margin-top: 10px; text-align: center; font-size: 10px; page-break-inside: avoid; }
+        .signature { margin-top: 3px; text-align: center; font-size: 10px; page-break-inside: avoid; break-inside: avoid; }
+        .signature p { margin: 0; line-height: 1.2; }
         
         .text-left { text-align: left !important; }
         .text-right { text-align: right !important; }
+        
+        .page-break { page-break-after: always; clear: both; width: 100%; }
     </style>
 </head>
 <body onload="window.print()">
 
     <div class="container-grid">
     <?php
+    $counter = 0;
     while ($d_siswa = mysqli_fetch_assoc($q_siswa_all)) {
         $nisn = $d_siswa['nisn'];
         $nama_kelas = $d_kelas['nama_kelas'];
+        $counter++;
     ?>
     <div class="bill-wrapper">
         <div class="header">
@@ -106,16 +114,22 @@ $tgl_cetak = date('d') . ' ' . $bulan_indo[date('m')] . ' ' . date('Y');
 
         <div class="info-siswa">
             <table>
+                <colgroup>
+                    <col style="width: 12%;">
+                    <col style="width: 44%;">
+                    <col style="width: 14%;">   <!-- label Kelas / Th. Ajaran lebih lebar -->
+                    <col style="width: 30%;">   <!-- value Tahun Ajaran lebih lebar -->
+                </colgroup>
                 <tr>
-                    <td width="15%">NISN</td>
-                    <td width="35%">: <?= $d_siswa['nisn'] ?></td>
-                    <td width="15%">Kelas</td>
-                    <td width="35%">: <?= $nama_kelas ?></td>
+                    <td>NISN</td>
+                    <td>: <?= $d_siswa['nisn'] ?></td>
+                    <td>Kelas</td>
+                    <td>: <?= $nama_kelas ?></td>
                 </tr>
                 <tr>
                     <td>Nama</td>
                     <td>: <?= $d_siswa['nama'] ?></td>
-                    <td>Th. Ajaran</td>
+                    <td style="white-space: nowrap;">Th. Ajaran</td>
                     <td>: <?= $d_info['tahun_ajaran'] ?></td>
                 </tr>
             </table>
@@ -211,11 +225,16 @@ $tgl_cetak = date('d') . ' ' . $bulan_indo[date('m')] . ' ' . date('Y');
             <p>Jepara, <?= $tgl_cetak ?></p>
             <p>Bendahara</p>
             <?php $qr_src_bendahara = generate_qr_bendahara($nama_bendahara, $nama_sekolah, 60); ?>
-            <img src="<?= $qr_src_bendahara ?>" alt="QR Bendahara" style="width:60px;height:60px;margin:6px 0;">
+            <img src="<?= $qr_src_bendahara ?>" alt="QR Bendahara" style="width:60px;height:60px;margin:2px 0;">
             <p><b><?= $d_info['nama_bendahara'] ?></b></p>
         </div>
     </div>
-    <?php } ?>
+    <?php
+        // Page break setiap 4 laporan (2 kolom x 2 baris per halaman)
+        if ($counter % 4 == 0) {
+            echo '<div class="page-break"></div>';
+        }
+    } ?>
     </div>
 
 </body>
