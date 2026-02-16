@@ -12,6 +12,8 @@ if (!$d_kelas) {
 // Ambil info sekolah
 $q_info = mysqli_query($koneksi, "SELECT * FROM pengaturan LIMIT 1");
 $d_info = mysqli_fetch_assoc($q_info);
+$nama_bendahara = $d_info['nama_bendahara'] ?? 'Bendahara';
+$nama_sekolah = $d_info['nama_sekolah'] ?? '';
 
 // Ambil semua siswa di kelas ini
 $q_siswa_all = mysqli_query($koneksi, "SELECT * FROM siswa WHERE id_kelas = '$id_kelas' ORDER BY nama ASC");
@@ -208,7 +210,8 @@ $tgl_cetak = date('d') . ' ' . $bulan_indo[date('m')] . ' ' . date('Y');
         <div class="signature">
             <p>Jepara, <?= $tgl_cetak ?></p>
             <p>Bendahara</p>
-            <br><br>
+            <?php $qr_src_bendahara = generate_qr_bendahara($nama_bendahara, $nama_sekolah, 60); ?>
+            <img src="<?= $qr_src_bendahara ?>" alt="QR Bendahara" style="width:60px;height:60px;margin:6px 0;">
             <p><b><?= $d_info['nama_bendahara'] ?></b></p>
         </div>
     </div>

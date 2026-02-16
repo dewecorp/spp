@@ -108,7 +108,7 @@ $tanggal_str = $tgl . ' ' . $bln . ' ' . $thn;
         .text-success { color: green; font-weight: bold; }
         .text-danger { color: red; font-weight: bold; }
         
-        .signature { margin-top: 5px; float: right; text-align: center; width: 120px; font-size: 10px; }
+        .signature { margin-top: 5px; float: right; text-align: center; width: 120px; font-size: 10px; page-break-inside: avoid; break-inside: avoid; }
         .signature p { margin: 1px 0; }
         
         .page-break { page-break-after: always; clear: both; width: 100%; }
@@ -157,9 +157,8 @@ while ($d_siswa = mysqli_fetch_assoc($q_siswa)) {
     echo '<thead>';
     echo '<tr>';
     echo '<th width="5%">No</th>';
-    echo '<th width="20%">Jenis Pembayaran</th>';
-    echo '<th width="15%">Tipe</th>';
-    echo '<th width="15%">Nominal / Tagihan</th>';
+    echo '<th width="30%">Jenis Pembayaran</th>';
+    echo '<th width="20%">Nominal / Tagihan</th>';
     echo '<th>Status Pembayaran</th>';
     echo '</tr>';
     echo '</thead>';
@@ -227,7 +226,6 @@ while ($d_siswa = mysqli_fetch_assoc($q_siswa)) {
         echo "<tr>";
         echo "<td>" . $no++ . "</td>";
         echo "<td>" . $jb['nama_pembayaran'] . "</td>";
-        echo "<td>" . $jb['tipe_bayar'] . "</td>";
         echo "<td>Rp " . number_format($jb['nominal'], 0, ',', '.') . "</td>";
         echo "<td>";
 
@@ -283,18 +281,18 @@ while ($d_siswa = mysqli_fetch_assoc($q_siswa)) {
     }
     
     echo '<tr>';
-    echo '<td colspan="4" style="text-align: right; font-weight: bold;">Total Tagihan Belum Dibayar</td>';
+    echo '<td colspan="3" style="text-align: right; font-weight: bold;">Total Tagihan Belum Dibayar</td>';
     echo '<td style="font-weight: bold; color: red;">Rp ' . number_format($total_tagihan, 0, ',', '.') . '</td>';
     echo '</tr>';
     
     echo '</tbody>';
     echo '</table>';
     
-    // Signature
     echo '<div class="signature">';
     echo '<p>' . $tanggal_str . '</p>';
     echo '<p>Bendahara,</p>';
-    echo '<br><br><br>';
+    $qr_src_bendahara = generate_qr_bendahara($nama_bendahara, $nama_sekolah, 60);
+    echo '<img src="' . $qr_src_bendahara . '" alt="QR Bendahara" style="width:60px;height:60px;margin:6px 0;">';
     echo '<p><b>' . $nama_bendahara . '</b></p>';
     echo '</div>';
     

@@ -30,6 +30,10 @@ function base_url($path = "") {
     return $base_url . $path;
 }
 
-// Include Helper
-include_once __DIR__ . '/../include/activity_helper.php';
+ $vendorAutoload = __DIR__ . '/../vendor/autoload.php';
+ if (file_exists($vendorAutoload)) {
+     require_once $vendorAutoload;
+ }
+ include_once __DIR__ . '/../include/activity_helper.php';
+ include_once __DIR__ . '/../include/qr_helper.php';
 ?>

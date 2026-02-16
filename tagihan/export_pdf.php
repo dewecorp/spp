@@ -69,7 +69,7 @@ $tahun_ajaran = $d_setting['tahun_ajaran'] ?? '';
         .text-success { color: green; font-weight: bold; }
         .text-danger { color: red; font-weight: bold; }
         
-        .signature { margin-top: 30px; float: right; text-align: center; width: 200px; }
+        .signature { margin-top: 30px; float: right; text-align: center; width: 200px; page-break-inside: avoid; break-inside: avoid; }
         
         @media print {
             @page { size: A4; margin: 2cm; }
@@ -109,9 +109,8 @@ $tahun_ajaran = $d_setting['tahun_ajaran'] ?? '';
         <thead>
             <tr>
                 <th width="5%">No</th>
-                <th width="20%">Jenis Pembayaran</th>
-                <th width="15%">Tipe</th>
-                <th width="15%">Nominal / Tagihan</th>
+                <th width="25%">Jenis Pembayaran</th>
+                <th width="20%">Nominal / Tagihan</th>
                 <th>Status Pembayaran</th>
             </tr>
         </thead>
@@ -180,7 +179,6 @@ $tahun_ajaran = $d_setting['tahun_ajaran'] ?? '';
                 echo "<tr>";
                 echo "<td>" . $no++ . "</td>";
                 echo "<td>" . $jb['nama_pembayaran'] . "</td>";
-                echo "<td>" . $jb['tipe_bayar'] . "</td>";
                 echo "<td>Rp " . number_format($jb['nominal'], 0, ',', '.') . "</td>";
                 echo "<td>";
 
@@ -230,7 +228,7 @@ $tahun_ajaran = $d_setting['tahun_ajaran'] ?? '';
             }
             ?>
             <tr>
-                <td colspan="4" style="text-align: right; font-weight: bold;">Total Tagihan Belum Dibayar</td>
+                <td colspan="3" style="text-align: right; font-weight: bold;">Total Tagihan Belum Dibayar</td>
                 <td style="font-weight: bold; color: red;">Rp <?= number_format($total_tagihan, 0, ',', '.') ?></td>
             </tr>
         </tbody>
@@ -245,10 +243,11 @@ $tahun_ajaran = $d_setting['tahun_ajaran'] ?? '';
         ];
         $bln = $bulan[date('m')];
         $thn = date('Y');
+        $qr_src_bendahara = generate_qr_bendahara($nama_bendahara, $nama_sekolah, 60);
         ?>
         <p><?= $tgl . ' ' . $bln . ' ' . $thn ?></p>
         <p>Bendahara,</p>
-        <br><br><br>
+        <img src="<?= $qr_src_bendahara ?>" alt="QR Bendahara" style="width:60px;height:60px;margin:6px 0;">
         <p><b><?= $nama_bendahara ?></b></p>
     </div>
 </body>

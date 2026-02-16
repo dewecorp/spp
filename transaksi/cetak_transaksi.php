@@ -37,6 +37,13 @@ $header = $data[0];
 // Fetch School Settings
 $q_setting = mysqli_query($koneksi, "SELECT * FROM pengaturan WHERE id_pengaturan = 1");
 $setting = mysqli_fetch_assoc($q_setting);
+$nama_bendahara = $setting['nama_bendahara'] ?? 'Bendahara';
+$nama_sekolah = $setting['nama_sekolah'] ?? '';
+$bulan_indo = [
+    '01' => 'Januari', '02' => 'Februari', '03' => 'Maret', '04' => 'April', '05' => 'Mei', '06' => 'Juni',
+    '07' => 'Juli', '08' => 'Agustus', '09' => 'September', '10' => 'Oktober', '11' => 'November', '12' => 'Desember'
+];
+$tgl_cetak = date('d') . ' ' . $bulan_indo[date('m')] . ' ' . date('Y');
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -100,6 +107,8 @@ $setting = mysqli_fetch_assoc($q_setting);
         .footer {
             margin-top: 50px;
             text-align: right;
+            page-break-inside: avoid;
+            break-inside: avoid;
         }
         @media print {
             .no-print {
@@ -186,8 +195,10 @@ $setting = mysqli_fetch_assoc($q_setting);
     </table>
 
     <div class="footer">
-        <p><?= date('d F Y') ?></p>
-        <br><br><br>
+        <p><?= $tgl_cetak ?></p>
+        <p>Bendahara</p>
+        <?php $qr_src_bendahara = generate_qr_bendahara($nama_bendahara, $nama_sekolah, 60); ?>
+        <img src="<?= $qr_src_bendahara ?>" alt="QR Bendahara" style="width:60px;height:60px;margin:6px 0;">
         <p>( <?= $setting['nama_bendahara'] ?> )</p>
     </div>
 

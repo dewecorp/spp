@@ -12,6 +12,13 @@ if (!$d_siswa) {
 // Ambil info sekolah
 $q_info = mysqli_query($koneksi, "SELECT * FROM pengaturan LIMIT 1");
 $d_info = mysqli_fetch_assoc($q_info);
+$nama_bendahara = $d_info['nama_bendahara'] ?? 'Bendahara';
+$nama_sekolah = $d_info['nama_sekolah'] ?? '';
+$bulan_indo = [
+    '01' => 'Januari', '02' => 'Februari', '03' => 'Maret', '04' => 'April', '05' => 'Mei', '06' => 'Juni',
+    '07' => 'Juli', '08' => 'Agustus', '09' => 'September', '10' => 'Oktober', '11' => 'November', '12' => 'Desember'
+];
+$tgl_cetak = date('d') . ' ' . $bulan_indo[date('m')] . ' ' . date('Y');
 ?>
 <!DOCTYPE html>
 <html>
@@ -44,6 +51,7 @@ $d_info = mysqli_fetch_assoc($q_info);
         .badge-success { color: green; font-weight: bold; }
         .badge-danger { color: red; font-weight: bold; }
         .badge-warning { color: orange; font-weight: bold; }
+        .signature { page-break-inside: avoid; break-inside: avoid; }
         @media print {
             @page { margin: 10mm; }
             .no-print { display: none; }
@@ -162,10 +170,11 @@ $d_info = mysqli_fetch_assoc($q_info);
     }
     ?>
     
-    <div style="margin-top: 30px; float: right; text-align: center;">
-        <p>Jepara, <?= date('d F Y') ?></p>
+    <div class="signature" style="margin-top: 30px; float: right; text-align: center;">
+        <p>Jepara, <?= $tgl_cetak ?></p>
         <p>Bendahara</p>
-        <br><br><br>
+        <?php $qr_src_bendahara = generate_qr_bendahara($nama_bendahara, $nama_sekolah, 60); ?>
+        <img src="<?= $qr_src_bendahara ?>" alt="QR Bendahara" style="width:60px;height:60px;margin:6px 0;">
         <p><b><?= $d_info['nama_bendahara'] ?></b></p>
     </div>
 
