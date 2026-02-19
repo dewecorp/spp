@@ -98,7 +98,7 @@ $jml_aktivitas = mysqli_num_rows($q_aktivitas);
                     <div class="float-right">
                         <p class="mb-0 text-right">Total Pembayaran</p>
                         <div class="fluid-container">
-                            <h3 class="font-weight-medium text-right mb-0">Rp <?= number_format($total_bayar, 0, ',', '.') ?></h3>
+                            <h3 class="font-weight-medium text-right mb-0" style="white-space: nowrap;">Rp <?= number_format($total_bayar, 0, ',', '.') ?></h3>
                         </div>
                     </div>
                 </div>

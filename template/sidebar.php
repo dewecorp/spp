@@ -28,6 +28,14 @@
                         </div>
                     </li>
                     <?php endif; ?>
+                    <?php if ($_SESSION['role'] == 'petugas') : ?>
+                    <li class="nav-item">
+                        <a class="nav-link" href="<?= base_url('data/jenis_bayar.php?v=1') ?>">
+                            <i class="menu-icon mdi mdi-receipt"></i>
+                            <span class="menu-title">Jenis Bayar</span>
+                        </a>
+                    </li>
+                    <?php endif; ?>
                     <li class="nav-item">
                         <a class="nav-link" href="<?= base_url('transaksi/transaksi.php?v=1') ?>">
                             <i class="menu-icon mdi mdi-backup-restore"></i>
