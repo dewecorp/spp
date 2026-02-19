@@ -58,19 +58,23 @@ $page_title = "bayar_" . $nama_siswa_slug . "_" . $tgl_bayar_slug;
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $page_title ?></title>
     <style>
+        @page {
+            size: 215mm 330mm; /* F4 */
+            margin: 5mm 15mm 12mm 15mm;
+        }
         body {
             font-family: Arial, sans-serif;
-            font-size: 12pt;
+            font-size: 10pt;
             margin: 0;
-            padding: 20px;
+            padding: 10px 18px;
         }
         .header {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 6px;
             border-bottom: 2px solid #000;
-            padding-bottom: 10px;
+            padding-bottom: 4px;
             position: relative;
-            min-height: 100px;
+            min-height: 70px;
         }
         .header img {
             position: absolute;
@@ -80,7 +84,7 @@ $page_title = "bayar_" . $nama_siswa_slug . "_" . $tgl_bayar_slug;
             max-width: 80px;
         }
         .header h2, .header h3, .header p {
-            margin: 2px;
+            margin: 1px;
         }
         .header-content {
             margin-left: 90px; /* Adjust based on logo width + gap */
@@ -88,20 +92,20 @@ $page_title = "bayar_" . $nama_siswa_slug . "_" . $tgl_bayar_slug;
         }
         .info-table {
             width: 100%;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
         .info-table td {
-            padding: 5px;
+            padding: 3px 4px;
             vertical-align: top;
         }
         .transaksi-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
         .transaksi-table th, .transaksi-table td {
             border: 1px solid #000;
-            padding: 8px;
+            padding: 4px 5px;
             text-align: left;
         }
         .transaksi-table th {
@@ -111,7 +115,7 @@ $page_title = "bayar_" . $nama_siswa_slug . "_" . $tgl_bayar_slug;
             font-weight: bold;
         }
         .footer {
-            margin-top: 50px;
+            margin-top: 10px;
             text-align: right;
             page-break-inside: avoid;
             break-inside: avoid;

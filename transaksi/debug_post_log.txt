@@ -249,3 +249,28 @@ Array
 
     [tambah] => 
 )
+Array
+(
+    [tgl_bayar] => 2026-02-19
+    [nisn] => 3132163433
+    [id_jenis_bayar] => Array
+        (
+            [0] => 1
+        )
+
+    [payment] => Array
+        (
+            [1] => Array
+                (
+                    [id_jenis_bayar] => 1
+                    [bulan_bayar] => Array
+                        (
+                            [0] => Februari
+                        )
+
+                )
+
+        )
+
+    [tambah] => 
+)
