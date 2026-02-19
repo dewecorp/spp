@@ -44,13 +44,19 @@ $bulan_indo = [
     '07' => 'Juli', '08' => 'Agustus', '09' => 'September', '10' => 'Oktober', '11' => 'November', '12' => 'Desember'
 ];
 $tgl_cetak = date('d') . ' ' . $bulan_indo[date('m')] . ' ' . date('Y');
+
+// Filename-style title for print/PDF: bayar_nama_siswa_tanggalbayar
+$nama_siswa_clean = preg_replace('/[^A-Za-z0-9 ]/', '', strtoupper($header['nama_siswa']));
+$nama_siswa_slug = str_replace(' ', '_', $nama_siswa_clean);
+$tgl_bayar_slug = str_replace('-', '', $header['tgl_bayar']);
+$page_title = "bayar_" . $nama_siswa_slug . "_" . $tgl_bayar_slug;
 ?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cetak Bukti Pembayaran - <?= $no_transaksi ?></title>
+    <title><?= $page_title ?></title>
     <style>
         body {
             font-family: Arial, sans-serif;

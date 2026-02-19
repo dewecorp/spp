@@ -2,8 +2,10 @@
                 <!-- content-wrapper ends -->
                 <footer class="footer">
                     <div class="container-fluid clearfix">
-                        <span class="text-muted d-block text-center text-sm-left d-sm-inline-block">Copyright © <?= date('Y') ?> Sistem Informasi Pembayaran - 
-                            <a href="https://misultanfattah.sch.id/" target="_blank" style="text-decoration: none !important;">MI Sultan Fattah Sukosono</a>. All rights reserved.</span>
+                        <span class="text-muted d-block text-center text-sm-left d-sm-inline-block">
+                            Copyright © <?= date('Y') ?> Sistem Pembayaran Siswa -
+                            <a href="https://misultanfattah.sch.id/" target="_blank" style="text-decoration: none !important;">MI Sultan Fattah Sukosono</a>
+                        </span>
                     </div>
                 </footer>
                 <!-- partial -->

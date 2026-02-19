@@ -19,18 +19,25 @@ if (isset($_POST['import'])) {
             $rows = $sheet->toArray();
             
             $success_count = 0;
+            $duplicate_count = 0;
+            $missing_class_count = 0;
+            $invalid_count = 0;
+            $failed_insert_count = 0;
             
             foreach ($rows as $key => $row) {
                 // Skip header
                 if ($key == 0) continue;
                 
-                $nisn = trim($row[0] ?? '');
-                $nama = trim($row[1] ?? '');
-                $nama_kelas = trim($row[2] ?? '');
-                $alamat = trim($row[3] ?? '');
+                $nisn = mysqli_real_escape_string($koneksi, trim($row[0] ?? ''));
+                $nama = mysqli_real_escape_string($koneksi, trim($row[1] ?? ''));
+                $nama_kelas = mysqli_real_escape_string($koneksi, trim($row[2] ?? ''));
+                $alamat = mysqli_real_escape_string($koneksi, trim($row[3] ?? ''));
                 
                 // Validate essential data
-                if (empty($nisn) || empty($nama)) continue;
+                if (empty($nisn) || empty($nama)) {
+                    $invalid_count++;
+                    continue;
+                }
                 
                 // Defaults
                 $nis = '-';
@@ -46,24 +53,36 @@ if (isset($_POST['import'])) {
                     $cek = mysqli_query($koneksi, "SELECT nisn FROM siswa WHERE nisn = '$nisn'");
                     if (mysqli_num_rows($cek) == 0) {
                         $insert = mysqli_query($koneksi, "INSERT INTO siswa (nisn, nis, nama, id_kelas, alamat, no_telp) VALUES ('$nisn', '$nis', '$nama', '$id_kelas', '$alamat', '$no_telp')");
-                        if ($insert) $success_count++;
+                        if ($insert) {
+                            $success_count++;
+                        } else {
+                            $failed_insert_count++;
+                        }
+                    } else {
+                        $duplicate_count++;
                     }
+                } else {
+                    $missing_class_count++;
                 }
             }
+            
+            $failed_count = $failed_insert_count;
             
             echo "<script>
                 Swal.fire({
                     title: 'Selesai',
-                    text: 'Berhasil mengimport $success_count data siswa',
+                    html: 'Import selesai.<br>' +
+                          'Berhasil: <b>$success_count</b><br>' +
+                          'Gagal: <b>$failed_count</b>',
                     icon: 'success',
-                    timer: 2000,
+                    timer: 4000,
                     showConfirmButton: false
                 }).then(() => {
-                window.location='siswa.php?v=1';
-            });
-        </script>";
-        
-        logActivity($koneksi, 'Create', "Import $success_count data siswa via Excel");
+                    window.location='siswa.php?v=1';
+                });
+            </script>";
+            
+            logActivity($koneksi, 'Create', "Import $success_count siswa (gagal insert: $failed_count) via Excel");
             
         } catch (Exception $e) {
             echo "<script>Swal.fire('Gagal', 'Terjadi kesalahan saat membaca file: " . $e->getMessage() . "', 'error');</script>";
@@ -526,6 +545,30 @@ document.addEventListener('DOMContentLoaded', function() {
             })
         });
     }
+
+    // SweetAlert untuk Hapus satu siswa
+    const singleDeleteButtons = document.querySelectorAll('.btn-hapus');
+    if (singleDeleteButtons.length > 0) {
+        singleDeleteButtons.forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const href = this.getAttribute('href');
+                Swal.fire({
+                    title: 'Konfirmasi',
+                    text: 'Yakin ingin menghapus data siswa ini?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Ya, Hapus!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = href;
+                    }
+                });
+            });
+        });
+    }
 });
 </script>
 
@@ -578,7 +621,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <i class="mdi mdi-close"></i>
                 </button>
             </div>
-            <form id="formImport" action="" method="post" enctype="multipart/form-data">
+            <form id="formImport" action="" method="post" enctype="multipart/form-data" onsubmit="startProgress()">
                 <div class="modal-body">
                     <div class="alert alert-info">
                         Gunakan file template Excel berikut untuk mengimport data: <br>
@@ -598,7 +641,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" name="import" class="btn btn-primary" onclick="startProgress()">Import</button>
+                    <button type="submit" name="import" class="btn btn-primary">Import</button>
                 </div>
             </form>
         </div>
@@ -606,10 +649,14 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 
 <script>
-function startProgress() {
+function startProgress(event) {
+    if (event) {
+        event.preventDefault();
+    }
     var fileInput = document.getElementById('file_excel');
-    if(fileInput.files.length > 0) {
-        document.getElementById('progressContainer').classList.remove('d-none');
+    if (fileInput && fileInput.files.length > 0) {
+        var container = document.getElementById('progressContainer');
+        container.classList.remove('d-none');
         var bar = document.getElementById('progressBar');
         var width = 0;
         var interval = setInterval(function() {
@@ -620,7 +667,10 @@ function startProgress() {
                 bar.style.width = width + '%';
                 bar.innerText = width + '%';
             }
-        }, 50); // Simulate progress
+        }, 50);
+        setTimeout(function() {
+            document.getElementById('formImport').submit();
+        }, 100);
     }
 }
 </script>

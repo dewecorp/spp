@@ -78,7 +78,7 @@ if (isset($_POST['login'])) {
                                     <img src="<?= base_url('assets/images/'.$logo_sekolah) ?>" alt="logo" style="width: 80px; margin-bottom: 10px;">
                                 <?php endif; ?>
                                 <h4 class="font-weight-bold text-dark text-uppercase"><?= $nama_sekolah ?></h4>
-                                <h6 class="font-weight-light text-dark">Sistem Informasi Pembayaran</h6>
+                                <h6 class="font-weight-light text-dark">Sistem Pembayaran Siswa</h6>
                             </div>
                             <form action="" method="post">
                                 <div class="form-group">
