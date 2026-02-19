@@ -26,15 +26,19 @@ $q_jb = mysqli_query($koneksi, "SELECT * FROM jenis_bayar ORDER BY tipe_bayar AS
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <div class="d-flex align-items-center">
-                        <a href="tagihan.php?v=1&id_kelas=<?= $id_kelas ?>" class="btn btn-secondary btn-sm me-3" style="margin-right: 10px;"><i class="mdi mdi-arrow-left"></i> Kembali</a>
-                        <h4 class="card-title mb-0">Detail Tagihan: <?= $d_siswa['nama'] ?> (<?= $nama_kelas ?>)</h4>
-                    </div>
-                    <div>
-                        <a href="export_excel.php?nisn=<?= $nisn ?>&id_kelas=<?= $id_kelas ?>" class="btn btn-success" target="_blank">
-                            <i class="mdi mdi-file-excel"></i> Export Excel
+                        <a href="tagihan.php?v=1&id_kelas=<?= $id_kelas ?>" class="btn btn-secondary btn-sm me-3" style="margin-right: 10px;">
+                            <i class="mdi mdi-arrow-left"></i> Kembali
                         </a>
-                        <a href="export_pdf.php?nisn=<?= $nisn ?>&id_kelas=<?= $id_kelas ?>" class="btn btn-danger" target="_blank">
-                            <i class="mdi mdi-printer"></i> Cetak Tagihan
+                        <h4 class="card-title mb-0 text-truncate" style="max-width: 100%;">Detail Tagihan: <?= $d_siswa['nama'] ?> (<?= $nama_kelas ?>)</h4>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <a href="export_excel.php?nisn=<?= $nisn ?>&id_kelas=<?= $id_kelas ?>" 
+                           class="btn btn-success btn-sm me-2" target="_blank" title="Export Excel">
+                            <i class="mdi mdi-file-excel"></i>
+                        </a>
+                        <a href="export_pdf.php?nisn=<?= $nisn ?>&id_kelas=<?= $id_kelas ?>" 
+                           class="btn btn-danger btn-sm" target="_blank" title="Cetak Tagihan">
+                            <i class="mdi mdi-printer"></i>
                         </a>
                     </div>
                 </div>
