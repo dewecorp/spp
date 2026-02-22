@@ -23147,6 +23147,30 @@ code {
   margin-bottom: 1.5rem;
   font-family: "ubuntu-regular", sans-serif;
 }
+.card.card-statistics {
+  border-radius: 0.75rem;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+.card.card-statistics-red {
+  background-color: #ffe5e9;
+  border-left: 6px solid #ff6b81;
+}
+.card.card-statistics-yellow {
+  background-color: #fff8e1;
+  border-left: 6px solid #f6c23e;
+}
+.card.card-statistics-green {
+  background-color: #e0f7f2;
+  border-left: 6px solid #1abc9c;
+}
+.card.card-statistics-blue {
+  background-color: #e3f2fd;
+  border-left: 6px solid #4e73df;
+}
+.card.card-statistics .card-body {
+  padding: 1.25rem 1.5rem;
+}
 .card.card-outline-success {
   border: 1px solid #1bcfb4;
 }
@@ -26353,7 +26377,3 @@ dl li {
                     Let's simplify.
                  */
 }
-
-
-
-

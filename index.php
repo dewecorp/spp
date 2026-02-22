@@ -53,7 +53,7 @@ $jml_aktivitas = mysqli_num_rows($q_aktivitas);
 <div class="row">
     <!-- Card Jumlah Siswa -->
     <div class="col-xl-3 col-lg-3 col-md-3 col-sm-6 grid-margin stretch-card">
-        <div class="card card-statistics">
+        <div class="card card-statistics card-statistics-red">
             <div class="card-body">
                 <div class="clearfix">
                     <div class="float-left">
@@ -71,7 +71,7 @@ $jml_aktivitas = mysqli_num_rows($q_aktivitas);
     </div>
     <!-- Card Jumlah Jenis Bayar -->
     <div class="col-xl-3 col-lg-3 col-md-3 col-sm-6 grid-margin stretch-card">
-        <div class="card card-statistics">
+        <div class="card card-statistics card-statistics-yellow">
             <div class="card-body">
                 <div class="clearfix">
                     <div class="float-left">
@@ -89,7 +89,7 @@ $jml_aktivitas = mysqli_num_rows($q_aktivitas);
     </div>
     <!-- Card Total Pembayaran -->
     <div class="col-xl-3 col-lg-3 col-md-3 col-sm-6 grid-margin stretch-card">
-        <div class="card card-statistics">
+        <div class="card card-statistics card-statistics-green">
             <div class="card-body">
                 <div class="clearfix">
                     <div class="float-left">
@@ -107,7 +107,7 @@ $jml_aktivitas = mysqli_num_rows($q_aktivitas);
     </div>
     <!-- Card Siswa Belum Bayar -->
     <div class="col-xl-3 col-lg-3 col-md-3 col-sm-6 grid-margin stretch-card">
-        <div class="card card-statistics">
+        <div class="card card-statistics card-statistics-blue">
             <div class="card-body">
                 <div class="clearfix">
                     <div class="float-left">
