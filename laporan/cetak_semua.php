@@ -137,7 +137,7 @@ $tgl_cetak = date('d') . ' ' . $bulan_indo[date('m')] . ' ' . date('Y');
 
         <?php
         $id_kelas_siswa = $d_siswa['id_kelas'];
-        $q_jenis = mysqli_query($koneksi, "SELECT * FROM jenis_bayar ORDER BY tipe_bayar ASC");
+        $q_jenis = mysqli_query($koneksi, "SELECT * FROM jenis_bayar WHERE status = 'Aktif' ORDER BY tipe_bayar ASC");
         
         $has_data = false;
         while ($d_jenis = mysqli_fetch_assoc($q_jenis)) {

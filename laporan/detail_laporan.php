@@ -63,7 +63,7 @@ if (!$d_siswa) {
                 // If id_jenis_bayar 1 has no tagihan_kelas printed, let's assume it applies to all for now or check logic later.
                 
                 $id_kelas_siswa = $d_siswa['id_kelas'];
-                $q_jenis = mysqli_query($koneksi, "SELECT * FROM jenis_bayar ORDER BY tipe_bayar ASC");
+                $q_jenis = mysqli_query($koneksi, "SELECT * FROM jenis_bayar WHERE status = 'Aktif' ORDER BY tipe_bayar ASC");
                 
                 while ($d_jenis = mysqli_fetch_assoc($q_jenis)) {
                     // Filter tagihan kelas

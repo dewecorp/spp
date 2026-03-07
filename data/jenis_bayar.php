@@ -34,8 +34,9 @@ if (isset($_POST['tambah'])) {
     
     // Handle Tagihan Kepada (Array to String)
     $tagihan_kelas = isset($_POST['tagihan_kelas']) ? implode(',', $_POST['tagihan_kelas']) : '';
+    $status = $_POST['status'];
     
-    $query = mysqli_query($koneksi, "INSERT INTO jenis_bayar (nama_pembayaran, nominal, tipe_bayar, kali_cicilan, tagihan_kelas) VALUES ('$nama_pembayaran', '$nominal', '$tipe_bayar', '$kali_cicilan', '$tagihan_kelas')");
+    $query = mysqli_query($koneksi, "INSERT INTO jenis_bayar (nama_pembayaran, nominal, tipe_bayar, kali_cicilan, tagihan_kelas, status) VALUES ('$nama_pembayaran', '$nominal', '$tipe_bayar', '$kali_cicilan', '$tagihan_kelas', '$status')");
     if ($query) {
         logActivity($koneksi, 'Create', "Menambah jenis bayar: $nama_pembayaran ($tipe_bayar)");
         echo "<script>
@@ -64,8 +65,9 @@ if (isset($_POST['edit'])) {
 
     // Handle Tagihan Kepada (Array to String)
     $tagihan_kelas = isset($_POST['tagihan_kelas']) ? implode(',', $_POST['tagihan_kelas']) : '';
+    $status = $_POST['status'];
 
-    $query = mysqli_query($koneksi, "UPDATE jenis_bayar SET nama_pembayaran='$nama_pembayaran', nominal='$nominal', tipe_bayar='$tipe_bayar', kali_cicilan='$kali_cicilan', tagihan_kelas='$tagihan_kelas' WHERE id_jenis_bayar='$id_jenis_bayar'");
+    $query = mysqli_query($koneksi, "UPDATE jenis_bayar SET nama_pembayaran='$nama_pembayaran', nominal='$nominal', tipe_bayar='$tipe_bayar', kali_cicilan='$kali_cicilan', tagihan_kelas='$tagihan_kelas', status='$status' WHERE id_jenis_bayar='$id_jenis_bayar'");
     if ($query) {
         logActivity($koneksi, 'Update', "Mengedit jenis bayar: $nama_pembayaran ($tipe_bayar)");
         echo "<script>
@@ -124,6 +126,7 @@ if (isset($_GET['hapus'])) {
                                 <th>Nominal</th>
                                 <th>Waktu Bayar</th>
                                 <th>Tagihan Kepada</th>
+                                <th>Status</th>
                                 <th>Aksi</th>
                             </tr>
                         </thead>
@@ -158,6 +161,13 @@ if (isset($_GET['hapus'])) {
                                             <?php endif; ?>
                                         <?php else : ?>
                                             <span class="badge badge-secondary">Semua / Kosong</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <?php if ($row['status'] == 'Aktif') : ?>
+                                            <span class="badge badge-success">Aktif</span>
+                                        <?php else : ?>
+                                            <span class="badge badge-danger">Tidak Aktif</span>
                                         <?php endif; ?>
                                     </td>
                                     <td>
@@ -214,6 +224,13 @@ if (isset($_GET['hapus'])) {
                                                                     <?= $kelas['nama_kelas'] ?>
                                                                 </option>
                                                             <?php endforeach; ?>
+                                                        </select>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label>Status</label>
+                                                        <select name="status" class="form-control" required>
+                                                            <option value="Aktif" <?= ($row['status'] == 'Aktif') ? 'selected' : '' ?>>Aktif</option>
+                                                            <option value="Tidak Aktif" <?= ($row['status'] == 'Tidak Aktif') ? 'selected' : '' ?>>Tidak Aktif</option>
                                                         </select>
                                                     </div>
                                                 </div>
@@ -275,6 +292,13 @@ if (isset($_GET['hapus'])) {
                             <?php foreach ($kelas_list as $kelas) : ?>
                                 <option value="<?= $kelas['nama_kelas'] ?>"><?= $kelas['nama_kelas'] ?></option>
                             <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select name="status" class="form-control" required>
+                            <option value="Aktif">Aktif</option>
+                            <option value="Tidak Aktif">Tidak Aktif</option>
                         </select>
                     </div>
                 </div>

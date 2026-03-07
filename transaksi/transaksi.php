@@ -30,7 +30,7 @@ while ($s = mysqli_fetch_assoc($q_siswa)) {
     $siswa_list[] = $s;
 }
 
-$q_jb = mysqli_query($koneksi, "SELECT * FROM jenis_bayar ORDER BY nama_pembayaran ASC");
+$q_jb = mysqli_query($koneksi, "SELECT * FROM jenis_bayar WHERE status = 'Aktif' ORDER BY nama_pembayaran ASC");
 $jb_list = [];
 while ($jb = mysqli_fetch_assoc($q_jb)) {
     $jb_list[] = $jb;

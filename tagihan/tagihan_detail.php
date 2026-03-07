@@ -17,7 +17,7 @@ $d_siswa = mysqli_fetch_assoc($q_siswa_detail);
 $nama_kelas = $d_siswa['nama_kelas'];
 
 // Get Jenis Bayar
-$q_jb = mysqli_query($koneksi, "SELECT * FROM jenis_bayar ORDER BY tipe_bayar ASC, nama_pembayaran ASC");
+$q_jb = mysqli_query($koneksi, "SELECT * FROM jenis_bayar WHERE status = 'Aktif' ORDER BY tipe_bayar ASC, nama_pembayaran ASC");
 ?>
 
 <div class="row">

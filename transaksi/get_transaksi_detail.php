@@ -30,7 +30,8 @@ if (isset($_POST['no_transaksi'])) {
         $header = $items[0];
 
         // Fetch All Jenis Bayar for Dropdown
-        $q_jb = mysqli_query($koneksi, "SELECT * FROM jenis_bayar ORDER BY nama_pembayaran ASC");
+        $existing_ids_str = implode(',', $existing_jb_ids);
+        $q_jb = mysqli_query($koneksi, "SELECT * FROM jenis_bayar WHERE status = 'Aktif' OR id_jenis_bayar IN ($existing_ids_str) ORDER BY nama_pembayaran ASC");
         $jb_list = [];
         while ($jb = mysqli_fetch_assoc($q_jb)) {
             $jb_list[] = $jb;

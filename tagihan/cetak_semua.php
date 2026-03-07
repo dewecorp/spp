@@ -23,7 +23,7 @@ $q_siswa = mysqli_query($koneksi, "SELECT * FROM siswa WHERE id_kelas = '$id_kel
 
 // Get Jenis Bayar
 $jb_data = [];
-$q_jb = mysqli_query($koneksi, "SELECT * FROM jenis_bayar ORDER BY tipe_bayar ASC, nama_pembayaran ASC");
+$q_jb = mysqli_query($koneksi, "SELECT * FROM jenis_bayar WHERE status = 'Aktif' ORDER BY tipe_bayar ASC, nama_pembayaran ASC");
 while ($row = mysqli_fetch_assoc($q_jb)) {
     $jb_data[] = $row;
 }

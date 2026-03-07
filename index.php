@@ -11,8 +11,8 @@ $q_siswa = mysqli_query($koneksi, "SELECT COUNT(*) as total FROM siswa");
 $d_siswa = mysqli_fetch_assoc($q_siswa);
 $jml_siswa = $d_siswa['total'];
 
-// 2. Hitung Jumlah Jenis Bayar
-$q_jenis = mysqli_query($koneksi, "SELECT COUNT(*) as total FROM jenis_bayar");
+// 2. Hitung Jumlah Jenis Bayar (Aktif)
+$q_jenis = mysqli_query($koneksi, "SELECT COUNT(*) as total FROM jenis_bayar WHERE status = 'Aktif'");
 $d_jenis = mysqli_fetch_assoc($q_jenis);
 $jml_jenis = $d_jenis['total'];
 
