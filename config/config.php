@@ -1,4 +1,7 @@
 <?php
+// SET TIMEZONE GLOBAL
+date_default_timezone_set('Asia/Jakarta');
+
 // Deteksi Environment
 $is_local = ($_SERVER['HTTP_HOST'] == 'localhost' || $_SERVER['HTTP_HOST'] == '127.0.0.1' || strpos($_SERVER['HTTP_HOST'], '.test') !== false || strpos($_SERVER['HTTP_HOST'], '.local') !== false);
 
@@ -35,6 +38,9 @@ if (!$koneksi) {
 if (!$koneksi) {
     die("Koneksi server gagal: " . mysqli_connect_error());
 }
+
+// SINKRONISASI ZONA WAKTU MYSQL
+mysqli_query($koneksi, "SET time_zone = '+07:00'");
 
 // === LOGIKA BASE URL (SIMPLIFIED & SAFE) ===
 if (!isset($base_url)) {
