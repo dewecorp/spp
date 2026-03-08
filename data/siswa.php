@@ -40,7 +40,6 @@ if (isset($_POST['import'])) {
                 }
                 
                 // Defaults
-                $nis = '-';
                 $no_telp = '';
                 
                 // Cari ID Kelas
@@ -52,7 +51,7 @@ if (isset($_POST['import'])) {
                     // Cek Duplicate NISN
                     $cek = mysqli_query($koneksi, "SELECT nisn FROM siswa WHERE nisn = '$nisn'");
                     if (mysqli_num_rows($cek) == 0) {
-                        $insert = mysqli_query($koneksi, "INSERT INTO siswa (nisn, nis, nama, id_kelas, alamat, no_telp) VALUES ('$nisn', '$nis', '$nama', '$id_kelas', '$alamat', '$no_telp')");
+                        $insert = mysqli_query($koneksi, "INSERT INTO siswa (nisn, nama, id_kelas, alamat, no_telp) VALUES ('$nisn', '$nama', '$id_kelas', '$alamat', '$no_telp')");
                         if ($insert) {
                             $success_count++;
                         } else {
@@ -78,7 +77,7 @@ if (isset($_POST['import'])) {
                     timer: 4000,
                     showConfirmButton: false
                 }).then(() => {
-                    window.location='siswa.php?v=1';
+                    window.location='siswa.php';
                 });
             </script>";
             
@@ -95,7 +94,6 @@ if (isset($_POST['import'])) {
 // Proses Tambah
 if (isset($_POST['tambah'])) {
     $nisn = $_POST['nisn'];
-    $nis = '-'; // Default
     $nama = $_POST['nama'];
     $id_kelas = $_POST['id_kelas'];
     $alamat = '-'; // Default
@@ -106,7 +104,7 @@ if (isset($_POST['tambah'])) {
     if (mysqli_num_rows($cek) > 0) {
          echo "<script>Swal.fire('Gagal', 'NISN sudah ada!', 'error');</script>";
     } else {
-        $query = mysqli_query($koneksi, "INSERT INTO siswa VALUES ('$nisn', '$nis', '$nama', '$id_kelas', '$alamat', '$no_telp')");
+        $query = mysqli_query($koneksi, "INSERT INTO siswa (nisn, nama, id_kelas, alamat, no_telp) VALUES ('$nisn', '$nama', '$id_kelas', '$alamat', '$no_telp')");
         if ($query) {
             logActivity($koneksi, 'Create', "Menambah data siswa baru: $nama ($nisn)");
             echo "<script>
@@ -117,7 +115,7 @@ if (isset($_POST['tambah'])) {
                     timer: 1500,
                     showConfirmButton: false
                 }).then(() => {
-                window.location='siswa.php?v=1';
+                window.location='siswa.php';
             });
         </script>";
     } else {
@@ -349,7 +347,7 @@ $jumlah_siswa = mysqli_num_rows($query_siswa);
                                         <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEdit<?= $row['nisn'] ?>">
                                             <i class="mdi mdi-pencil"></i>
                                         </button>
-                                        <a href="siswa.php?v=1&hapus=<?= $row['nisn'] ?>" class="btn btn-danger btn-sm btn-hapus">
+                                        <a href="siswa.php?hapus=<?= $row['nisn'] ?>" class="btn btn-danger btn-sm btn-hapus">
                                             <i class="mdi mdi-delete"></i>
                                         </a>
                                     </td>

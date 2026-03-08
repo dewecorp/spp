@@ -115,7 +115,7 @@ if (isset($_POST['tambah'])) {
                 timer: 1500,
                 showConfirmButton: false
             }).then(() => {
-                window.location.href = '" . base_url('transaksi/transaksi.php?v=1') . "';
+                window.location.href = '" . base_url('transaksi/transaksi.php') . "';
             });
         </script>";
     } else {
@@ -211,7 +211,7 @@ if (isset($_POST['update_transaksi'])) {
                 timer: 1500,
                 showConfirmButton: false
             }).then(() => {
-                window.location.href = '" . base_url('transaksi/transaksi.php?v=1') . "';
+                window.location.href = '" . base_url('transaksi/transaksi.php') . "';
             });
         </script>";
     } else {
@@ -241,7 +241,7 @@ if (isset($_GET['hapus_transaksi'])) {
                 timer: 1500,
                 showConfirmButton: false
             }).then(() => {
-                window.location='" . base_url('transaksi/transaksi.php?v=1') . "';
+                window.location='" . base_url('transaksi/transaksi.php') . "';
             });
         </script>";
     } else {
@@ -325,7 +325,7 @@ if (isset($_GET['hapus_transaksi'])) {
                                         <button type="button" class="btn btn-warning btn-sm btn-edit-transaksi" data-id="<?= $row['no_transaksi'] ?>" data-bs-toggle="modal" data-bs-target="#modalEdit">
                                             <i class="mdi mdi-pencil"></i>
                                         </button>
-                                        <a href="<?= base_url('transaksi/transaksi.php?hapus_transaksi=' . $row['no_transaksi'] . '&v=1') ?>" class="btn btn-danger btn-sm btn-hapus">
+                                        <a href="<?= base_url('transaksi/transaksi.php?hapus_transaksi=' . $row['no_transaksi']) ?>" class="btn btn-danger btn-sm btn-hapus">
                                             <i class="mdi mdi-delete"></i>
                                         </a>
                                     </td>

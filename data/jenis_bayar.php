@@ -47,7 +47,7 @@ if (isset($_POST['tambah'])) {
                 timer: 1500,
                 showConfirmButton: false
             }).then(() => {
-                window.location='jenis_bayar.php?v=1';
+                window.location='jenis_bayar.php';
             });
         </script>";
     } else {
@@ -78,7 +78,7 @@ if (isset($_POST['edit'])) {
                 timer: 1500,
                 showConfirmButton: false
             }).then(() => {
-                window.location='jenis_bayar.php?v=1';
+                window.location='jenis_bayar.php';
             });
         </script>";
     } else {
@@ -100,7 +100,7 @@ if (isset($_GET['hapus'])) {
                 timer: 1500,
                 showConfirmButton: false
             }).then(() => {
-                window.location='jenis_bayar.php?v=1';
+                window.location='jenis_bayar.php';
             });
         </script>";
     } else {
@@ -174,7 +174,7 @@ if (isset($_GET['hapus'])) {
                                         <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEdit<?= $row['id_jenis_bayar'] ?>">
                                             <i class="mdi mdi-pencil"></i>
                                         </button>
-                                        <a href="jenis_bayar.php?v=1&hapus=<?= $row['id_jenis_bayar'] ?>" class="btn btn-danger btn-sm btn-hapus">
+                                        <a href="jenis_bayar.php?hapus=<?= $row['id_jenis_bayar'] ?>" class="btn btn-danger btn-sm btn-hapus">
                                             <i class="mdi mdi-delete"></i>
                                         </a>
                                     </td>

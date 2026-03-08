@@ -4,7 +4,7 @@ include '../template/header.php';
 include '../template/sidebar.php';
 
 if (!isset($_GET['nisn']) || !isset($_GET['id_kelas'])) {
-    echo "<script>alert('Parameter tidak valid!'); window.location='tagihan.php?v=1';</script>";
+    echo "<script>alert('Parameter tidak valid!'); window.location='tagihan.php';</script>";
     exit;
 }
 
@@ -26,7 +26,7 @@ $q_jb = mysqli_query($koneksi, "SELECT * FROM jenis_bayar WHERE status = 'Aktif'
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <div class="d-flex align-items-center">
-                        <a href="tagihan.php?v=1&id_kelas=<?= $id_kelas ?>" class="btn btn-secondary btn-sm me-3" style="margin-right: 10px;">
+                        <a href="tagihan.php?id_kelas=<?= $id_kelas ?>" class="btn btn-secondary btn-sm me-3" style="margin-right: 10px;">
                             <i class="mdi mdi-arrow-left"></i> Kembali
                         </a>
                         <h4 class="card-title mb-0 text-truncate" style="max-width: 100%;">Detail Tagihan: <?= $d_siswa['nama'] ?> (<?= $nama_kelas ?>)</h4>
