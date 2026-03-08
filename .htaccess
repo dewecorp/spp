@@ -1,0 +1,36 @@
+# Konfigurasi Pretty URL (Hapus index.php & ekstensi .php)
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # 1. Hapus index.php dari URL (Redirect External)
+    # Jika request mengandung index.php, redirect ke root atau folder terkait
+    RewriteCond %{THE_REQUEST} ^.*/index\.php 
+    RewriteRule ^(.*)index.php$ /$1 [R=301,L]
+
+    # 2. Hapus Ekstensi .php (Redirect External)
+    # Jika request mengandung .php, redirect ke URL tanpa ekstensi
+    # Kecuali folder/file tertentu yang mungkin butuh akses langsung (opsional)
+    RewriteCond %{THE_REQUEST} \s/+(.+?)\.php[\s?] [NC]
+    RewriteRule ^ /%1 [R=301,L,NE]
+
+    # 3. Handle Request Tanpa Ekstensi (Internal Rewrite)
+    # Jika request bukan direktori
+    RewriteCond %{REQUEST_FILENAME} !-d
+    # Dan file .php-nya ada
+    RewriteCond %{DOCUMENT_ROOT}/$1.php -f
+    # Maka rewrite ke file .php
+    RewriteRule ^(.+?)/?$ $1.php [L]
+
+    # 4. Handle Routing Default (Opsional, jika ingin semua 404 lari ke index)
+    # RewriteCond %{REQUEST_FILENAME} !-f
+    # RewriteCond %{REQUEST_FILENAME} !-d
+    # RewriteRule . index.php [L]
+</IfModule>
+
+# Matikan Cache Browser (Development Mode)
+<IfModule mod_headers.c>
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+    Header set Expires 0
+</IfModule>

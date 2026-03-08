@@ -1,5 +1,16 @@
 <?php
+// Deteksi Environment
 $is_local = ($_SERVER['HTTP_HOST'] == 'localhost' || $_SERVER['HTTP_HOST'] == '127.0.0.1' || strpos($_SERVER['HTTP_HOST'], '.test') !== false || strpos($_SERVER['HTTP_HOST'], '.local') !== false);
+
+// KONFIGURASI SESI (24 JAM)
+// Harus diset sebelum session_start()
+ini_set('session.gc_maxlifetime', 86400);
+session_set_cookie_params(86400);
+
+if (session_status() == PHP_SESSION_NONE) {
+    session_name("SPP_SESSION_NEW"); 
+    session_start();
+}
 
 if ($is_local) {
     $host = "127.0.0.1";
@@ -11,77 +22,74 @@ if ($is_local) {
     $user = "kvzveyrg_sibayar";
     $pass = "sultanfattah26";
     $db   = "kvzveyrg_sibayar";
-    
-    // Set Base URL manual untuk produksi agar aset terbaca dengan benar
-    $base_url = "https://sibayar.misultanfattah.sch.id";
 }
 
-// Matikan report mode exception agar tidak fatal error saat DB belum ada
 mysqli_report(MYSQLI_REPORT_OFF);
-
-// Koneksi ke database server
 $koneksi = mysqli_connect($host, $user, $pass, $db);
 
 if (!$koneksi) {
-    // Jika koneksi gagal, coba tampilkan detail error
-    $error_msg = mysqli_connect_error();
-    die("Koneksi server gagal (" . $_SERVER['HTTP_HOST'] . "): " . $error_msg);
+    // Fallback: Coba koneksi default root jika user dev gagal
+    $koneksi = mysqli_connect("localhost", "root", "", "spp");
 }
 
-// Cek apakah database ada (Sudah dicek di mysqli_connect, tapi ini untuk backward compatibility)
-$db_selected = true; 
 if (!$koneksi) {
-    $db_selected = false;
+    die("Koneksi server gagal: " . mysqli_connect_error());
 }
 
-// Base URL (Deteksi Root Project)
+// === LOGIKA BASE URL (SIMPLIFIED & SAFE) ===
 if (!isset($base_url)) {
-    // 1. Tentukan Protokol
     $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http");
+    $server_host = $_SERVER['HTTP_HOST'];
     
-    // 2. Tentukan Host
-    $host = $_SERVER['HTTP_HOST'];
-    
-    // 3. Deteksi Path Project dari Lokasi File config.php
-    // File ini ada di [root]/config/config.php
-    // Jadi kita ambil dirname(__DIR__) untuk dapat [root]
-    $project_root = dirname(__DIR__); // D:\laragon\www\spp
-    
-    // Normalisasi slash dan lowercase untuk perbandingan case-insensitive (Windows)
-    $project_root = strtolower(str_replace('\\', '/', $project_root));
-    $doc_root = strtolower(str_replace('\\', '/', $_SERVER['DOCUMENT_ROOT']));
-    
-    // Hapus bagian document root dari project root untuk dapat path relatif URL
-    if (strpos($project_root, $doc_root) === 0) {
-        $path = substr($project_root, strlen($doc_root));
-    } else {
-        // Fallback jika project_root tidak diawali doc_root (misal VirtualHost)
-        $path = '';
-    }
-    
-    $path = trim($path, '/');
-    
-    if (empty($path)) {
-        $base_url = $protocol . "://" . $host;
-    } else {
-        $base_url = $protocol . "://" . $host . "/" . $path;
+    // 1. SKENARIO VIRTUAL HOST (.test / .local)
+    if (strpos($server_host, '.test') !== false || strpos($server_host, '.local') !== false) {
+        $base_url = $protocol . "://" . $server_host;
+    } 
+    // 2. SKENARIO LOCALHOST BIASA
+    else {
+        // Deteksi path project relatif terhadap document root
+        $project_path = str_replace('\\', '/', __DIR__); // d:/laragon/www/spp/config
+        $project_path = dirname($project_path); // d:/laragon/www/spp
+        $doc_root = str_replace('\\', '/', $_SERVER['DOCUMENT_ROOT']); // d:/laragon/www
+        
+        $path = str_replace($doc_root, '', $project_path); // /spp
+        $path = trim($path, '/');
+        
+        if (empty($path)) {
+            $base_url = $protocol . "://" . $server_host;
+        } else {
+            $base_url = $protocol . "://" . $server_host . "/" . $path;
+        }
     }
 }
 
-// Override Manual jika di Hosting (Hapus comment jika perlu)
-// $base_url = "https://sibayar.misultanfattah.sch.id";
+// Override Manual jika di Hosting
+if (!$is_local) {
+    $base_url = "https://sibayar.misultanfattah.sch.id";
+}
+
+// Ensure base_url never contains local file paths
+if (strpos($base_url, 'D:/') !== false || strpos($base_url, 'C:/') !== false || strpos($base_url, 'laragon') !== false) {
+    // Emergency Reset
+    $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http");
+    $base_url = $protocol . "://" . $_SERVER['HTTP_HOST'];
+}
 
 function base_url($path = "") {
     global $base_url;
-    // Hapus double slash jika ada, tapi biarkan protokol (http://)
-    $url = $base_url . "/" . ltrim($path, "/");
-    return $url;
+    // FINAL SAFETY NET: Jika URL rusak, paksa ke root domain
+    if (strpos($base_url, 'D:/') !== false || strpos($base_url, 'C:/') !== false) {
+         $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http");
+         $base_url = $protocol . "://" . $_SERVER['HTTP_HOST'];
+    }
+    
+    return $base_url . "/" . ltrim($path, "/");
 }
 
- $vendorAutoload = __DIR__ . '/../vendor/autoload.php';
- if (file_exists($vendorAutoload)) {
-     require_once $vendorAutoload;
- }
- include_once __DIR__ . '/../include/activity_helper.php';
- include_once __DIR__ . '/../include/qr_helper.php';
+$vendorAutoload = __DIR__ . '/../vendor/autoload.php';
+if (file_exists($vendorAutoload)) {
+    require_once $vendorAutoload;
+}
+include_once __DIR__ . '/../include/activity_helper.php';
+include_once __DIR__ . '/../include/qr_helper.php';
 ?>

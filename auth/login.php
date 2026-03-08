@@ -1,5 +1,4 @@
 <?php
-session_start();
 include '../config/config.php';
 
 if (isset($_SESSION['login'])) {
@@ -62,7 +61,7 @@ if (isset($_POST['login'])) {
     <link rel="stylesheet" href="<?= base_url('assets/vendors/mdi/css/materialdesignicons.min.css') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/vendors/css/vendor.bundle.base.css') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/css/style.css') ?>">
-    <link rel="shortcut icon" href="<?= base_url('assets/images/favicon.png') ?>" />
+    <link rel="shortcut icon" href="<?= base_url('assets/images/favicon_pembayaran.svg') ?>" type="image/svg+xml" />
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
 </head>

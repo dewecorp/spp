@@ -1,5 +1,4 @@
 <?php
-session_start();
 include_once __DIR__ . '/../config/config.php';
 
 // Ambil data pengaturan untuk logo

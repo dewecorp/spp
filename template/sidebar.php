@@ -1,7 +1,7 @@
             <nav class="sidebar sidebar-offcanvas" id="sidebar">
                 <ul class="nav">
                     <li class="nav-item">
-                        <a class="nav-link" href="<?= base_url('index.php?v=1') ?>">
+                        <a class="nav-link" href="<?= base_url('index.php') ?>">
                             <i class="menu-icon mdi mdi-television"></i>
                             <span class="menu-title">Dashboard</span>
                         </a>
