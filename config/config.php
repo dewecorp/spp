@@ -27,7 +27,9 @@ if ($is_local) {
     $db   = "kvzveyrg_sibayar";
 }
 
-mysqli_report(MYSQLI_REPORT_OFF);
+if (function_exists('mysqli_report')) {
+    mysqli_report(MYSQLI_REPORT_OFF);
+}
 $koneksi = mysqli_connect($host, $user, $pass, $db);
 
 if (!$koneksi) {

@@ -7,6 +7,24 @@ require __DIR__ . '/../vendor/autoload.php';
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
+// --- SINKRONISASI OTOMATIS KOLOM DATABASE ---
+$columns_to_add = [
+    'jenis_kelamin' => "VARCHAR(20) DEFAULT '-'",
+    'tempat_lahir'  => "VARCHAR(100) DEFAULT '-'",
+    'tgl_lahir'     => "DATE DEFAULT '1900-01-01'",
+    'nama_wali'     => "VARCHAR(100) DEFAULT '-'"
+];
+
+foreach ($columns_to_add as $col => $type) {
+    $check_col = mysqli_query($koneksi, "SHOW COLUMNS FROM siswa LIKE '$col'");
+    if (mysqli_num_rows($check_col) == 0) {
+        mysqli_query($koneksi, "ALTER TABLE siswa ADD $col $type");
+    }
+}
+
+// Proses Sinkronisasi Simad
+// Logic moved to ajax_sinkron_simad.php
+
 // Proses Import
 if (isset($_POST['import'])) {
     $file = $_FILES['file_excel']['tmp_name'];
@@ -51,7 +69,8 @@ if (isset($_POST['import'])) {
                     // Cek Duplicate NISN
                     $cek = mysqli_query($koneksi, "SELECT nisn FROM siswa WHERE nisn = '$nisn'");
                     if (mysqli_num_rows($cek) == 0) {
-                        $insert = mysqli_query($koneksi, "INSERT INTO siswa (nisn, nama, id_kelas, alamat, no_telp) VALUES ('$nisn', '$nama', '$id_kelas', '$alamat', '$no_telp')");
+                        $insert = mysqli_query($koneksi, "INSERT INTO siswa (nisn, nis, nama, id_kelas, alamat, no_telp, jenis_kelamin, tempat_lahir, tgl_lahir, nama_wali) 
+                            VALUES ('$nisn', '-', '$nama', '$id_kelas', '$alamat', '$no_telp', '-', '-', '1900-01-01', '-')");
                         if ($insert) {
                             $success_count++;
                         } else {
@@ -96,6 +115,10 @@ if (isset($_POST['tambah'])) {
     $nisn = $_POST['nisn'];
     $nama = $_POST['nama'];
     $id_kelas = $_POST['id_kelas'];
+    $gender = $_POST['jenis_kelamin'];
+    $tempat = $_POST['tempat_lahir'];
+    $tgl = $_POST['tgl_lahir'];
+    $wali = $_POST['nama_wali'];
     $alamat = '-'; // Default
     $no_telp = ''; // Default
     
@@ -104,7 +127,8 @@ if (isset($_POST['tambah'])) {
     if (mysqli_num_rows($cek) > 0) {
          echo "<script>Swal.fire('Gagal', 'NISN sudah ada!', 'error');</script>";
     } else {
-        $query = mysqli_query($koneksi, "INSERT INTO siswa (nisn, nama, id_kelas, alamat, no_telp) VALUES ('$nisn', '$nama', '$id_kelas', '$alamat', '$no_telp')");
+        $query = mysqli_query($koneksi, "INSERT INTO siswa (nisn, nis, nama, id_kelas, alamat, no_telp, jenis_kelamin, tempat_lahir, tgl_lahir, nama_wali) 
+            VALUES ('$nisn', '-', '$nama', '$id_kelas', '$alamat', '$no_telp', '$gender', '$tempat', '$tgl', '$wali')");
         if ($query) {
             logActivity($koneksi, 'Create', "Menambah data siswa baru: $nama ($nisn)");
             echo "<script>
@@ -130,8 +154,20 @@ if (isset($_POST['edit'])) {
     $nisn = $_POST['nisn'];
     $nama = $_POST['nama'];
     $id_kelas = $_POST['id_kelas'];
+    $gender = $_POST['jenis_kelamin'];
+    $tempat = $_POST['tempat_lahir'];
+    $tgl = $_POST['tgl_lahir'];
+    $wali = $_POST['nama_wali'];
 
-    $query = mysqli_query($koneksi, "UPDATE siswa SET nisn='$nisn', nama='$nama', id_kelas='$id_kelas' WHERE nisn='$nisn_lama'");
+    $query = mysqli_query($koneksi, "UPDATE siswa SET 
+        nisn='$nisn', 
+        nama='$nama', 
+        id_kelas='$id_kelas',
+        jenis_kelamin='$gender',
+        tempat_lahir='$tempat',
+        tgl_lahir='$tgl',
+        nama_wali='$wali'
+        WHERE nisn='$nisn_lama'");
     if ($query) {
         logActivity($koneksi, 'Update', "Mengubah data siswa: $nama ($nisn)");
         echo "<script>
@@ -274,6 +310,11 @@ $jumlah_siswa = mysqli_num_rows($query_siswa);
                         <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalImport">
                             <i class="mdi mdi-file-excel"></i> Import Data
                         </button>
+                        <form action="" method="post" style="display: inline;" id="formSinkronSimad">
+                            <button type="submit" name="sinkron_simad" class="btn btn-info" id="btnSinkronSimad">
+                                <i class="mdi mdi-sync"></i> Sinkron Simad
+                            </button>
+                        </form>
                     </div>
                     
                     <form action="" method="get" class="d-flex align-items-center">
@@ -321,7 +362,9 @@ $jumlah_siswa = mysqli_num_rows($query_siswa);
                                     <th>No</th>
                                 <th>NISN</th>
                                 <th>Nama</th>
+                                <th>L/P</th>
                                 <th>Kelas</th>
+                                <th>Wali</th>
                                 <th>Aksi</th>
                             </tr>
                         </thead>
@@ -342,7 +385,9 @@ $jumlah_siswa = mysqli_num_rows($query_siswa);
                                     <td><?= $no++ ?></td>
                                     <td><?= $row['nisn'] ?></td>
                                     <td><?= $row['nama'] ?></td>
+                                    <td><?= $row['jenis_kelamin'] ?></td>
                                     <td><?= $row['nama_kelas'] ?></td>
+                                    <td><?= $row['nama_wali'] ?></td>
                                     <td>
                                         <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEdit<?= $row['nisn'] ?>">
                                             <i class="mdi mdi-pencil"></i>
@@ -374,15 +419,46 @@ $jumlah_siswa = mysqli_num_rows($query_siswa);
                                                         <label>Nama Siswa</label>
                                                         <input type="text" name="nama" class="form-control" value="<?= $row['nama'] ?>" required>
                                                     </div>
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <div class="form-group">
+                                                                <label>L/P</label>
+                                                                <select name="jenis_kelamin" class="form-control">
+                                                                    <option value="L" <?= ($row['jenis_kelamin'] == 'L') ? 'selected' : '' ?>>Laki-laki</option>
+                                                                    <option value="P" <?= ($row['jenis_kelamin'] == 'P') ? 'selected' : '' ?>>Perempuan</option>
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <div class="form-group">
+                                                                <label>Kelas</label>
+                                                                <select name="id_kelas" class="form-control" required>
+                                                                    <?php foreach($data_kelas as $kls) : ?>
+                                                                        <option value="<?= $kls['id_kelas'] ?>" <?= ($kls['id_kelas'] == $row['id_kelas']) ? 'selected' : '' ?>>
+                                                                            <?= $kls['nama_kelas'] ?>
+                                                                        </option>
+                                                                    <?php endforeach; ?>
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <div class="form-group">
+                                                                <label>Tempat Lahir</label>
+                                                                <input type="text" name="tempat_lahir" class="form-control" value="<?= $row['tempat_lahir'] ?>">
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <div class="form-group">
+                                                                <label>Tgl Lahir</label>
+                                                                <input type="date" name="tgl_lahir" class="form-control" value="<?= $row['tgl_lahir'] ?>">
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                     <div class="form-group">
-                                                        <label>Kelas</label>
-                                                        <select name="id_kelas" class="form-control" required>
-                                                            <?php foreach($data_kelas as $kls) : ?>
-                                                                <option value="<?= $kls['id_kelas'] ?>" <?= ($kls['id_kelas'] == $row['id_kelas']) ? 'selected' : '' ?>>
-                                                                    <?= $kls['nama_kelas'] ?>
-                                                                </option>
-                                                            <?php endforeach; ?>
-                                                        </select>
+                                                        <label>Nama Wali</label>
+                                                        <input type="text" name="nama_wali" class="form-control" value="<?= $row['nama_wali'] ?>">
                                                     </div>
                                                 </div>
                                                 <div class="modal-footer">
@@ -511,6 +587,80 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // SweetAlert untuk Sinkron Simad
+    const btnSinkronSimad = document.getElementById('btnSinkronSimad');
+    if (btnSinkronSimad) {
+        btnSinkronSimad.addEventListener('click', function(e) {
+            e.preventDefault();
+            Swal.fire({
+                title: 'Konfirmasi Sinkronisasi',
+                text: 'Apakah Anda yakin ingin menyinkronkan data dengan Simad? Data lokal akan diperbarui.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Ya, Sinkronkan!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Show loading
+                    Swal.fire({
+                        title: 'Sedang Sinkronisasi...',
+                        html: 'Mohon tunggu sebentar, sedang mengambil data dari Simad.<br>Proses ini mungkin memakan waktu beberapa menit jika data banyak.',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading()
+                        }
+                    });
+                    
+                    // AJAX Request
+                    const formData = new FormData();
+                    formData.append('sinkron_simad', '1');
+
+                    fetch('ajax_sinkron_simad.php', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                             throw new Error('HTTP error! status: ' + response.status);
+                        }
+                        return response.text(); // Ambil sebagai teks dulu untuk cek format
+                    })
+                    .then(text => {
+                        try {
+                            const data = JSON.parse(text);
+                            if (data.status === 'success') {
+                                Swal.fire({
+                                    title: 'Sinkronisasi Selesai',
+                                    html: `<div class="text-center"><i class="mdi mdi-check-circle-outline text-success" style="font-size: 50px;"></i><br>
+                                          Proses sinkronisasi telah selesai.<br>
+                                          <span class="badge badge-success">Total Data Simad: ${data.total_api}</span><br>
+                                           <span class="badge badge-primary">Berhasil (Baru/Update): ${data.new + data.update}</span> 
+                                           <span class="badge badge-danger">Gagal: ${data.failed}</span></div>`,
+                                    icon: 'success',
+                                    confirmButtonText: 'Mantap!',
+                                    confirmButtonColor: '#3085d6'
+                                }).then(() => {
+                                    window.location.reload();
+                                });
+                            } else {
+                                Swal.fire('Gagal Sinkronisasi', data.message, 'error');
+                            }
+                        } catch (e) {
+                            console.error('Format JSON tidak valid:', text);
+                            Swal.fire('Gagal Format Data', 'Respon server bukan format JSON yang valid. Silakan hubungi pengembang atau cek log server.', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.fire('Error Sistem', 'Terjadi kesalahan saat memproses sinkronisasi. Silakan coba lagi.', 'error');
+                    });
+                }
+            })
+        });
+    }
+
     // SweetAlert untuk Multi Hapus
     const btnMultiHapus = document.getElementById('btnMultiHapus');
     if (btnMultiHapus) {
@@ -590,14 +740,45 @@ document.addEventListener('DOMContentLoaded', function() {
                         <label>Nama Siswa</label>
                         <input type="text" name="nama" class="form-control" required>
                     </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>L/P</label>
+                                <select name="jenis_kelamin" class="form-control">
+                                    <option value="L">Laki-laki</option>
+                                    <option value="P">Perempuan</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Kelas</label>
+                                <select name="id_kelas" class="form-control" required>
+                                    <option value="">-- Pilih Kelas --</option>
+                                    <?php foreach($data_kelas as $kls) : ?>
+                                        <option value="<?= $kls['id_kelas'] ?>"><?= $kls['nama_kelas'] ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Tempat Lahir</label>
+                                <input type="text" name="tempat_lahir" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Tgl Lahir</label>
+                                <input type="date" name="tgl_lahir" class="form-control">
+                            </div>
+                        </div>
+                    </div>
                     <div class="form-group">
-                        <label>Kelas</label>
-                        <select name="id_kelas" class="form-control" required>
-                            <option value="">-- Pilih Kelas --</option>
-                            <?php foreach($data_kelas as $kls) : ?>
-                                <option value="<?= $kls['id_kelas'] ?>"><?= $kls['nama_kelas'] ?></option>
-                            <?php endforeach; ?>
-                        </select>
+                        <label>Nama Wali</label>
+                        <input type="text" name="nama_wali" class="form-control">
                     </div>
                 </div>
                 <div class="modal-footer">
