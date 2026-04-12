@@ -3,7 +3,12 @@ $title = 'Data Siswa';
 include '../template/header.php';
 include '../template/sidebar.php';
 
-require __DIR__ . '/../vendor/autoload.php';
+// Autoload for PHP 7.4 compatibility
+if (file_exists(__DIR__ . '/../vendor/autoload_simple.php')) {
+    require __DIR__ . '/../vendor/autoload_simple.php';
+} elseif (file_exists(__DIR__ . '/../vendor/autoload.php')) {
+    require __DIR__ . '/../vendor/autoload.php';
+}
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
 

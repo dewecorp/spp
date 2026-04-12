@@ -1,6 +1,13 @@
 {
+    "config": {
+        "platform-check": false,
+        "platform": {
+            "php": "7.4.33"
+        }
+    },
     "require": {
-        "phpoffice/phpspreadsheet": "^5.4",
+        "php": ">=7.4",
+        "phpoffice/phpspreadsheet": "^1.29",
         "chillerlan/php-qrcode": "^4.3"
     }
 }

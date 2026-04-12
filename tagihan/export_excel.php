@@ -18,7 +18,12 @@ $q_siswa = mysqli_query($koneksi, "SELECT siswa.*, kelas.nama_kelas FROM siswa J
 $d_siswa = mysqli_fetch_assoc($q_siswa);
 $nama_kelas = $d_siswa['nama_kelas'];
 
-require '../vendor/autoload.php';
+// Autoload for PHP 7.4 compatibility
+if (file_exists('../vendor/autoload_simple.php')) {
+    require '../vendor/autoload_simple.php';
+} elseif (file_exists('../vendor/autoload.php')) {
+    require '../vendor/autoload.php';
+}
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Color;

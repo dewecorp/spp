@@ -6,7 +6,12 @@ if (!isset($_SESSION['login'])) {
     exit;
 }
 
-require '../vendor/autoload.php';
+// Autoload for PHP 7.4 compatibility
+if (file_exists('../vendor/autoload_simple.php')) {
+    require '../vendor/autoload_simple.php';
+} elseif (file_exists('../vendor/autoload.php')) {
+    require '../vendor/autoload.php';
+}
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
