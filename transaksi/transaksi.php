@@ -71,7 +71,17 @@ if (isset($_POST['tambah'])) {
             $next_urut = ((int)$d_last_trx['last_urut']) + 1;
             $no_transaksi = $prefix_trx . sprintf("%03d", $next_urut);
 
-            $stmt_cek_jb = mysqli_prepare($koneksi, "SELECT id_jenis_bayar, tipe_bayar, nominal FROM jenis_bayar WHERE id_jenis_bayar = ? LIMIT 1");
+            $stmt_kelas_siswa = mysqli_prepare($koneksi, "SELECT k.nama_kelas FROM siswa s INNER JOIN kelas k ON s.id_kelas = k.id_kelas WHERE s.nisn = ? LIMIT 1");
+            if (!$stmt_kelas_siswa) {
+                throw new Exception('Gagal menyiapkan query data siswa: ' . mysqli_error($koneksi));
+            }
+            mysqli_stmt_bind_param($stmt_kelas_siswa, 's', $nisn);
+            mysqli_stmt_execute($stmt_kelas_siswa);
+            $res_ks = mysqli_stmt_get_result($stmt_kelas_siswa);
+            $row_ks = $res_ks ? mysqli_fetch_assoc($res_ks) : null;
+            $kelas_siswa_nama = $row_ks ? trim((string)$row_ks['nama_kelas']) : '';
+
+            $stmt_cek_jb = mysqli_prepare($koneksi, "SELECT id_jenis_bayar, tipe_bayar, nominal, IFNULL(tagihan_kelas,'') AS tagihan_kelas FROM jenis_bayar WHERE id_jenis_bayar = ? LIMIT 1");
             $stmt_insert = mysqli_prepare($koneksi, "INSERT INTO pembayaran (id_petugas, nisn, tgl_bayar, id_jenis_bayar, jumlah_bayar, cicilan_ke, ket, bulan_bayar, tahun_bayar, no_transaksi) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
             if (!$stmt_cek_jb || !$stmt_insert) {
@@ -96,6 +106,17 @@ if (isset($_POST['tambah'])) {
 
                 if (!$d_jb) {
                     throw new Exception("Jenis pembayaran ID $id_jb tidak ditemukan.");
+                }
+
+                $tagihan_raw = trim((string)$d_jb['tagihan_kelas']);
+                if ($tagihan_raw !== '') {
+                    if ($kelas_siswa_nama === '') {
+                        throw new Exception('Data kelas siswa tidak ditemukan untuk NISN ini.');
+                    }
+                    $allowed_kelas = array_map('trim', explode(',', $tagihan_raw));
+                    if (!in_array($kelas_siswa_nama, $allowed_kelas, true)) {
+                        throw new Exception('Jenis pembayaran tidak tersedia untuk kelas siswa ini.');
+                    }
                 }
 
                 $cicilan_ke = 0;
@@ -136,6 +157,7 @@ if (isset($_POST['tambah'])) {
             }
 
             mysqli_commit($koneksi);
+            mysqli_stmt_close($stmt_kelas_siswa);
             mysqli_stmt_close($stmt_cek_jb);
             mysqli_stmt_close($stmt_insert);
         } catch (Exception $e) {
@@ -469,6 +491,46 @@ if (isset($_GET['hapus_transaksi'])) {
             return onlyDigits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
         }
 
+        /**
+         * Jenis bayar dengan tagihan_kelas: hanya aktif jika kelas siswa masuk daftar.
+         * Jika siswa belum dipilih, opsi yang punya pembatasan kelas dinonaktifkan.
+         */
+        function syncJenisBayarByKelas() {
+            var kelasSiswa = $('#nisnTambah option:selected').attr('data-kelas');
+            kelasSiswa = kelasSiswa ? String(kelasSiswa).trim() : '';
+            var $jb = $('#jbTambah');
+
+            $jb.find('option').each(function () {
+                var $o = $(this);
+                if (!$o.val()) {
+                    return;
+                }
+                var tagihan = ($o.attr('data-tagihan') || '').trim();
+                var allowed = true;
+                if (tagihan !== '') {
+                    if (kelasSiswa === '') {
+                        allowed = false;
+                    } else {
+                        var parts = tagihan.split(',').map(function (s) { return s.trim(); });
+                        allowed = parts.indexOf(kelasSiswa) !== -1;
+                    }
+                }
+                $o.prop('disabled', !allowed);
+            });
+
+            var vals = $jb.val() || [];
+            if (!Array.isArray(vals)) {
+                vals = vals ? [vals] : [];
+            }
+            var kept = vals.filter(function (v) {
+                return !$jb.find('option[value="' + v + '"]').prop('disabled');
+            });
+            if (kept.length !== vals.length) {
+                $jb.val(kept);
+            }
+            $jb.trigger('change');
+        }
+
         // Initialize Select2 in Modals
         $('.select2-modal').each(function() {
             $(this).select2({
@@ -489,12 +551,12 @@ if (isset($_GET['hapus_transaksi'])) {
                     allowClear: true
                 });
             });
+            syncJenisBayarByKelas();
         });
 
-        // Trigger validation/update when Student changes
+        // Saat siswa berubah, sesuaikan opsi jenis bayar dengan kelas (Biaya Ujian & Rekreasi hanya kelas 6 sesuai tagihan_kelas)
         $('#nisnTambah').on('change', function() {
-            // Trigger change on Jenis Bayar to re-validate against the new student's class
-            $('#jbTambah').trigger('change');
+            syncJenisBayarByKelas();
         });
 
         // Handler for Edit Button Click
@@ -537,33 +599,13 @@ if (isset($_GET['hapus_transaksi'])) {
             var container = $('#extraTambah');
             container.empty();
 
-            var siswaSelect = $('#nisnTambah');
-            var selectedSiswa = siswaSelect.find('option:selected');
-            var kelasSiswa = selectedSiswa.attr('data-kelas');
-            
             selectedOptions.each(function() {
                 var opt = $(this);
                 var id = opt.val();
                 var nama = opt.data('nama');
                 var tipe = opt.data('tipe');
                 var nominal = opt.data('nominal');
-                var tagihan = opt.attr('data-tagihan');
-
-                // Validation
-                if (tagihan && tagihan !== '' && kelasSiswa) {
-                    var allowedKelas = tagihan.split(',').map(s => s.trim());
-                    if (!allowedKelas.includes(kelasSiswa)) {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Oops...',
-                            text: 'Jenis pembayaran ' + nama + ' tidak tersedia untuk Kelas ' + kelasSiswa
-                        });
-                        // We continue rendering but user knows it's invalid.
-                        // Ideally we should unselect it.
-                    }
-                }
-
-                // Build HTML
+                // Build HTML (opsi tidak valid sudah dicegah oleh syncJenisBayarByKelas)
                 var html = '<div class="card mb-2 border"><div class="card-body p-2" style="background: #f8f9fa;">';
                 html += '<h6 class="mb-2 text-primary">' + nama + ' (' + tipe + ')</h6>';
                 
@@ -659,14 +701,6 @@ if (isset($_GET['hapus_transaksi'])) {
             }
         });
         
-        // Validate when Siswa changes in Tambah
-        $('#nisnTambah').on('change', function() {
-            var jbSelect = $('#jbTambah');
-            if (jbSelect.val() && jbSelect.val().length > 0) {
-                jbSelect.trigger('change'); // Re-trigger validation and re-render
-            }
-        });
-
         // Delete Confirmation
         $('.btn-hapus').on('click', function(e) {
             e.preventDefault();
