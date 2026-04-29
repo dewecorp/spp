@@ -33,7 +33,7 @@ $tgl_cetak = date('d') . ' ' . $bulan_indo[date('m')] . ' ' . date('Y');
     <style>
         @page { 
             size: 215mm 330mm;
-            margin: 10mm 12mm 15mm 12mm;
+            margin: 10mm 8mm 15mm 8mm;
         }
         body { font-family: Arial, sans-serif; font-size: 10px; margin: 0; padding: 0; }
         
@@ -44,7 +44,7 @@ $tgl_cetak = date('d') . ' ' . $bulan_indo[date('m')] . ' ' . date('Y');
             flex-wrap: wrap;
             justify-content: flex-start;
             align-items: stretch;
-            column-gap: 8mm;
+            column-gap: 12mm;
             row-gap: 8mm;
         }
 
@@ -59,7 +59,7 @@ $tgl_cetak = date('d') . ' ' . $bulan_indo[date('m')] . ' ' . date('Y');
         }
 
         .bill-wrapper {
-            width: calc((100% - 8mm) / 2);
+            width: calc((100% - 12mm) / 2);
             margin: 0;
             border: 1px solid #999;
             padding: 4mm;
