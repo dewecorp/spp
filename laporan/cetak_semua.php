@@ -33,21 +33,36 @@ $tgl_cetak = date('d') . ' ' . $bulan_indo[date('m')] . ' ' . date('Y');
     <style>
         @page { 
             size: 215mm 330mm;
-            margin: 0mm 20mm 15mm 20mm; /* kurangi margin bawah 0.5 cm */
+            margin: 10mm 12mm 15mm 12mm;
         }
         body { font-family: Arial, sans-serif; font-size: 10px; margin: 0; padding: 0; }
         
         .container-grid {
             width: 100%;
-            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            align-items: stretch;
+            column-gap: 8mm;
+            row-gap: 8mm;
+        }
+
+        .container-grid::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            border-left: 0.2mm dashed #bdbdbd;
+            pointer-events: none;
         }
 
         .bill-wrapper {
-            float: left;
-            width: 47%;
-            margin: 0 1.5% 15mm 1.5%; /* gap horisontal lebih lebar, vertikal ~1.5 cm */
+            width: calc((100% - 8mm) / 2);
+            margin: 0;
             border: 1px solid #999;
-            padding: 5px;
+            padding: 4mm;
             box-sizing: border-box;
             page-break-inside: avoid;
             break-inside: avoid;
@@ -90,7 +105,7 @@ $tgl_cetak = date('d') . ' ' . $bulan_indo[date('m')] . ' ' . date('Y');
         .text-left { text-align: left !important; }
         .text-right { text-align: right !important; }
         
-        .page-break { page-break-after: always; clear: both; width: 100%; }
+        .page-break { page-break-after: always; break-after: page; width: 100%; height: 0; }
     </style>
 </head>
 <body onload="window.print()">
