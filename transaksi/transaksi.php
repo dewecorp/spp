@@ -38,74 +38,113 @@ while ($jb = mysqli_fetch_assoc($q_jb)) {
 
 // Proses Tambah
 if (isset($_POST['tambah'])) {
-    // Debug Logging
-    file_put_contents('debug_post_log.txt', print_r($_POST, true), FILE_APPEND);
-
-    $id_petugas = $_SESSION['id_pengguna'];
-    $nisn = $_POST['nisn'];
-    $tgl_bayar = $_POST['tgl_bayar'];
+    $id_petugas = isset($_SESSION['id_pengguna']) ? (int)$_SESSION['id_pengguna'] : 0;
+    $nisn = isset($_POST['nisn']) ? trim($_POST['nisn']) : '';
+    $tgl_bayar = isset($_POST['tgl_bayar']) ? $_POST['tgl_bayar'] : '';
     $tahun_bayar = date('Y', strtotime($tgl_bayar));
-    
-    // Support multiselect types
-    $id_jenis_bayar_input = $_POST['id_jenis_bayar']; 
-    
+    $payment_data = isset($_POST['payment']) && is_array($_POST['payment']) ? $_POST['payment'] : [];
+
+    $id_jenis_bayar_input = isset($_POST['id_jenis_bayar']) ? $_POST['id_jenis_bayar'] : [];
     if (!is_array($id_jenis_bayar_input)) {
         $id_jenis_bayar_input = [$id_jenis_bayar_input];
     }
-    
-    // Generate No Transaksi (Format: TRX-YYYYMM-NNN)
-    $prefix_trx = 'TRX-' . date('Ym') . '-';
-    
-    // Cari nomor terakhir bulan ini
-    // Order by length desc first to handle sequence > 999 (e.g. 1000 comes after 999)
-    $q_last_trx = mysqli_query($koneksi, "SELECT no_transaksi FROM pembayaran WHERE no_transaksi LIKE '$prefix_trx%' ORDER BY LENGTH(no_transaksi) DESC, no_transaksi DESC LIMIT 1");
-    $d_last_trx = mysqli_fetch_assoc($q_last_trx);
-    
-    if ($d_last_trx) {
-        $last_no = $d_last_trx['no_transaksi']; // e.g., TRX-202602-001
-        // Ambil urutan terakhir
-        $last_urut_str = substr($last_no, strlen($prefix_trx));
-        $next_urut = (int)$last_urut_str + 1;
-    } else {
-        $next_urut = 1;
-    }
-    
-    $no_transaksi = $prefix_trx . sprintf("%03d", $next_urut);
-    
+
+    $error_tambah = '';
     $success_count = 0;
-    
-    foreach ($id_jenis_bayar_input as $id_jb) {
-        // Retrieve details from payment array or fallbacks (if any)
-        $detail = isset($_POST['payment'][$id_jb]) ? $_POST['payment'][$id_jb] : [];
-        
-        // Get info jenis bayar
-        $q_cek_jb = mysqli_query($koneksi, "SELECT * FROM jenis_bayar WHERE id_jenis_bayar='$id_jb'");
-        $d_jb = mysqli_fetch_assoc($q_cek_jb);
-        
-        $cicilan_ke = 0;
-        $jumlah_bayar = 0;
-        $ket = '';
-        $bulan_bayar_str = '';
-    
-        if ($d_jb['tipe_bayar'] == 'Cicilan') {
-            $cicilan_ke = isset($detail['cicilan_ke']) ? $detail['cicilan_ke'] : 0;
-            $nominal_val = isset($detail['nominal']) ? str_replace('.', '', $detail['nominal']) : 0;
-            $jumlah_bayar = $nominal_val;
-            $ket = "Cicilan ke-$cicilan_ke";
-        } else {
-            // Bulanan
-            $bulan_bayar_arr = isset($detail['bulan_bayar']) ? $detail['bulan_bayar'] : [];
-            $bulan_bayar_str = implode(', ', $bulan_bayar_arr);
-            $jumlah_bayar = $d_jb['nominal'] * count($bulan_bayar_arr);
-            $ket = "Lunas (Bulanan) - " . $bulan_bayar_str;
+
+    if ($id_petugas <= 0 || $nisn === '' || $tgl_bayar === '' || empty($id_jenis_bayar_input)) {
+        $error_tambah = 'Input transaksi belum lengkap.';
+    } else {
+        mysqli_begin_transaction($koneksi);
+        try {
+            // Generate no transaksi yang konsisten per bulan (TRX-YYYYMM-NNN).
+            $prefix_trx = 'TRX-' . date('Ym', strtotime($tgl_bayar)) . '-';
+            $prefix_len = strlen($prefix_trx) + 1;
+            $safe_prefix = mysqli_real_escape_string($koneksi, $prefix_trx);
+            $q_last_trx = mysqli_query($koneksi, "SELECT COALESCE(MAX(CAST(SUBSTRING(no_transaksi, $prefix_len) AS UNSIGNED)), 0) AS last_urut FROM pembayaran WHERE no_transaksi LIKE '$safe_prefix%'");
+
+            if (!$q_last_trx) {
+                throw new Exception('Gagal membaca nomor transaksi terakhir: ' . mysqli_error($koneksi));
+            }
+
+            $d_last_trx = mysqli_fetch_assoc($q_last_trx);
+            $next_urut = ((int)$d_last_trx['last_urut']) + 1;
+            $no_transaksi = $prefix_trx . sprintf("%03d", $next_urut);
+
+            $stmt_cek_jb = mysqli_prepare($koneksi, "SELECT id_jenis_bayar, tipe_bayar, nominal FROM jenis_bayar WHERE id_jenis_bayar = ? LIMIT 1");
+            $stmt_insert = mysqli_prepare($koneksi, "INSERT INTO pembayaran (id_petugas, nisn, tgl_bayar, id_jenis_bayar, jumlah_bayar, cicilan_ke, ket, bulan_bayar, tahun_bayar, no_transaksi) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+
+            if (!$stmt_cek_jb || !$stmt_insert) {
+                throw new Exception('Gagal menyiapkan query simpan transaksi: ' . mysqli_error($koneksi));
+            }
+
+            foreach ($id_jenis_bayar_input as $id_jb_raw) {
+                $id_jb = (int)$id_jb_raw;
+                if ($id_jb <= 0) {
+                    continue;
+                }
+
+                $detail = isset($payment_data[$id_jb]) ? $payment_data[$id_jb] : [];
+                if (!is_array($detail)) {
+                    $detail = [];
+                }
+
+                mysqli_stmt_bind_param($stmt_cek_jb, 'i', $id_jb);
+                mysqli_stmt_execute($stmt_cek_jb);
+                $res_jb = mysqli_stmt_get_result($stmt_cek_jb);
+                $d_jb = $res_jb ? mysqli_fetch_assoc($res_jb) : null;
+
+                if (!$d_jb) {
+                    throw new Exception("Jenis pembayaran ID $id_jb tidak ditemukan.");
+                }
+
+                $cicilan_ke = 0;
+                $jumlah_bayar = 0;
+                $ket = '';
+                $bulan_bayar_str = '';
+
+                if ($d_jb['tipe_bayar'] === 'Cicilan') {
+                    $cicilan_ke = isset($detail['cicilan_ke']) ? (int)$detail['cicilan_ke'] : 0;
+                    $nominal_val = isset($detail['nominal']) ? (int)str_replace('.', '', (string)$detail['nominal']) : 0;
+
+                    if ($cicilan_ke <= 0 || $nominal_val <= 0) {
+                        throw new Exception('Data cicilan belum valid. Pastikan cicilan ke dan nominal terisi.');
+                    }
+
+                    $jumlah_bayar = $nominal_val;
+                    $ket = "Cicilan ke-$cicilan_ke";
+                } else {
+                    $bulan_bayar_arr = isset($detail['bulan_bayar']) && is_array($detail['bulan_bayar']) ? $detail['bulan_bayar'] : [];
+                    if (empty($bulan_bayar_arr)) {
+                        throw new Exception('Bulan bayar wajib dipilih untuk pembayaran bulanan.');
+                    }
+
+                    $bulan_bayar_str = implode(', ', $bulan_bayar_arr);
+                    $jumlah_bayar = ((int)$d_jb['nominal']) * count($bulan_bayar_arr);
+                    $ket = "Lunas (Bulanan) - " . $bulan_bayar_str;
+                }
+
+                mysqli_stmt_bind_param($stmt_insert, 'issiiissss', $id_petugas, $nisn, $tgl_bayar, $id_jb, $jumlah_bayar, $cicilan_ke, $ket, $bulan_bayar_str, $tahun_bayar, $no_transaksi);
+                if (!mysqli_stmt_execute($stmt_insert)) {
+                    throw new Exception('Gagal menyimpan data pembayaran: ' . mysqli_stmt_error($stmt_insert));
+                }
+                $success_count++;
+            }
+
+            if ($success_count <= 0) {
+                throw new Exception('Tidak ada item pembayaran yang valid untuk disimpan.');
+            }
+
+            mysqli_commit($koneksi);
+            mysqli_stmt_close($stmt_cek_jb);
+            mysqli_stmt_close($stmt_insert);
+        } catch (Exception $e) {
+            mysqli_rollback($koneksi);
+            $error_tambah = $e->getMessage();
         }
-    
-        $query = mysqli_query($koneksi, "INSERT INTO pembayaran (id_petugas, nisn, tgl_bayar, id_jenis_bayar, jumlah_bayar, cicilan_ke, ket, bulan_bayar, tahun_bayar, no_transaksi) VALUES ('$id_petugas', '$nisn', '$tgl_bayar', '$id_jb', '$jumlah_bayar', '$cicilan_ke', '$ket', '$bulan_bayar_str', '$tahun_bayar', '$no_transaksi')");
-        
-        if ($query) $success_count++;
     }
 
-    if ($success_count > 0) {
+    if ($success_count > 0 && $error_tambah === '') {
         logActivity($koneksi, 'Create', "Menambah $success_count transaksi pembayaran NISN: $nisn");
         echo "<script>
             Swal.fire({
@@ -115,11 +154,12 @@ if (isset($_POST['tambah'])) {
                 timer: 1500,
                 showConfirmButton: false
             }).then(() => {
-                window.location.href = '" . base_url('transaksi/transaksi.php') . "';
+                window.location.href = '" . base_url('transaksi/transaksi') . "';
             });
         </script>";
     } else {
-        echo "<script>Swal.fire('Gagal', 'Data gagal ditambahkan', 'error');</script>";
+        $error_safe = htmlspecialchars($error_tambah !== '' ? $error_tambah : 'Data gagal ditambahkan', ENT_QUOTES);
+        echo "<script>Swal.fire('Gagal', '$error_safe', 'error');</script>";
     }
 }
 
@@ -211,7 +251,7 @@ if (isset($_POST['update_transaksi'])) {
                 timer: 1500,
                 showConfirmButton: false
             }).then(() => {
-                window.location.href = '" . base_url('transaksi/transaksi.php') . "';
+                window.location.href = '" . base_url('transaksi/transaksi') . "';
             });
         </script>";
     } else {
@@ -241,7 +281,7 @@ if (isset($_GET['hapus_transaksi'])) {
                 timer: 1500,
                 showConfirmButton: false
             }).then(() => {
-                window.location='" . base_url('transaksi/transaksi.php') . "';
+                window.location='" . base_url('transaksi/transaksi') . "';
             });
         </script>";
     } else {
@@ -325,7 +365,7 @@ if (isset($_GET['hapus_transaksi'])) {
                                         <button type="button" class="btn btn-warning btn-sm btn-edit-transaksi" data-id="<?= $row['no_transaksi'] ?>" data-bs-toggle="modal" data-bs-target="#modalEdit">
                                             <i class="mdi mdi-pencil"></i>
                                         </button>
-                                        <a href="<?= base_url('transaksi/transaksi.php?hapus_transaksi=' . $row['no_transaksi']) ?>" class="btn btn-danger btn-sm btn-hapus">
+                                        <a href="<?= base_url('transaksi/transaksi?hapus_transaksi=' . $row['no_transaksi']) ?>" class="btn btn-danger btn-sm btn-hapus">
                                             <i class="mdi mdi-delete"></i>
                                         </a>
                                     </td>
@@ -342,7 +382,7 @@ if (isset($_GET['hapus_transaksi'])) {
 <!-- Modal Tambah -->
 <div class="modal fade" id="modalTambah" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-scrollable" role="document">
-        <form class="modal-content" action="<?= base_url('transaksi/transaksi.php') ?>" method="post">
+        <form class="modal-content" action="<?= base_url('transaksi/transaksi') ?>" method="post">
             <div class="modal-header">
                 <h5 class="modal-title">Tambah Transaksi</h5>
                 <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close" style="background: transparent; border: none;">
@@ -395,7 +435,7 @@ if (isset($_GET['hapus_transaksi'])) {
 <!-- Modal Edit -->
 <div class="modal fade" id="modalEdit" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-scrollable" role="document">
-        <form class="modal-content" action="<?= base_url('transaksi/transaksi.php') ?>" method="post">
+        <form class="modal-content" action="<?= base_url('transaksi/transaksi') ?>" method="post">
             <div class="modal-header">
                 <h5 class="modal-title">Edit Transaksi</h5>
                 <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close" style="background: transparent; border: none;">
@@ -423,6 +463,12 @@ if (isset($_GET['hapus_transaksi'])) {
 
 <script>
     $(document).ready(function() {
+        function formatRibuan(value) {
+            var onlyDigits = String(value || '').replace(/\D/g, '');
+            if (!onlyDigits) return '';
+            return onlyDigits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        }
+
         // Initialize Select2 in Modals
         $('.select2-modal').each(function() {
             $(this).select2({
@@ -461,7 +507,7 @@ if (isset($_GET['hapus_transaksi'])) {
             
             // Fetch Data
             $.ajax({
-                url: 'get_transaksi_detail.php',
+                url: 'get_transaksi_detail',
                 type: 'POST',
                 data: { no_transaksi: no_transaksi },
                 success: function(response) {
@@ -540,7 +586,7 @@ if (isset($_GET['hapus_transaksi'])) {
                      html += '<div class="form-group"><label>Cicilan Ke</label>';
                      html += '<input type="number" name="payment[' + id + '][cicilan_ke]" class="form-control" value="1" required></div>';
                      html += '<div class="form-group"><label>Nominal</label>';
-                     html += '<input type="number" name="payment[' + id + '][nominal]" class="form-control" placeholder="Nominal" required></div>';
+                     html += '<input type="text" name="payment[' + id + '][nominal]" class="form-control input-nominal-tambah" placeholder="Nominal" inputmode="numeric" autocomplete="off" required></div>';
                 }
                 html += '</div></div>';
                 container.append(html);
@@ -553,6 +599,15 @@ if (isset($_GET['hapus_transaksi'])) {
                 theme: "bootstrap",
                 dropdownParent: $('#modalTambah')
             });
+        });
+
+        // Format nominal dengan pemisah ribuan pada modal tambah.
+        $(document).on('input', '.input-nominal-tambah', function() {
+            this.value = formatRibuan(this.value);
+        });
+
+        $(document).on('blur', '.input-nominal-tambah', function() {
+            this.value = formatRibuan(this.value);
         });
 
         // Logic for Jenis Bayar Change (Edit Modal only)
