@@ -191,9 +191,10 @@ while ($d_siswa = mysqli_fetch_assoc($q_siswa)) {
                 }
             }
             
+            $is_extracurricular = stripos($jb['nama_pembayaran'], 'ekstrakurikuler') !== false;
             $has_unpaid = false;
             foreach ($months as $index => $m) {
-                if ($index > $limit_index) continue; // Skip future months
+                if (!$is_extracurricular && $index > $limit_index) continue; // Skip future months for non-ekskul
                 if (!in_array($m, $paid_months)) {
                     $has_unpaid = true;
                     break;
@@ -225,27 +226,36 @@ while ($d_siswa = mysqli_fetch_assoc($q_siswa)) {
         echo "<tr>";
         echo "<td>" . $no++ . "</td>";
         echo "<td>" . $jb['nama_pembayaran'] . "</td>";
-        echo "<td>Rp " . number_format($jb['nominal'], 0, ',', '.') . "</td>";
+        echo "<td>";
+        echo "Rp " . number_format($jb['nominal'], 0, ',', '.');
+        if ($jb['tipe_bayar'] == 'Bulanan' && stripos($jb['nama_pembayaran'], 'ekstrakurikuler') !== false) {
+            $unpaid_count_nominal = 0;
+            foreach ($months as $index_nominal => $month_nominal) {
+                if (!in_array($month_nominal, $paid_months)) {
+                    $unpaid_count_nominal++;
+                }
+            }
+            $tagihan_ekskul_nominal = $unpaid_count_nominal * $jb['nominal'];
+            echo "<br><span class='text-danger'>Jumlah Tagihan Ekskul: Rp " . number_format($tagihan_ekskul_nominal, 0, ',', '.') . "</span>";
+        }
+        echo "</td>";
         echo "<td>";
 
         if ($jb['tipe_bayar'] == 'Bulanan') {
+            $is_extracurricular = stripos($jb['nama_pembayaran'], 'ekstrakurikuler') !== false;
+            $unpaid_count = 0;
             echo '<div style="display: table; width: 100%;">';
             $month_counter = 0;
             echo '<div style="display: table-row;">';
             foreach ($months as $index => $m) {
-                if ($index > $limit_index) continue; // Skip future months
+                if (!$is_extracurricular && $index > $limit_index) continue; // Skip future months for non-ekskul
 
                 $is_paid = in_array($m, $paid_months);
-                
-                // Skip if paid
-                if ($is_paid) continue;
-
+                $symbol = $is_paid ? '&#10004;' : '&#10006;';
+                $color = $is_paid ? 'green' : 'red';
                 if (!$is_paid) {
-                    $total_tagihan += $jb['nominal'];
+                    $unpaid_count++;
                 }
-
-                $symbol = '&#10006;';
-                $color = 'red';
                 
                 echo '<div style="display: table-cell; width: 50%; padding-bottom: 1px; font-size: 9px;">';
                 echo '<span style="color: '.$color.';">'.$symbol.'</span> ' . $m;
@@ -257,6 +267,11 @@ while ($d_siswa = mysqli_fetch_assoc($q_siswa)) {
                 }
             }
             echo '</div></div>';
+            $tagihan_ekskul = $unpaid_count * $jb['nominal'];
+            $total_tagihan += $tagihan_ekskul;
+            if ($is_extracurricular) {
+                echo '<div class="text-danger" style="margin-top:3px;">Jumlah Tagihan Ekskul: Rp ' . number_format($tagihan_ekskul, 0, ',', '.') . '</div>';
+            }
             
         } else {
             if ($sisa > 0) {

@@ -91,9 +91,10 @@ $q_jb = mysqli_query($koneksi, "SELECT * FROM jenis_bayar WHERE status = 'Aktif'
                                     }
 
                                     // Check if there are any unpaid months to display
+                                    $is_extracurricular = stripos($jb['nama_pembayaran'], 'ekstrakurikuler') !== false;
                                     $has_unpaid = false;
                                     foreach ($months as $index => $m) {
-                                        if ($index > $limit_index) continue;
+                                        if (!$is_extracurricular && $index > $limit_index) continue;
                                         if (!in_array($m, $paid_months)) {
                                             $has_unpaid = true;
                                             break;
@@ -130,9 +131,10 @@ $q_jb = mysqli_query($koneksi, "SELECT * FROM jenis_bayar WHERE status = 'Aktif'
                                 echo "<td>";
 
                                 if ($jb['tipe_bayar'] == 'Bulanan') {
+                                    $is_extracurricular = stripos($jb['nama_pembayaran'], 'ekstrakurikuler') !== false;
                                     echo '<div class="d-flex flex-wrap">';
                                     foreach ($months as $index => $m) {
-                                        if ($index > $limit_index) continue; // Skip future months
+                                        if (!$is_extracurricular && $index > $limit_index) continue; // Skip future months (non-ekskul)
                                         if (in_array($m, $paid_months)) continue; // Skip paid months
 
                                         $icon = '<i class="mdi mdi-close-circle text-danger" style="font-size: 1.2em;"></i>';

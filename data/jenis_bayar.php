@@ -28,7 +28,7 @@ while ($k = mysqli_fetch_assoc($q_kelas)) {
 // Proses Tambah
 if (isset($_POST['tambah'])) {
     $nama_pembayaran = $_POST['nama_pembayaran'];
-    $nominal = $_POST['nominal'];
+    $nominal = preg_replace('/\D/', '', $_POST['nominal'] ?? '0');
     $tipe_bayar = $_POST['tipe_bayar'];
     $kali_cicilan = ($tipe_bayar == 'Cicilan') ? $_POST['kali_cicilan'] : 0;
     
@@ -59,7 +59,7 @@ if (isset($_POST['tambah'])) {
 if (isset($_POST['edit'])) {
     $id_jenis_bayar = $_POST['id_jenis_bayar'];
     $nama_pembayaran = $_POST['nama_pembayaran'];
-    $nominal = $_POST['nominal'];
+    $nominal = preg_replace('/\D/', '', $_POST['nominal'] ?? '0');
     $tipe_bayar = $_POST['tipe_bayar'];
     $kali_cicilan = ($tipe_bayar == 'Cicilan') ? $_POST['kali_cicilan'] : 0;
 
@@ -199,7 +199,7 @@ if (isset($_GET['hapus'])) {
                                                     </div>
                                                     <div class="form-group">
                                                         <label>Nominal</label>
-                                                        <input type="number" name="nominal" class="form-control" value="<?= $row['nominal'] ?>" required>
+                                                        <input type="text" name="nominal" class="form-control nominal-grouping" value="<?= number_format($row['nominal'], 0, ',', '.') ?>" inputmode="numeric" required>
                                                     </div>
                                                     <div class="form-group">
                                                         <label>Waktu Bayar</label>
@@ -269,7 +269,7 @@ if (isset($_GET['hapus'])) {
                     </div>
                     <div class="form-group">
                         <label>Nominal</label>
-                        <input type="number" name="nominal" class="form-control" placeholder="Contoh: 50000" required>
+                        <input type="text" name="nominal" class="form-control nominal-grouping" placeholder="Contoh: 50.000" inputmode="numeric" required>
                     </div>
                     <div class="form-group">
                         <label>Waktu Bayar</label>
@@ -371,6 +371,25 @@ if (isset($_GET['hapus'])) {
             var target = $(this).data('target');
             $(target + ' > option').prop("selected", false);
             $(target).trigger("change");
+        });
+
+        // Format digit grouping untuk input nominal.
+        function formatNominal(value) {
+            const digitsOnly = (value || '').toString().replace(/\D/g, '');
+            if (!digitsOnly) return '';
+            return digitsOnly.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        }
+
+        $('.nominal-grouping').on('input', function() {
+            $(this).val(formatNominal($(this).val()));
+        });
+
+        // Pastikan nilai submit tetap angka murni.
+        $('form').on('submit', function() {
+            $(this).find('.nominal-grouping').each(function() {
+                const raw = ($(this).val() || '').replace(/\D/g, '');
+                $(this).val(raw);
+            });
         });
     });
 </script>
