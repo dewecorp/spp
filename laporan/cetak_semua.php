@@ -156,13 +156,7 @@ $tgl_cetak = date('d') . ' ' . $bulan_indo[date('m')] . ' ' . date('Y');
         
         $has_data = false;
         while ($d_jenis = mysqli_fetch_assoc($q_jenis)) {
-            $applies = true;
-            if (!empty($d_jenis['tagihan_kelas'])) {
-                $kelas_ids = explode(',', $d_jenis['tagihan_kelas']);
-                if (!in_array($id_kelas_siswa, $kelas_ids)) {
-                    $applies = false;
-                }
-            }
+            $applies = jenis_bayar_berlaku_untuk_kelas($d_jenis['tagihan_kelas'] ?? '', $id_kelas_siswa, $nama_kelas);
 
             if ($applies) {
                 $has_data = true;
@@ -186,12 +180,13 @@ $tgl_cetak = date('d') . ' ' . $bulan_indo[date('m')] . ' ' . date('Y');
                                 // Calculate current month index (relative to school year starting July)
                                 $current_month_num = date('n'); // 1-12
                                 $limit_index = ($current_month_num >= 7) ? $current_month_num - 7 : $current_month_num + 5;
+
+                                $paid_by_month = bulanan_map_pembayaran_per_bulan($koneksi, $nisn, $d_jenis['id_jenis_bayar']);
                                 
                                 foreach ($bulan as $index => $bln) {
                                     if ($index > $limit_index) continue; // Skip future months
                                     
-                                    $q_bayar = mysqli_query($koneksi, "SELECT * FROM pembayaran WHERE nisn = '$nisn' AND id_jenis_bayar = '" . $d_jenis['id_jenis_bayar'] . "' AND bulan_bayar = '$bln'");
-                                    $d_bayar = mysqli_fetch_assoc($q_bayar);
+                                    $d_bayar = $paid_by_month[$bln] ?? null;
                                     
                                     $status = $d_bayar ? 'Lunas' : '-';
                                     $tgl = $d_bayar ? date('d/m/y', strtotime($d_bayar['tgl_bayar'])) : '-';

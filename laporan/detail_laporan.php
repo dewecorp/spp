@@ -63,19 +63,11 @@ if (!$d_siswa) {
                 // If id_jenis_bayar 1 has no tagihan_kelas printed, let's assume it applies to all for now or check logic later.
                 
                 $id_kelas_siswa = $d_siswa['id_kelas'];
+                $nama_kelas_siswa = $d_siswa['nama_kelas'];
                 $q_jenis = mysqli_query($koneksi, "SELECT * FROM jenis_bayar WHERE status = 'Aktif' ORDER BY tipe_bayar ASC");
                 
                 while ($d_jenis = mysqli_fetch_assoc($q_jenis)) {
-                    // Filter tagihan kelas
-                    // Jika tagihan_kelas tidak kosong, cek apakah kelas siswa ada di dalamnya
-                    // Jika kosong, anggap berlaku untuk semua (atau sesuaikan logic jika user minta lain)
-                    $applies = true;
-                    if (!empty($d_jenis['tagihan_kelas'])) {
-                        $kelas_ids = explode(',', $d_jenis['tagihan_kelas']);
-                        if (!in_array($id_kelas_siswa, $kelas_ids)) {
-                            $applies = false;
-                        }
-                    }
+                    $applies = jenis_bayar_berlaku_untuk_kelas($d_jenis['tagihan_kelas'] ?? '', $id_kelas_siswa, $nama_kelas_siswa);
 
                     if ($applies) {
                 ?>
@@ -101,16 +93,17 @@ if (!$d_siswa) {
                                             // Calculate current month index (relative to school year starting July)
                                             $current_month_num = date('n'); // 1-12
                                             $limit_index = ($current_month_num >= 7) ? $current_month_num - 7 : $current_month_num + 5;
+
+                                            $paid_by_month = bulanan_map_pembayaran_per_bulan($koneksi, $nisn, $d_jenis['id_jenis_bayar']);
                                             
                                             foreach ($bulan as $index => $bln) {
                                                 if ($index > $limit_index) continue; // Skip future months
                                                 
-                                                $q_bayar = mysqli_query($koneksi, "SELECT * FROM pembayaran WHERE nisn = '$nisn' AND id_jenis_bayar = '" . $d_jenis['id_jenis_bayar'] . "' AND bulan_bayar = '$bln'");
-                                                $d_bayar = mysqli_fetch_assoc($q_bayar);
+                                                $d_bayar = $paid_by_month[$bln] ?? null;
                                                 
                                                 $status = $d_bayar ? '<span class="badge badge-success">Lunas</span>' : '<span class="badge badge-danger">Belum Bayar</span>';
                                                 $tgl = $d_bayar ? date('d/m/Y', strtotime($d_bayar['tgl_bayar'])) : '-';
-                                                $jml = $d_bayar ? 'Rp. ' . number_format($d_bayar['jumlah_bayar'], 0, ',', '.') : '-';
+                                                $jml = $d_bayar ? 'Rp. ' . number_format($d_bayar['jumlah'], 0, ',', '.') : '-';
                                             ?>
                                                 <tr>
                                                     <td><?= $bln ?></td>

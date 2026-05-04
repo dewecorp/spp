@@ -100,4 +100,5 @@ if (file_exists($vendorAutoload)) {
 }
 include_once __DIR__ . '/../include/activity_helper.php';
 include_once __DIR__ . '/../include/qr_helper.php';
+include_once __DIR__ . '/../include/laporan_helper.php';
 ?>
