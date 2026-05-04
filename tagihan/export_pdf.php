@@ -61,6 +61,8 @@ $tahun_ajaran = $d_setting['tahun_ajaran'] ?? '';
         table.data { width: 100%; border-collapse: collapse; margin-top: 10px; }
         table.data th, table.data td { border: 1px solid #000; padding: 8px; text-align: left; vertical-align: top; }
         table.data th { background-color: #f2f2f2; }
+        table.data thead th { text-align: center; }
+        table.data tbody tr td:first-child:not([colspan]) { text-align: center; }
         
         .status-grid { display: flex; flex-wrap: wrap; }
         .status-item { width: 33%; margin-bottom: 5px; }

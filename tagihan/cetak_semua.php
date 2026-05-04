@@ -61,18 +61,23 @@ $tanggal_str = $tgl . ' ' . $bln . ' ' . $thn;
         
         .container-grid {
             width: 100%;
-            overflow: hidden;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            align-items: flex-start;
+            column-gap: 14mm;
+            row-gap: 4mm;
         }
 
         .bill-wrapper {
-            float: left;
-            width: 48%; /* 2 columns */
+            width: calc((100% - 14mm) / 2);
             height: 145mm; /* Half page height approx for F4 */
-            margin: 0.5%; /* Gap */
+            margin: 0;
             border: 1px solid #999;
             padding: 5px;
             box-sizing: border-box;
             page-break-inside: avoid;
+            break-inside: avoid;
             position: relative;
         }
         
@@ -103,6 +108,12 @@ $tanggal_str = $tgl . ' ' . $bln . ' ' . $thn;
         table.data { width: 100%; border-collapse: collapse; margin-top: 2px; }
         table.data th, table.data td { border: 1px solid #000; padding: 2px; text-align: left; vertical-align: top; font-size: 9px; }
         table.data th { background-color: #f2f2f2; }
+        table.data thead th {
+            text-align: center;
+        }
+        table.data tbody tr td:first-child:not([colspan]) {
+            text-align: center;
+        }
         
         .text-success { color: green; font-weight: bold; }
         .text-danger { color: red; font-weight: bold; }
@@ -110,7 +121,7 @@ $tanggal_str = $tgl . ' ' . $bln . ' ' . $thn;
         .signature { margin-top: 5px; float: right; text-align: center; width: 120px; font-size: 10px; page-break-inside: avoid; break-inside: avoid; }
         .signature p { margin: 1px 0; }
         
-        .page-break { page-break-after: always; clear: both; width: 100%; }
+        .page-break { page-break-after: always; break-after: page; width: 100%; height: 0; flex-basis: 100%; }
         
         @media print {
             .page-break { page-break-after: always; }
