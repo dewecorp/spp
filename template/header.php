@@ -123,6 +123,19 @@ if (!isset($_SESSION['login']) || !isset($_SESSION['nama_lengkap']) || !isset($_
             margin-right: 0 !important;
         }
 
+        /* Anak menu: menjorok ke kanan (hierarki di bawah menu utama) */
+        .sidebar .nav.sub-menu {
+            padding-left: 1.25rem !important;
+            margin-left: 0 !important;
+        }
+        .sidebar .nav.sub-menu .nav-item .nav-link {
+            padding-left: 2.75rem !important;
+            padding-right: 1rem !important;
+        }
+        .sidebar .nav.sub-menu .nav-item .nav-link:before {
+            left: 1rem !important;
+        }
+
         /* Custom Scrollbar for Sidebar */
         .sidebar::-webkit-scrollbar {
             width: 5px;
