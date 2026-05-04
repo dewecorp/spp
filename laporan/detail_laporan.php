@@ -89,16 +89,10 @@ if (!$d_siswa) {
                                         <tbody>
                                             <?php
                                             $bulan = ['Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni'];
-                                            
-                                            // Calculate current month index (relative to school year starting July)
-                                            $current_month_num = date('n'); // 1-12
-                                            $limit_index = ($current_month_num >= 7) ? $current_month_num - 7 : $current_month_num + 5;
 
                                             $paid_by_month = bulanan_map_pembayaran_per_bulan($koneksi, $nisn, $d_jenis['id_jenis_bayar']);
                                             
-                                            foreach ($bulan as $index => $bln) {
-                                                if ($index > $limit_index) continue; // Skip future months
-                                                
+                                            foreach ($bulan as $bln) {
                                                 $d_bayar = $paid_by_month[$bln] ?? null;
                                                 
                                                 $status = $d_bayar ? '<span class="badge badge-success">Lunas</span>' : '<span class="badge badge-danger">Belum Bayar</span>';
