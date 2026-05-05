@@ -21,6 +21,31 @@ $q_bayar = mysqli_query($koneksi, "SELECT SUM(jumlah_bayar) as total FROM pembay
 $d_bayar = mysqli_fetch_assoc($q_bayar);
 $total_bayar = $d_bayar['total'] ?? 0;
 
+// 3b. Total bayar per jenis (dinamis, mengikuti jenis bayar aktif)
+$jenis_totals = [];
+$q_jenis_total = mysqli_query($koneksi, "
+    SELECT
+        jb.id_jenis_bayar,
+        jb.nama_pembayaran,
+        COALESCE(SUM(p.jumlah_bayar), 0) AS total_bayar_jenis
+    FROM jenis_bayar jb
+    LEFT JOIN pembayaran p ON p.id_jenis_bayar = jb.id_jenis_bayar
+    WHERE jb.status = 'Aktif'
+    GROUP BY jb.id_jenis_bayar, jb.nama_pembayaran
+    ORDER BY
+        CASE
+            WHEN LOWER(jb.nama_pembayaran) LIKE '%ekstrakurikuler%' THEN 1
+            WHEN LOWER(jb.nama_pembayaran) LIKE '%lks%' THEN 2
+            WHEN LOWER(jb.nama_pembayaran) LIKE '%ujian%' THEN 3
+            WHEN LOWER(jb.nama_pembayaran) LIKE '%rekreasi%' THEN 4
+            ELSE 5
+        END,
+        jb.nama_pembayaran ASC
+");
+while ($row = mysqli_fetch_assoc($q_jenis_total)) {
+    $jenis_totals[] = $row;
+}
+
 // 4. Hitung Siswa Belum Bayar (Bulan Ini)
 // Asumsi: Siswa yang belum melakukan transaksi apapun di bulan ini
 $bulan_ini = date('m');
@@ -50,20 +75,29 @@ $q_aktivitas = mysqli_query($koneksi, "
 $jml_aktivitas = mysqli_num_rows($q_aktivitas);
 ?>
 
+<style>
+    /* Widget dashboard dibuat lebih compact */
+    .dashboard-stat-card .card-body { padding: 0.7rem 0.85rem; }
+    .dashboard-stat-card .stat-title { font-size: 0.78rem; line-height: 1.2; margin-bottom: 0.2rem !important; }
+    .dashboard-stat-card .stat-value { font-size: 1rem; line-height: 1.2; margin-bottom: 0 !important; }
+    .dashboard-stat-card .icon-lg { font-size: 1.2rem !important; }
+    .dashboard-stat-card .text-right { text-align: right !important; }
+</style>
+
 <div class="row">
     <!-- Kartu ringkasan: desktop 4 kolom; hp (xs): 2 kolom lewat col-6 -->
     <!-- Card Jumlah Siswa -->
     <div class="col-6 col-sm-6 col-md-3 col-lg-3 col-xl-3 grid-margin stretch-card">
-        <div class="card card-statistics card-statistics-red">
+        <div class="card card-statistics card-statistics-red dashboard-stat-card">
             <div class="card-body">
                 <div class="clearfix">
                     <div class="float-left">
                         <i class="mdi mdi-account-multiple text-danger icon-lg"></i>
                     </div>
                     <div class="float-right">
-                        <p class="mb-0 text-right">Jumlah Siswa</p>
+                        <p class="mb-0 text-right stat-title">Jumlah Siswa</p>
                         <div class="fluid-container">
-                            <h3 class="font-weight-medium text-right mb-0"><?= number_format($jml_siswa) ?></h3>
+                            <h3 class="font-weight-medium text-right stat-value"><?= number_format($jml_siswa) ?></h3>
                         </div>
                     </div>
                 </div>
@@ -72,16 +106,16 @@ $jml_aktivitas = mysqli_num_rows($q_aktivitas);
     </div>
     <!-- Card Jumlah Jenis Bayar -->
     <div class="col-6 col-sm-6 col-md-3 col-lg-3 col-xl-3 grid-margin stretch-card">
-        <div class="card card-statistics card-statistics-yellow">
+        <div class="card card-statistics card-statistics-yellow dashboard-stat-card">
             <div class="card-body">
                 <div class="clearfix">
                     <div class="float-left">
                         <i class="mdi mdi-receipt text-warning icon-lg"></i>
                     </div>
                     <div class="float-right">
-                        <p class="mb-0 text-right">Jenis Bayar</p>
+                        <p class="mb-0 text-right stat-title">Jenis Bayar</p>
                         <div class="fluid-container">
-                            <h3 class="font-weight-medium text-right mb-0"><?= number_format($jml_jenis) ?></h3>
+                            <h3 class="font-weight-medium text-right stat-value"><?= number_format($jml_jenis) ?></h3>
                         </div>
                     </div>
                 </div>
@@ -90,16 +124,16 @@ $jml_aktivitas = mysqli_num_rows($q_aktivitas);
     </div>
     <!-- Card Total Pembayaran -->
     <div class="col-6 col-sm-6 col-md-3 col-lg-3 col-xl-3 grid-margin stretch-card">
-        <div class="card card-statistics card-statistics-green">
+        <div class="card card-statistics card-statistics-green dashboard-stat-card">
             <div class="card-body">
                 <div class="clearfix">
                     <div class="float-left">
                         <i class="mdi mdi-cash-multiple text-success icon-lg"></i>
                     </div>
                     <div class="float-right">
-                        <p class="mb-0 text-right">Total Pembayaran</p>
+                        <p class="mb-0 text-right stat-title">Total Pembayaran</p>
                         <div class="fluid-container">
-                            <h3 class="font-weight-medium text-right mb-0" style="white-space: nowrap;">Rp <?= number_format($total_bayar, 0, ',', '.') ?></h3>
+                            <h3 class="font-weight-medium text-right stat-value" style="white-space: nowrap;">Rp <?= number_format($total_bayar, 0, ',', '.') ?></h3>
                         </div>
                     </div>
                 </div>
@@ -108,22 +142,66 @@ $jml_aktivitas = mysqli_num_rows($q_aktivitas);
     </div>
     <!-- Card Siswa Belum Bayar -->
     <div class="col-6 col-sm-6 col-md-3 col-lg-3 col-xl-3 grid-margin stretch-card">
-        <div class="card card-statistics card-statistics-blue">
+        <div class="card card-statistics card-statistics-blue dashboard-stat-card">
             <div class="card-body">
                 <div class="clearfix">
                     <div class="float-left">
                         <i class="mdi mdi-account-off text-info icon-lg"></i>
                     </div>
                     <div class="float-right">
-                        <p class="mb-0 text-right">Belum Bayar (Bln Ini)</p>
+                        <p class="mb-0 text-right stat-title">Belum Bayar (Bln Ini)</p>
                         <div class="fluid-container">
-                            <h3 class="font-weight-medium text-right mb-0"><?= number_format($jml_belum_bayar) ?></h3>
+                            <h3 class="font-weight-medium text-right stat-value"><?= number_format($jml_belum_bayar) ?></h3>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
+
+<div class="row">
+    <?php
+    $icon_by_keyword = [
+        'ekstrakurikuler' => 'mdi-soccer',
+        'lks' => 'mdi-book-open-page-variant',
+        'ujian' => 'mdi-file-check',
+        'rekreasi' => 'mdi-bus',
+    ];
+    foreach ($jenis_totals as $jenis_item) :
+        $nama_jenis = $jenis_item['nama_pembayaran'];
+        $nama_jenis_tampil = preg_replace('/ekstrakurikuler/i', 'Ekskul', $nama_jenis);
+        $nama_lower = strtolower($nama_jenis);
+        $icon = 'mdi-cash';
+        foreach ($icon_by_keyword as $keyword => $mapped_icon) {
+            if (strpos($nama_lower, $keyword) !== false) {
+                $icon = $mapped_icon;
+                break;
+            }
+        }
+    ?>
+    <div class="col-6 col-sm-6 col-md-3 col-lg-3 col-xl-3 grid-margin stretch-card">
+        <div class="card card-statistics dashboard-stat-card">
+            <div class="card-body">
+                <div class="clearfix">
+                    <div class="float-left">
+                        <i class="mdi <?= $icon ?> text-primary icon-lg"></i>
+                    </div>
+                    <div class="float-right">
+                        <p class="mb-0 text-right stat-title text-truncate" title="Total Bayar <?= htmlspecialchars($nama_jenis_tampil) ?>">
+                            Total Bayar <?= htmlspecialchars($nama_jenis_tampil) ?>
+                        </p>
+                        <div class="fluid-container">
+                            <h3 class="font-weight-medium text-right stat-value" style="white-space: nowrap;">
+                                Rp <?= number_format($jenis_item['total_bayar_jenis'], 0, ',', '.') ?>
+                            </h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php endforeach; ?>
 </div>
 
 <div class="row">
