@@ -32,7 +32,7 @@ $query = mysqli_query($koneksi, "SELECT pembayaran.*, siswa.nama AS nama_siswa, 
                                  JOIN siswa ON pembayaran.nisn = siswa.nisn 
                                  JOIN kelas ON siswa.id_kelas = kelas.id_kelas 
                                  JOIN jenis_bayar ON pembayaran.id_jenis_bayar = jenis_bayar.id_jenis_bayar 
-                                 ORDER BY pembayaran.tgl_bayar DESC");
+                                 ORDER BY pembayaran.created_at DESC, pembayaran.id_pembayaran DESC");
 
 $i = 2;
 $no = 1;
