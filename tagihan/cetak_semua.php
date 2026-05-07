@@ -56,7 +56,8 @@ $tanggal_str = $tgl . ' ' . $bln . ' ' . $thn;
 <head>
     <title>Cetak Tagihan Kelas <?= $nama_kelas ?></title>
     <style>
-        @page { size: 215mm 330mm; margin: 3mm 2mm; }
+        /* Atas lebih besar dari samping: aman dari area non-print printer (tepi potong). */
+        @page { size: 215mm 330mm; margin: 9mm 2mm 6mm 2mm; }
         body { font-family: sans-serif; font-size: 10pt; margin: 0; padding: 0; }
         
         .container-grid {
