@@ -34,7 +34,7 @@ $tahun_ajaran = $d_setting['tahun_ajaran'] ?? '';
 <head>
     <title>Laporan Tagihan - <?= $d_siswa['nama'] ?></title>
     <style>
-        body { font-family: sans-serif; font-size: 12px; }
+        body { font-family: sans-serif; font-size: 12pt; margin: 0; }
         .header { 
             text-align: center; 
             margin-bottom: 20px; 
@@ -56,10 +56,10 @@ $tahun_ajaran = $d_setting['tahun_ajaran'] ?? '';
         .header h2, .header h3, .header p { margin: 2px 0; }
         .info-siswa { margin-bottom: 20px; }
         .info-siswa table { width: auto; border: none; }
-        .info-siswa td { border: none; padding: 2px 10px 2px 0; }
+        .info-siswa td { border: none; padding: 2px 10px 2px 0; font-size: 11pt; }
         
         table.data { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        table.data th, table.data td { border: 1px solid #000; padding: 8px; text-align: left; vertical-align: top; }
+        table.data th, table.data td { border: 1px solid #000; padding: 6px; text-align: left; vertical-align: top; font-size: 11pt; }
         table.data th { background-color: #f2f2f2; }
         table.data thead th { text-align: center; }
         table.data tbody tr td:first-child:not([colspan]) { text-align: center; }
@@ -70,11 +70,11 @@ $tahun_ajaran = $d_setting['tahun_ajaran'] ?? '';
         .text-success { color: green; font-weight: bold; }
         .text-danger { color: red; font-weight: bold; }
         
-        .signature { margin-top: 30px; float: right; text-align: center; width: 200px; page-break-inside: avoid; break-inside: avoid; }
+        .signature { margin-top: 24px; float: right; text-align: center; width: 200px; page-break-inside: avoid; break-inside: avoid; font-size: 11pt; }
         
         @page {
             size: 215mm 330mm;              /* F4 */
-            margin: 10mm 20mm 20mm 20mm;    /* atas 1 cm, sisi lain 2 cm */
+            margin: 6mm 3mm 10mm 3mm;      /* atas 6mm, kanan-kiri 3mm, bawah 10mm */
         }
     </style>
 </head>

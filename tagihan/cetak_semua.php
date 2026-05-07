@@ -56,8 +56,8 @@ $tanggal_str = $tgl . ' ' . $bln . ' ' . $thn;
 <head>
     <title>Cetak Tagihan Kelas <?= $nama_kelas ?></title>
     <style>
-        @page { size: 215mm 330mm; margin: 5mm; }
-        body { font-family: sans-serif; font-size: 10px; margin: 0; padding: 0; }
+        @page { size: 215mm 330mm; margin: 3mm 2mm; }
+        body { font-family: sans-serif; font-size: 10pt; margin: 0; padding: 0; }
         
         .container-grid {
             width: 100%;
@@ -65,16 +65,16 @@ $tanggal_str = $tgl . ' ' . $bln . ' ' . $thn;
             flex-wrap: wrap;
             justify-content: flex-start;
             align-items: flex-start;
-            column-gap: 14mm;
+            column-gap: 4mm;
             row-gap: 4mm;
         }
 
         .bill-wrapper {
-            width: calc((100% - 14mm) / 2);
+            width: calc((100% - 4mm) / 2);
             height: 145mm; /* Half page height approx for F4 */
             margin: 0;
             border: 1px solid #999;
-            padding: 5px;
+            padding: 6px 3px;
             box-sizing: border-box;
             page-break-inside: avoid;
             break-inside: avoid;
@@ -103,10 +103,10 @@ $tanggal_str = $tgl . ' ' . $bln . ' ' . $thn;
         
         .info-siswa { margin-bottom: 5px; }
         .info-siswa table { width: auto; border: none; }
-        .info-siswa td { border: none; padding: 0 5px 0 0; font-size: 10px; }
+        .info-siswa td { border: none; padding: 1px 5px 1px 0; font-size: 10pt; }
         
         table.data { width: 100%; border-collapse: collapse; margin-top: 2px; }
-        table.data th, table.data td { border: 1px solid #000; padding: 2px; text-align: left; vertical-align: top; font-size: 9px; }
+        table.data th, table.data td { border: 1px solid #000; padding: 2px; text-align: left; vertical-align: top; font-size: 10pt; }
         table.data th { background-color: #f2f2f2; }
         table.data thead th {
             text-align: center;
@@ -118,7 +118,7 @@ $tanggal_str = $tgl . ' ' . $bln . ' ' . $thn;
         .text-success { color: green; font-weight: bold; }
         .text-danger { color: red; font-weight: bold; }
         
-        .signature { margin-top: 5px; float: right; text-align: center; width: 120px; font-size: 10px; page-break-inside: avoid; break-inside: avoid; }
+        .signature { margin-top: 5px; float: right; text-align: center; width: 120px; font-size: 10pt; page-break-inside: avoid; break-inside: avoid; }
         .signature p { margin: 1px 0; }
         
         .page-break { page-break-after: always; break-after: page; width: 100%; height: 0; flex-basis: 100%; }
@@ -268,7 +268,7 @@ while ($d_siswa = mysqli_fetch_assoc($q_siswa)) {
                     $unpaid_count++;
                 }
                 
-                echo '<div style="display: table-cell; width: 50%; padding-bottom: 1px; font-size: 9px;">';
+                echo '<div style="display: table-cell; width: 50%; padding-bottom: 1px; font-size: 10pt;">';
                 echo '<span style="color: '.$color.';">'.$symbol.'</span> ' . $m;
                 echo '</div>';
                 
