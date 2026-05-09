@@ -25,7 +25,20 @@
     <script src="https://cdn.datatables.net/1.10.24/js/dataTables.bootstrap4.min.js"></script>
     <script>
         $(document).ready(function() {
-            $('.table').DataTable();
+            // Jangan init DataTables pada <table> di dalam modal (tersembunyi saat init)
+            // — lebar kolom salah → kolom terpotong di hosting / layar sempit.
+            $('table.table').each(function() {
+                if ($(this).closest('.modal').length) {
+                    return;
+                }
+                if ($.fn.DataTable && $.fn.DataTable.isDataTable(this)) {
+                    return;
+                }
+                $(this).DataTable({
+                    scrollX: true,
+                    autoWidth: false
+                });
+            });
         });
     </script>
     <script>

@@ -26691,3 +26691,43 @@ a.text-primary:hover,
   outline: none !important;
   box-shadow: 0 0 0 0.2rem rgba(0, 107, 63, 0.2) !important;
 }
+
+/* DataTables — cegah kolom terpotong (beda perilaku hosting vs lokal) */
+.dataTables_wrapper {
+  width: 100% !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-responsive.dt-wrap-siswa {
+  overflow-x: auto !important;
+}
+
+#table-siswa .aksi-col,
+#table-siswa td.aksi-col {
+  white-space: nowrap !important;
+  vertical-align: middle !important;
+}
+
+/* Checkbox/radio kustom (.input-helper) — ganti ungu tema ke hijau Kemenag */
+.form-check .form-check-label input[type=checkbox] + .input-helper:before {
+  border-color: #006b3f !important;
+}
+.form-check .form-check-label input[type=checkbox]:checked + .input-helper:before {
+  background: linear-gradient(to right, #006b3f, #1b8f5a) !important;
+}
+.form-check .form-check-label input[type=radio] + .input-helper:before {
+  border-color: #006b3f !important;
+}
+.form-check .form-check-label input[type=radio]:checked + .input-helper:before {
+  background: linear-gradient(to right, #006b3f, #1b8f5a) !important;
+}
+
+.form-check-primary.form-check label input[type=checkbox] + .input-helper:before,
+.form-check-primary.form-check label input[type=radio] + .input-helper:before {
+  border-color: #006b3f !important;
+}
+.form-check-primary.form-check label input[type=checkbox]:checked + .input-helper:before,
+.form-check-primary.form-check label input[type=radio]:checked + .input-helper:before {
+  background: linear-gradient(to right, #006b3f, #1b8f5a) !important;
+}

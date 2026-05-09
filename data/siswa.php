@@ -352,8 +352,8 @@ $jumlah_siswa = mysqli_num_rows($query_siswa);
                         <span class="badge badge-info" style="font-size: 14px;">Total Siswa: <b><?= number_format($jumlah_siswa) ?></b></span>
                     </div>
 
-                    <div class="table-responsive">
-                        <table class="table table-striped">
+                    <div class="table-responsive dt-wrap-siswa">
+                        <table class="table table-striped w-100" id="table-siswa">
                             <thead>
                                 <tr>
                                     <th width="5%">
@@ -370,7 +370,7 @@ $jumlah_siswa = mysqli_num_rows($query_siswa);
                                 <th>L/P</th>
                                 <th>Kelas</th>
                                 <th>Wali</th>
-                                <th>Aksi</th>
+                                <th class="aksi-col dt-nowrap text-end" style="min-width:110px;">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -393,7 +393,7 @@ $jumlah_siswa = mysqli_num_rows($query_siswa);
                                     <td><?= $row['jenis_kelamin'] ?></td>
                                     <td><?= $row['nama_kelas'] ?></td>
                                     <td><?= $row['nama_wali'] ?></td>
-                                    <td>
+                                    <td class="aksi-col dt-nowrap text-end">
                                         <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEdit<?= $row['nisn'] ?>">
                                             <i class="mdi mdi-pencil"></i>
                                         </button>
