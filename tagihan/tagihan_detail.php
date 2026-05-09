@@ -26,7 +26,7 @@ $q_jb = mysqli_query($koneksi, "SELECT * FROM jenis_bayar WHERE status = 'Aktif'
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <div class="d-flex align-items-center">
-                        <a href="tagihan.php?id_kelas=<?= $id_kelas ?>" class="btn btn-secondary btn-sm me-3" style="margin-right: 10px;">
+                        <a href="tagihan.php?id_kelas=<?= $id_kelas ?>" class="btn btn-outline-primary btn-sm fw-semibold shadow-sm me-3">
                             <i class="mdi mdi-arrow-left"></i> Kembali
                         </a>
                         <h4 class="card-title mb-0 text-truncate" style="max-width: 100%;">Detail Tagihan: <?= $d_siswa['nama'] ?> (<?= $nama_kelas ?>)</h4>
@@ -45,7 +45,7 @@ $q_jb = mysqli_query($koneksi, "SELECT * FROM jenis_bayar WHERE status = 'Aktif'
 
                 <div class="table-responsive">
                     <table class="table table-bordered table-striped">
-                        <thead class="bg-primary text-white">
+                        <thead>
                             <tr>
                                 <th width="5%">No</th>
                                 <th width="20%">Jenis Pembayaran</th>

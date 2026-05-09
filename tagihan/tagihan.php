@@ -7,6 +7,7 @@ include '../template/sidebar.php';
 ?>
 <link rel="stylesheet" href="<?= base_url('assets/vendors/select2/select2.min.css') ?>">
 <link rel="stylesheet" href="<?= base_url('assets/vendors/select2-bootstrap-theme/select2-bootstrap.min.css') ?>">
+<style><?php include __DIR__ . '/../assets/css/select2-kelas-filter.css'; ?></style>
 
 <div class="row">
     <div class="col-lg-12 grid-margin stretch-card">
@@ -56,7 +57,7 @@ if (isset($_GET['id_kelas'])) {
                 </div>
                 <div class="table-responsive">
                     <table class="table table-bordered table-striped">
-                        <thead class="bg-primary text-white">
+                        <thead>
                             <tr>
                                 <th width="5%">No</th>
                                 <th>NISN</th>
@@ -97,9 +98,18 @@ if (isset($_GET['id_kelas'])) {
 <script src="<?= base_url('assets/vendors/select2/select2.min.js') ?>"></script>
 <script>
     $(document).ready(function() {
-        $('.select2').select2({
-            theme: "bootstrap",
-            width: '100%'
+        $('#id_kelas').select2({
+            theme: 'bootstrap',
+            width: '100%',
+            placeholder: '-- Pilih Kelas --',
+            allowClear: false
+        });
+
+        $('#id_kelas').on('select2:open', function () {
+            $('.select2-dropdown').last().addClass('select2-kelas-filter-dropdown');
+        });
+        $('#id_kelas').on('select2:close', function () {
+            $('.select2-dropdown').removeClass('select2-kelas-filter-dropdown');
         });
 
         // Auto submit form when class is selected

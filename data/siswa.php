@@ -353,7 +353,7 @@ $jumlah_siswa = mysqli_num_rows($query_siswa);
                     </div>
 
                     <div class="table-responsive dt-wrap-siswa">
-                        <table class="table table-striped w-100" id="table-siswa">
+                        <table class="table table-striped w-100" id="table-siswa" data-dt-scroll-x="1">
                             <thead>
                                 <tr>
                                     <th width="5%">

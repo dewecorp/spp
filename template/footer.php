@@ -34,8 +34,10 @@
                 if ($.fn.DataTable && $.fn.DataTable.isDataTable(this)) {
                     return;
                 }
+                var enableScrollX = $(this).attr('data-dt-scroll-x') === '1';
                 $(this).DataTable({
-                    scrollX: true,
+                    /* scrollX memecah thead/tbody → header tidak selaras; hanya pakai di tabel bertanda data-dt-scroll-x */
+                    scrollX: enableScrollX,
                     autoWidth: false
                 });
             });

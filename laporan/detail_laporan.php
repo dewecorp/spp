@@ -23,7 +23,9 @@ if (!$d_siswa) {
                         <a href="cetak_laporan.php?nisn=<?= $nisn ?>" target="_blank" class="btn btn-warning btn-icon-text">
                             <i class="mdi mdi-printer btn-icon-prepend"></i> Cetak Laporan
                         </a>
-                        <a href="laporan.php?id_kelas=<?= $d_siswa['id_kelas'] ?>" class="btn btn-light">Kembali</a>
+                        <a href="laporan.php?id_kelas=<?= $d_siswa['id_kelas'] ?>" class="btn btn-outline-primary btn-sm fw-semibold shadow-sm ms-2">
+                            <i class="mdi mdi-arrow-left"></i> Kembali
+                        </a>
                     </div>
                 </div>
 
@@ -72,13 +74,13 @@ if (!$d_siswa) {
                     if ($applies) {
                 ?>
                         <div class="card mb-4 border border-secondary">
-                            <div class="card-header bg-secondary text-white">
-                                <h6 class="mb-0 text-white"><?= $d_jenis['nama_pembayaran'] ?> (<?= $d_jenis['tipe_bayar'] ?>) - Rp. <?= number_format($d_jenis['nominal'], 0, ',', '.') ?></h6>
+                            <div class="card-header bg-primary text-white border-0">
+                                <h6 class="mb-0 text-white fw-semibold"><?= $d_jenis['nama_pembayaran'] ?> (<?= $d_jenis['tipe_bayar'] ?>) - Rp. <?= number_format($d_jenis['nominal'], 0, ',', '.') ?></h6>
                             </div>
                             <div class="card-body p-0">
                                 <table class="table table-bordered">
                                     <?php if ($d_jenis['tipe_bayar'] == 'Bulanan') { ?>
-                                        <thead class="bg-light">
+                                        <thead class="bg-primary text-white">
                                             <tr>
                                                 <th>Bulan</th>
                                                 <th>Status</th>

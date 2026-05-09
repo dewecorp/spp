@@ -5,6 +5,9 @@ include '../template/sidebar.php';
 
 $id_kelas = isset($_GET['id_kelas']) ? $_GET['id_kelas'] : '';
 ?>
+<link rel="stylesheet" href="<?= base_url('assets/vendors/select2/select2.min.css') ?>">
+<link rel="stylesheet" href="<?= base_url('assets/vendors/select2-bootstrap-theme/select2-bootstrap.min.css') ?>">
+<style><?php include __DIR__ . '/../assets/css/select2-kelas-filter.css'; ?></style>
 
 <div class="row">
     <div class="col-md-12 grid-margin stretch-card">
@@ -13,10 +16,10 @@ $id_kelas = isset($_GET['id_kelas']) ? $_GET['id_kelas'] : '';
                 <h4 class="card-title">Filter Laporan</h4>
                 <form action="" method="get">
                     <div class="row">
-                        <div class="col-md-4">
+                        <div class="col-lg-6 col-xl-5">
                             <div class="form-group">
-                                <label>Pilih Kelas</label>
-                                <select class="form-control" name="id_kelas" required onchange="this.form.submit()">
+                                <label class="fw-semibold" for="id_kelas_laporan">Pilih Kelas</label>
+                                <select id="id_kelas_laporan" name="id_kelas" class="form-control select2 select2-filter-laporan" style="width: 100%;" required onchange="this.form.submit()" data-placeholder="-- Pilih Kelas --">
                                     <option value="">-- Pilih Kelas --</option>
                                     <?php
                                     $q_kelas = mysqli_query($koneksi, "SELECT * FROM kelas ORDER BY nama_kelas ASC");
@@ -28,9 +31,9 @@ $id_kelas = isset($_GET['id_kelas']) ? $_GET['id_kelas'] : '';
                                 </select>
                             </div>
                         </div>
-                        <div class="col-md-8 d-flex align-items-center">
+                        <div class="col-lg-6 col-xl-7 d-flex align-items-end">
                             <?php if (!empty($id_kelas)): ?>
-                                <a href="cetak_semua.php?id_kelas=<?= $id_kelas ?>" target="_blank" class="btn btn-primary btn-icon-text mt-3">
+                                <a href="cetak_semua.php?id_kelas=<?= $id_kelas ?>" target="_blank" class="btn btn-primary btn-icon-text mb-3 mb-md-0">
                                     <i class="mdi mdi-printer btn-icon-prepend"></i> Cetak Semua Laporan
                                 </a>
                             <?php endif; ?>
@@ -93,10 +96,24 @@ $id_kelas = isset($_GET['id_kelas']) ? $_GET['id_kelas'] : '';
     <?php endif; ?>
 </div>
 
+<?php include '../template/footer.php'; ?>
+<script src="<?= base_url('assets/vendors/select2/select2.min.js') ?>"></script>
 <script>
     $(document).ready(function() {
-        $('#table-laporan').DataTable();
+        if ($('.select2-filter-laporan').length) {
+            $('.select2-filter-laporan').select2({
+                theme: 'bootstrap',
+                width: '100%',
+                placeholder: $('.select2-filter-laporan').data('placeholder') || '-- Pilih Kelas --',
+                allowClear: false
+            });
+
+            $('#id_kelas_laporan').on('select2:open', function () {
+                $('.select2-dropdown').last().addClass('select2-kelas-filter-dropdown');
+            });
+            $('#id_kelas_laporan').on('select2:close', function () {
+                $('.select2-dropdown').removeClass('select2-kelas-filter-dropdown');
+            });
+        }
     });
 </script>
-
-<?php include '../template/footer.php'; ?>
