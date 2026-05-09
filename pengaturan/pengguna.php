@@ -144,11 +144,12 @@ if (isset($_GET['hapus'])) {
                             $no = 1;
                             $query = mysqli_query($koneksi, "SELECT * FROM pengguna ORDER BY id_pengguna DESC");
                             while ($row = mysqli_fetch_assoc($query)) :
-                                $foto = $row['foto'];
-                                if (!empty($foto) && file_exists("../assets/images/faces/$foto")) {
-                                    $foto_url = "../assets/images/faces/$foto";
+                                $foto = $row['foto'] ?? '';
+                                $foto_disk = __DIR__ . '/../assets/images/faces/' . $foto;
+                                if ($foto !== '' && is_file($foto_disk)) {
+                                    $foto_url = base_url('assets/images/faces/' . rawurlencode($foto));
                                 } else {
-                                    $foto_url = "https://ui-avatars.com/api/?name=" . urlencode($row['nama_lengkap']) . "&background=random&color=fff";
+                                    $foto_url = 'https://ui-avatars.com/api/?name=' . urlencode($row['nama_lengkap']) . '&background=random&color=fff';
                                 }
                             ?>
                                 <tr>

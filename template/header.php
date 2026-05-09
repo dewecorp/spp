@@ -215,6 +215,14 @@ if (!isset($_SESSION['login']) || !isset($_SESSION['nama_lengkap']) || !isset($_
             display: none !important;
         }
 
+        /* Halo putih di foto userinfo (navbar) */
+        .navbar.default-layout .navbar-profile-img {
+            box-shadow:
+                0 0 0 2px rgba(255, 255, 255, 0.95),
+                0 0 14px 2px rgba(255, 255, 255, 0.55),
+                0 2px 8px rgba(0, 0, 0, 0.12);
+        }
+
         /* Responsive toolbars and buttons on mobile */
         @media (max-width: 768px) {
             .sidebar .nav .nav-item {
@@ -277,22 +285,37 @@ if (!isset($_SESSION['login']) || !isset($_SESSION['nama_lengkap']) || !isset($_
                 <ul class="navbar-nav navbar-nav-right">
                     <li class="nav-item dropdown d-none d-xl-inline-block">
                         <a class="nav-link dropdown-toggle" id="UserDropdown" href="#" data-bs-toggle="dropdown" aria-expanded="false">
-                            <div class="d-none d-md-block me-3 text-end">
-                                <p class="mb-0 font-weight-bold text-white"><?= $_SESSION['nama_lengkap'] ?></p>
-                                <p class="mb-0 text-white small"><?= $_SESSION['role'] ?></p>
-                            </div>
                             <?php
-                            $foto = $_SESSION['foto'] ?? '';
-                            // Cek fisik file (karena include, __DIR__ adalah folder template)
-                            $path_fisik = __DIR__ . '/../assets/images/faces/' . $foto;
-                            
-                            if (!empty($foto) && file_exists($path_fisik)) {
-                                $foto_url = base_url('assets/images/faces/' . $foto);
+                            // Ambil nama, role, foto terbaru dari DB agar sesuai setelah edit di Data Pengguna
+                            $nav_nama = $_SESSION['nama_lengkap'] ?? '';
+                            $nav_role = $_SESSION['role'] ?? '';
+                            $nav_foto = $_SESSION['foto'] ?? '';
+                            if (!empty($_SESSION['id_pengguna']) && !empty($koneksi)) {
+                                $nav_id = (int)$_SESSION['id_pengguna'];
+                                if ($nav_id > 0) {
+                                    $nav_q = mysqli_query($koneksi, "SELECT nama_lengkap, role, foto FROM pengguna WHERE id_pengguna = " . $nav_id . " LIMIT 1");
+                                    if ($nav_q && $nav_row = mysqli_fetch_assoc($nav_q)) {
+                                        $nav_nama = (string)($nav_row['nama_lengkap'] ?? $nav_nama);
+                                        $nav_role = (string)($nav_row['role'] ?? $nav_role);
+                                        $nav_foto = (string)($nav_row['foto'] ?? '');
+                                        $_SESSION['nama_lengkap'] = $nav_nama;
+                                        $_SESSION['role'] = $nav_role;
+                                        $_SESSION['foto'] = $nav_foto;
+                                    }
+                                }
+                            }
+                            $path_fisik = __DIR__ . '/../assets/images/faces/' . $nav_foto;
+                            if ($nav_foto !== '' && is_file($path_fisik)) {
+                                $foto_url = base_url('assets/images/faces/' . rawurlencode($nav_foto));
                             } else {
-                                $foto_url = "https://ui-avatars.com/api/?name=" . urlencode($_SESSION['nama_lengkap']) . "&background=random&color=fff";
+                                $foto_url = 'https://ui-avatars.com/api/?name=' . urlencode($nav_nama) . '&background=random&color=fff';
                             }
                             ?>
-                            <img class="img-xs rounded-circle" src="<?= $foto_url ?>" alt="Profile image" style="object-fit: cover;">
+                            <div class="d-none d-md-block me-3 text-end">
+                                <p class="mb-0 font-weight-bold text-white"><?= htmlspecialchars($nav_nama, ENT_QUOTES, 'UTF-8') ?></p>
+                                <p class="mb-0 text-white small"><?= htmlspecialchars($nav_role, ENT_QUOTES, 'UTF-8') ?></p>
+                            </div>
+                            <img class="img-xs rounded-circle navbar-profile-img" src="<?= htmlspecialchars($foto_url, ENT_QUOTES, 'UTF-8') ?>" alt="Profile image" style="object-fit: cover;">
                         </a>
                         <div class="dropdown-menu dropdown-menu-right navbar-dropdown" aria-labelledby="UserDropdown">
                             <a class="dropdown-item mt-2" href="<?= base_url('auth/logout.php') ?>" onclick="confirmLogout(event)">
