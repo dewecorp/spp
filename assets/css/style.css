@@ -26697,6 +26697,11 @@ a.text-primary:hover,
   display: none !important;
 }
 
+/* Ikon MDI di tombol close: jangan gabung dengan ::before (menghindari silang ganda) */
+.modal-header .close > i {
+  display: none !important;
+}
+
 .modal-header .close::before {
   content: "\00d7";
   font-size: 1.25rem;
