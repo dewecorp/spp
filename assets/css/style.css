@@ -20953,9 +20953,9 @@ code {
 
 /* Footer */
 .footer {
-  background: #f2edf3;
+  background: #ffffff;
   color: color(dark);
-  border-top: 1px solid #e7dee9;
+  border-top: 1px solid #e5e7eb;
   padding: 30px 1rem;
   transition: all 0.25s ease;
   -moz-transition: all 0.25s ease;
@@ -26302,7 +26302,7 @@ dl li {
 }
 
 .content-wrapper {
-  background: #f2edf3;
+  background: #ffffff;
   padding: 2.75rem 2.25rem;
   width: 100%;
   -webkit-flex-grow: 1;
@@ -26811,4 +26811,9 @@ table.dataTable.table-bordered thead td {
 .form-check-primary.form-check label input[type=checkbox]:checked + .input-helper:before,
 .form-check-primary.form-check label input[type=radio]:checked + .input-helper:before {
   background: linear-gradient(to right, #006b3f, #1b8f5a) !important;
+}
+
+/* Kartu di halaman konten — bayangan hijau lembut (ganti bayangan abu default) */
+.content-wrapper .card {
+  box-shadow: 0 4px 18px rgba(0, 107, 63, 0.14), 0 2px 8px rgba(0, 107, 63, 0.07) !important;
 }

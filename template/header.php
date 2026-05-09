@@ -195,8 +195,12 @@ if (!isset($_SESSION['login']) || !isset($_SESSION['nama_lengkap']) || !isset($_
         .navbar.default-layout .navbar-menu-wrapper {
             background: transparent !important;
         }
-        .navbar.default-layout .navbar-brand-wrapper h3 {
+        .navbar.default-layout .navbar-brand-wrapper h3,
+        .navbar.default-layout .navbar-brand.brand-logo h3 {
             color: #ffffff !important;
+            font-family: "Poppins", system-ui, -apple-system, "Segoe UI", sans-serif !important;
+            font-weight: 700 !important;
+            letter-spacing: 0.02em;
         }
         .navbar.default-layout .navbar-menu-wrapper .nav-link {
             color: #ffffff !important;
