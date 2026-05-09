@@ -1,1 +1,5 @@
 backup.zip
+
+# Arsip JS sering dianggap mencurigakan oleh scanner hosting (false positive)
+assets/js/js.zip
+**/js.zip

@@ -58,14 +58,59 @@ if (isset($_POST['login'])) {
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Login SPP</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?= base_url('assets/vendors/mdi/css/materialdesignicons.min.css') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/vendors/css/vendor.bundle.base.css') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/css/style.css') ?>">
     <link rel="shortcut icon" href="<?= base_url('assets/images/favicon_pembayaran.svg') ?>" type="image/svg+xml" />
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+    <style>
+        /* Tipografi login: Poppins + hitam tegas (halaman ini tidak memakai template/header.php) */
+        body.auth-login-page {
+            font-family: "Poppins", system-ui, sans-serif !important;
+        }
+        .auth-bg-1 .auto-form-wrapper h4,
+        .auth-bg-1 .auto-form-wrapper h6,
+        .auth-bg-1 .auto-form-wrapper label,
+        .auth-bg-1 .auto-form-wrapper .form-control,
+        .auth-bg-1 .auto-form-wrapper .submit-btn {
+            font-family: "Poppins", system-ui, sans-serif !important;
+        }
+        /* Ikon MDI tidak memakai Poppins */
+        .auth-bg-1 .mdi[class*="mdi-"] {
+            font-family: "Material Design Icons" !important;
+        }
+        .auth-bg-1 .auto-form-wrapper h4.font-weight-bold.text-dark {
+            color: #000000 !important;
+            font-weight: 700 !important;
+            letter-spacing: 0.02em;
+        }
+        .auth-bg-1 .auto-form-wrapper h6.font-weight-light.text-dark {
+            color: #1a1a1a !important;
+            font-weight: 500 !important;
+        }
+        .auth-bg-1 .auto-form-wrapper label.label.text-dark {
+            color: #000000 !important;
+            font-weight: 600 !important;
+        }
+        .auth-bg-1 .auto-form-wrapper .form-control {
+            color: #111827 !important;
+            font-weight: 500 !important;
+        }
+        .auth-bg-1 .auto-form-wrapper .form-control::placeholder {
+            color: #6b7280 !important;
+            font-weight: 400 !important;
+        }
+        .auth-bg-1 .auto-form-wrapper .btn-primary.submit-btn {
+            font-weight: 600 !important;
+            letter-spacing: 0.04em;
+        }
+    </style>
 </head>
-<body>
+<body class="auth-login-page">
     <div class="container-scroller">
         <div class="container-fluid page-body-wrapper full-page-wrapper">
             <div class="content-wrapper d-flex align-items-center auth auth-bg-1 theme-one" style="<?= !empty($bg_login) ? "background-image: url('" . base_url('assets/images/' . $bg_login) . "'); background-size: cover; background-position: center;" : "" ?>">

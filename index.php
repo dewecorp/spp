@@ -76,10 +76,22 @@ $jml_aktivitas = mysqli_num_rows($q_aktivitas);
 ?>
 
 <style>
-    /* Widget dashboard dibuat lebih compact */
+    /* Widget dashboard — seragam putih tanpa border tebal (sama seperti kartu jenis bayar) */
     .dashboard-stat-card .card-body { padding: 0.7rem 0.85rem; }
-    .dashboard-stat-card .stat-title { font-size: 0.78rem; line-height: 1.2; margin-bottom: 0.2rem !important; }
-    .dashboard-stat-card .stat-value { font-size: 1rem; line-height: 1.2; margin-bottom: 0 !important; }
+    .dashboard-stat-card .stat-title {
+        font-size: 0.78rem;
+        line-height: 1.2;
+        margin-bottom: 0.2rem !important;
+        color: #0f172a !important;
+        font-weight: 600 !important;
+    }
+    .dashboard-stat-card .stat-value {
+        font-size: 1rem;
+        line-height: 1.2;
+        margin-bottom: 0 !important;
+        color: #0f172a !important;
+        font-weight: 700 !important;
+    }
     .dashboard-stat-card .icon-lg { font-size: 1.2rem !important; }
     .dashboard-stat-card .text-right { text-align: right !important; }
 </style>
@@ -88,11 +100,11 @@ $jml_aktivitas = mysqli_num_rows($q_aktivitas);
     <!-- Kartu ringkasan: desktop 4 kolom; hp (xs): 2 kolom lewat col-6 -->
     <!-- Card Jumlah Siswa -->
     <div class="col-6 col-sm-6 col-md-3 col-lg-3 col-xl-3 grid-margin stretch-card">
-        <div class="card card-statistics card-statistics-red dashboard-stat-card">
+        <div class="card card-statistics dashboard-stat-card">
             <div class="card-body">
                 <div class="clearfix">
                     <div class="float-left">
-                        <i class="mdi mdi-account-multiple text-danger icon-lg"></i>
+                        <i class="mdi mdi-account-multiple text-primary icon-lg"></i>
                     </div>
                     <div class="float-right">
                         <p class="mb-0 text-right stat-title">Jumlah Siswa</p>
@@ -106,11 +118,11 @@ $jml_aktivitas = mysqli_num_rows($q_aktivitas);
     </div>
     <!-- Card Jumlah Jenis Bayar -->
     <div class="col-6 col-sm-6 col-md-3 col-lg-3 col-xl-3 grid-margin stretch-card">
-        <div class="card card-statistics card-statistics-yellow dashboard-stat-card">
+        <div class="card card-statistics dashboard-stat-card">
             <div class="card-body">
                 <div class="clearfix">
                     <div class="float-left">
-                        <i class="mdi mdi-receipt text-warning icon-lg"></i>
+                        <i class="mdi mdi-receipt text-primary icon-lg"></i>
                     </div>
                     <div class="float-right">
                         <p class="mb-0 text-right stat-title">Jenis Bayar</p>
@@ -124,11 +136,11 @@ $jml_aktivitas = mysqli_num_rows($q_aktivitas);
     </div>
     <!-- Card Total Pembayaran -->
     <div class="col-6 col-sm-6 col-md-3 col-lg-3 col-xl-3 grid-margin stretch-card">
-        <div class="card card-statistics card-statistics-green dashboard-stat-card">
+        <div class="card card-statistics dashboard-stat-card">
             <div class="card-body">
                 <div class="clearfix">
                     <div class="float-left">
-                        <i class="mdi mdi-cash-multiple text-success icon-lg"></i>
+                        <i class="mdi mdi-cash-multiple text-primary icon-lg"></i>
                     </div>
                     <div class="float-right">
                         <p class="mb-0 text-right stat-title">Total Pembayaran</p>
@@ -142,11 +154,11 @@ $jml_aktivitas = mysqli_num_rows($q_aktivitas);
     </div>
     <!-- Card Siswa Belum Bayar -->
     <div class="col-6 col-sm-6 col-md-3 col-lg-3 col-xl-3 grid-margin stretch-card">
-        <div class="card card-statistics card-statistics-blue dashboard-stat-card">
+        <div class="card card-statistics dashboard-stat-card">
             <div class="card-body">
                 <div class="clearfix">
                     <div class="float-left">
-                        <i class="mdi mdi-account-off text-info icon-lg"></i>
+                        <i class="mdi mdi-account-off text-primary icon-lg"></i>
                     </div>
                     <div class="float-right">
                         <p class="mb-0 text-right stat-title">Belum Bayar (Bln Ini)</p>

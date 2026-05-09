@@ -26377,3 +26377,317 @@ dl li {
                     Let's simplify.
                  */
 }
+
+/* Kemenag green + Poppins theme override */
+:root,
+[data-bs-theme=light] {
+  --bs-primary: #006b3f;
+  --bs-primary-rgb: 0, 107, 63;
+  --bs-primary-text-emphasis: #004d2d;
+  --bs-primary-bg-subtle: #d8efe5;
+  --bs-primary-border-subtle: #9cd0b8;
+  --bs-danger: #dc2626;
+  --bs-danger-rgb: 220, 38, 38;
+  --bs-danger-text-emphasis: #7f1d1d;
+  --bs-danger-bg-subtle: #fee2e2;
+  --bs-danger-border-subtle: #fecaca;
+  --bs-link-color: #006b3f;
+  --bs-link-hover-color: #005432;
+  --bs-modal-bg: #ffffff;
+  --bs-modal-header-border-color: #e5e7eb;
+  --bs-modal-footer-border-color: #e5e7eb;
+  --bs-font-sans-serif: "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --bs-body-font-family: var(--bs-font-sans-serif);
+  --bs-body-color: #111827;
+  --bs-body-color-rgb: 17, 24, 39;
+  --bs-heading-color: #0a0a0a;
+  --bs-secondary-color: rgba(17, 24, 39, 0.75);
+  --bs-tertiary-color: rgba(17, 24, 39, 0.58);
+  --bs-emphasis-color: #0a0a0a;
+  --bs-card-title-color: #0f172a;
+}
+
+[data-bs-theme=dark] {
+  --bs-primary-text-emphasis: #75c99f;
+  --bs-primary-bg-subtle: #0d2a1f;
+  --bs-primary-border-subtle: #2f7d5a;
+  --bs-link-color: #75c99f;
+  --bs-link-hover-color: #9ddcbe;
+}
+
+body,
+h1, .h1,
+h2, .h2,
+h3, .h3,
+h4, .h4,
+h5, .h5,
+h6, .h6 {
+  font-family: "Poppins", sans-serif !important;
+}
+
+p,
+span,
+label,
+small,
+strong,
+a,
+button,
+input,
+select,
+textarea,
+.btn,
+.dropdown-item,
+.nav-link,
+.menu-title,
+.form-control,
+.form-select,
+.table,
+.dataTables_wrapper,
+.card-title,
+.card-description {
+  font-family: "Poppins", sans-serif !important;
+}
+
+/* Keep icon font intact */
+.mdi,
+[class^="mdi-"],
+[class*=" mdi-"] {
+  font-family: "Material Design Icons" !important;
+}
+
+/* Force primary components to Kemenag green */
+.btn-primary {
+  --bs-btn-bg: #006b3f !important;
+  --bs-btn-border-color: #006b3f !important;
+  --bs-btn-hover-bg: #005432 !important;
+  --bs-btn-hover-border-color: #005432 !important;
+  --bs-btn-active-bg: #004527 !important;
+  --bs-btn-active-border-color: #004527 !important;
+  --bs-btn-disabled-bg: #006b3f !important;
+  --bs-btn-disabled-border-color: #006b3f !important;
+}
+
+.btn-danger {
+  --bs-btn-bg: #dc2626 !important;
+  --bs-btn-border-color: #dc2626 !important;
+  --bs-btn-hover-bg: #b91c1c !important;
+  --bs-btn-hover-border-color: #b91c1c !important;
+  --bs-btn-active-bg: #991b1b !important;
+  --bs-btn-active-border-color: #991b1b !important;
+  --bs-btn-disabled-bg: #dc2626 !important;
+  --bs-btn-disabled-border-color: #dc2626 !important;
+}
+
+.btn-outline-danger {
+  --bs-btn-color: #dc2626 !important;
+  --bs-btn-border-color: #dc2626 !important;
+  --bs-btn-hover-bg: #dc2626 !important;
+  --bs-btn-hover-border-color: #dc2626 !important;
+  --bs-btn-active-bg: #b91c1c !important;
+  --bs-btn-active-border-color: #b91c1c !important;
+}
+
+.bg-danger,
+.badge-danger,
+.text-bg-danger {
+  background-color: #dc2626 !important;
+  border-color: #dc2626 !important;
+}
+
+.text-primary {
+  color: #006b3f !important;
+}
+
+.text-danger {
+  color: #dc2626 !important;
+}
+
+.bg-gradient-primary,
+.badge-gradient-primary,
+.btn-gradient-primary,
+.btn-gradient-primary:not([disabled]):not(.disabled):active,
+.btn-gradient-primary:not([disabled]):not(.disabled).active,
+.show > .btn-gradient-primary.dropdown-toggle {
+  background: linear-gradient(to right, #006b3f, #1b8f5a) !important;
+}
+
+/* Sidebar — latar hijau Kemenag, menu & ikon putih */
+.sidebar {
+  background: linear-gradient(180deg, #003b24 0%, #006b3f 45%, #004d31 100%) !important;
+  border-right: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+.sidebar .nav .nav-item .nav-link i {
+  color: inherit !important;
+}
+
+.sidebar .nav .nav-item.active > .nav-link .menu-title,
+.sidebar .nav .nav-item.active > .nav-link i,
+.sidebar .nav.sub-menu .nav-item .nav-link.active {
+  color: #ffffff !important;
+}
+
+.sidebar .nav .nav-item.active,
+.sidebar .nav .nav-item:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
+}
+
+.sidebar .nav .nav-item .nav-link[aria-expanded="true"] .menu-title,
+.sidebar .nav .nav-item .nav-link[aria-expanded="true"] i.menu-icon,
+.sidebar .nav .nav-item .collapse.show .nav-link.active {
+  color: #ffffff !important;
+}
+
+.sidebar .nav.sub-menu .nav-item .nav-link:before {
+  color: rgba(255, 255, 255, 0.75) !important;
+}
+
+/* Teks utama lebih tegas (kurangi abu tema) */
+.text-muted {
+  color: #4b5563 !important;
+}
+
+.card-title,
+.modal-title,
+h1.card-title {
+  color: #0f172a !important;
+}
+
+.form-group label:not(.form-check-label),
+label.col-form-label {
+  color: #111827 !important;
+  font-weight: 500;
+}
+
+.table {
+  color: #111827 !important;
+}
+
+.table thead th {
+  color: #0f172a !important;
+}
+
+p,
+.card-description {
+  color: #111827 !important;
+}
+
+/* Neutral modal surface (remove purple tint) */
+.modal-content,
+.modal-header,
+.modal-body,
+.modal-footer {
+  background-color: #ffffff !important;
+}
+
+.modal-header,
+.modal-footer {
+  border-color: #e5e7eb !important;
+}
+
+/* Comprehensive replacement for legacy purple primary styles */
+.bg-primary,
+.badge-primary,
+.list-group-item-primary,
+.alert-primary,
+.table-primary,
+.btn-inverse-primary,
+.btn-outline-primary,
+.btn-facebook,
+.pagination .page-item.active .page-link,
+.page-item.active .page-link,
+.nav-pills .nav-link.active,
+.form-check-input:checked,
+.form-check-input[type=checkbox]:indeterminate {
+  background-color: #006b3f !important;
+  border-color: #006b3f !important;
+}
+
+.btn-outline-primary,
+.btn-inverse-primary,
+.text-primary,
+a.text-primary:focus,
+a.text-primary:hover,
+.nav-link.text-primary {
+  color: #006b3f !important;
+}
+
+.form-check-input:focus,
+.form-control:focus,
+.form-select:focus,
+.btn-primary:focus,
+.btn-outline-primary:focus {
+  border-color: #1b8f5a !important;
+  box-shadow: 0 0 0 0.2rem rgba(0, 107, 63, 0.25) !important;
+}
+
+.progress-bar,
+.bg-gradient-primary,
+.badge-gradient-primary,
+.btn-gradient-primary,
+.btn-gradient-primary:hover,
+.btn-gradient-primary:focus,
+.btn-gradient-primary:active,
+.btn-gradient-primary:not([disabled]):not(.disabled):active,
+.btn-gradient-primary:not([disabled]):not(.disabled).active,
+.show > .btn-gradient-primary.dropdown-toggle {
+  background: linear-gradient(to right, #006b3f, #1b8f5a) !important;
+}
+
+/* Force all primary "Tambah" button states to stay green */
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active,
+.btn-primary:not(.btn-light):focus,
+.btn-primary:not(.btn-light):active {
+  background: #006b3f !important;
+  border-color: #006b3f !important;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:focus,
+.btn-outline-primary:active {
+  background: linear-gradient(to right, #006b3f, #1b8f5a) !important;
+  border-color: #006b3f !important;
+  color: #ffffff !important;
+}
+
+/* Modernize legacy modal close button (.close) */
+.modal-header .close {
+  width: 2rem !important;
+  height: 2rem !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: #f3f4f6 !important;
+  color: #374151 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  opacity: 1 !important;
+  box-shadow: none !important;
+  transition: all 0.2s ease !important;
+}
+
+.modal-header .close span {
+  display: none !important;
+}
+
+.modal-header .close::before {
+  content: "\00d7";
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.modal-header .close:hover {
+  background: #e5e7eb !important;
+  color: #111827 !important;
+  transform: scale(1.04);
+}
+
+.modal-header .close:focus {
+  outline: none !important;
+  box-shadow: 0 0 0 0.2rem rgba(0, 107, 63, 0.2) !important;
+}

@@ -8,9 +8,9 @@
     var graphGradient3 = document.getElementById('visit-sale-chart').getContext("2d");
 
     var gradientStrokeViolet = graphGradient1.createLinearGradient(0, 0, 0, 181);
-    gradientStrokeViolet.addColorStop(0, 'rgba(218, 140, 255, 1)');
-    gradientStrokeViolet.addColorStop(1, 'rgba(154, 85, 255, 1)');
-    var gradientLegendViolet = 'linear-gradient(to right, rgba(218, 140, 255, 1), rgba(154, 85, 255, 1))';
+    gradientStrokeViolet.addColorStop(0, 'rgba(0, 107, 63, 1)');
+    gradientStrokeViolet.addColorStop(1, 'rgba(27, 143, 90, 1)');
+    var gradientLegendViolet = 'linear-gradient(to right, rgba(0, 107, 63, 1), rgba(27, 143, 90, 1))';
 
     var gradientStrokeBlue = graphGradient2.createLinearGradient(0, 0, 0, 360);
     gradientStrokeBlue.addColorStop(0, 'rgba(54, 215, 232, 1)');
@@ -21,7 +21,7 @@
     gradientStrokeRed.addColorStop(0, 'rgba(255, 191, 150, 1)');
     gradientStrokeRed.addColorStop(1, 'rgba(254, 112, 150, 1)');
     var gradientLegendRed = 'linear-gradient(to right, rgba(255, 191, 150, 1), rgba(254, 112, 150, 1))';
-    const bgColor1 = ["rgba(218, 140, 255, 1)"];
+    const bgColor1 = ["rgba(0, 107, 63, 1)"];
     const bgColor2 = ["rgba(54, 215, 232, 1"];
     const bgColor3 = ["rgba(255, 191, 150, 1)"];
 

@@ -18,6 +18,9 @@ if (!isset($_SESSION['login']) || !isset($_SESSION['nama_lengkap']) || !isset($_
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title><?= isset($title) ? $title . ' - ' : '' ?>SiBayar</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?= base_url('assets/vendors/mdi/css/materialdesignicons.min.css') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/vendors/css/vendor.bundle.base.css') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/css/style.css') ?>?v=<?= time() ?>">
@@ -90,50 +93,81 @@ if (!isset($_SESSION['login']) || !isset($_SESSION['nama_lengkap']) || !isset($_
             }
         }
         
-        /* Force Left Alignment */
+        /*
+         Rapatkan sidebar tanpa narik teks saja:
+         ruang besar berasal dari `.nav-item { padding: 0 2.25rem }` di tema.
+         Ikon tema pakai `margin-left: auto` — harus dibatalkan supaya blok [ikon + judul]
+         bergeser serempak (glyph MDI butuh ruang lebar, jangan dibatasi 14px atau tabrakan).
+        */
+        .sidebar .nav {
+            padding-left: 0 !important;
+            margin-left: 0 !important;
+        }
+        .sidebar .nav .nav-item {
+            margin-left: 0 !important;
+            padding-left: 0.9rem !important;
+            padding-right: 1rem !important;
+        }
         .sidebar .nav .nav-item .nav-link {
             display: flex !important;
             align-items: center !important;
             justify-content: flex-start !important;
             text-align: left !important;
             width: 100% !important;
-            padding-left: 20px !important;
-            padding-right: 20px !important;
-        }
-        
-        .sidebar .nav .nav-item .nav-link .menu-title {
-            margin-left: 10px !important;
-            margin-right: auto !important;
-            display: inline-block !important;
-            vertical-align: middle !important;
+            gap: 0 !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+            color: #ffffff !important;
         }
 
         .sidebar .nav .nav-item .nav-link i.menu-icon {
-            font-size: 1.2rem;
-            line-height: 1;
-            margin-right: 0 !important;
+            font-size: 1.2rem !important;
+            line-height: 1 !important;
+            flex-shrink: 0 !important;
             margin-left: 0 !important;
-            width: 30px; /* Fixed width for icon alignment */
+            margin-right: 0 !important;
+            width: auto !important;
+            min-width: 1.5rem !important;
             text-align: center;
-            color: #a7a7a7;
+            color: #ffffff !important;
         }
-        /* Fix dropdown arrow position */
+
+        .sidebar .nav .nav-item .nav-link .menu-title {
+            margin-left: 0.5rem !important;
+            margin-right: auto !important;
+            flex: 1 1 auto !important;
+            min-width: 0 !important;
+            display: inline-block !important;
+            vertical-align: middle !important;
+            color: #ffffff !important;
+            font-weight: 500 !important;
+        }
+
         .sidebar .nav .nav-item .nav-link .menu-arrow {
             margin-left: auto !important;
             margin-right: 0 !important;
+            flex-shrink: 0 !important;
+            color: rgba(255, 255, 255, 0.85) !important;
         }
 
-        /* Anak menu: menjorok ke kanan (hierarki di bawah menu utama) */
+        /* Sub-menu: satu blok, tanpa margin negatif */
         .sidebar .nav.sub-menu {
-            padding-left: 1.25rem !important;
+            padding-left: 0.5rem !important;
             margin-left: 0 !important;
         }
+        .sidebar .nav.sub-menu .nav-item {
+            margin-left: 0 !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+        }
         .sidebar .nav.sub-menu .nav-item .nav-link {
-            padding-left: 2.75rem !important;
-            padding-right: 1rem !important;
+            padding-left: 1.1rem !important;
+            padding-right: 0.5rem !important;
+            color: rgba(255, 255, 255, 0.95) !important;
+            font-weight: 400 !important;
         }
         .sidebar .nav.sub-menu .nav-item .nav-link:before {
-            left: 1rem !important;
+            left: 0.25rem !important;
         }
 
         /* Custom Scrollbar for Sidebar */
@@ -141,19 +175,19 @@ if (!isset($_SESSION['login']) || !isset($_SESSION['nama_lengkap']) || !isset($_
             width: 5px;
         }
         .sidebar::-webkit-scrollbar-track {
-            background: #f1f1f1; 
+            background: rgba(0, 0, 0, 0.15);
         }
         .sidebar::-webkit-scrollbar-thumb {
-            background: #888; 
+            background: rgba(255, 255, 255, 0.35);
             border-radius: 5px;
         }
         .sidebar::-webkit-scrollbar-thumb:hover {
-            background: #555; 
+            background: rgba(255, 255, 255, 0.5);
         }
 
-        /* Purple Gradient Navbar */
+        /* Kemenag Green Gradient Navbar */
         .navbar.default-layout {
-            background: linear-gradient(120deg, #da8cff, #9a55ff) !important;
+            background: linear-gradient(120deg, #006b3f, #1b8f5a) !important;
         }
         .navbar.default-layout .navbar-brand-wrapper {
             background: transparent !important;
@@ -173,9 +207,28 @@ if (!isset($_SESSION['login']) || !isset($_SESSION['nama_lengkap']) || !isset($_
         .navbar.default-layout .navbar-menu-wrapper .mdi {
             color: #ffffff !important;
         }
+        #UserDropdown.dropdown-toggle::after {
+            display: none !important;
+        }
 
         /* Responsive toolbars and buttons on mobile */
         @media (max-width: 768px) {
+            .sidebar .nav .nav-item {
+                padding-left: 0.75rem !important;
+                padding-right: 0.75rem !important;
+            }
+            .sidebar .nav .nav-item .nav-link .menu-title {
+                margin-left: 0.45rem !important;
+            }
+            .sidebar .nav.sub-menu {
+                padding-left: 0.25rem !important;
+            }
+            .sidebar .nav.sub-menu .nav-item .nav-link {
+                padding-left: 1rem !important;
+            }
+            .sidebar .nav.sub-menu .nav-item .nav-link:before {
+                left: 0.15rem !important;
+            }
             .toolbar,
             .toolbar-secondary {
                 flex-direction: column !important;
