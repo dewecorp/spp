@@ -107,6 +107,48 @@ if (isset($_POST['login'])) {
         .auth-bg-1 .auto-form-wrapper .btn-primary.submit-btn {
             font-weight: 600 !important;
             letter-spacing: 0.04em;
+            border-radius: 12px !important;
+        }
+
+        /* Field login: satu blok rapi, ikon di dalam input (tanpa kotak tambahan) */
+        .auth-bg-1 .login-field {
+            position: relative;
+            margin-bottom: 0;
+        }
+        .auth-bg-1 .login-field .login-field-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.15rem;
+            color: #006b3f;
+            pointer-events: none;
+            z-index: 2;
+            line-height: 1;
+        }
+        .auth-bg-1 .login-field .login-field-input {
+            width: 100%;
+            min-height: 3rem;
+            padding: 0.65rem 1rem 0.65rem 2.85rem !important;
+            border: 1px solid #e5e7eb !important;
+            border-radius: 12px !important;
+            background-color: #f9fafb !important;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+        }
+        .auth-bg-1 .login-field .login-field-input:hover {
+            border-color: #d1d5db !important;
+        }
+        .auth-bg-1 .login-field .login-field-input:focus {
+            outline: none !important;
+            background-color: #ffffff !important;
+            border-color: #006b3f !important;
+            box-shadow: 0 0 0 3px rgba(0, 107, 63, 0.12) !important;
+        }
+        .auth-bg-1 .auto-form-wrapper .form-group label.label {
+            display: block;
+            margin-bottom: 0.4rem;
+            font-size: 0.875rem;
         }
     </style>
 </head>
@@ -126,25 +168,17 @@ if (isset($_POST['login'])) {
                             </div>
                             <form action="" method="post">
                                 <div class="form-group">
-                                    <label class="label text-dark font-weight-bold">Username</label>
-                                    <div class="input-group">
-                                        <input type="text" name="username" class="form-control" placeholder="Username" required style="border-color: #ccc;">
-                                        <div class="input-group-append">
-                                            <span class="input-group-text" style="border-color: #ccc;">
-                                                <i class="mdi mdi-check-circle-outline text-primary"></i>
-                                            </span>
-                                        </div>
+                                    <label class="label text-dark font-weight-bold" for="login-username">Username</label>
+                                    <div class="login-field">
+                                        <i class="mdi mdi-account-outline login-field-icon" aria-hidden="true"></i>
+                                        <input id="login-username" type="text" name="username" class="form-control login-field-input" placeholder="Masukkan username" required autocomplete="username">
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label class="label text-dark font-weight-bold">Password</label>
-                                    <div class="input-group">
-                                        <input type="password" name="password" class="form-control" placeholder="********" required style="border-color: #ccc;">
-                                        <div class="input-group-append">
-                                            <span class="input-group-text" style="border-color: #ccc;">
-                                                <i class="mdi mdi-check-circle-outline text-primary"></i>
-                                            </span>
-                                        </div>
+                                    <label class="label text-dark font-weight-bold" for="login-password">Password</label>
+                                    <div class="login-field">
+                                        <i class="mdi mdi-lock-outline login-field-icon" aria-hidden="true"></i>
+                                        <input id="login-password" type="password" name="password" class="form-control login-field-input" placeholder="Masukkan password" required autocomplete="current-password">
                                     </div>
                                 </div>
                                 <div class="form-group text-center">
