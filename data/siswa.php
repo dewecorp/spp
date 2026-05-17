@@ -323,19 +323,14 @@ $jumlah_siswa = mysqli_num_rows($query_siswa);
                     </div>
                     
                     <form action="" method="get" class="d-flex align-items-center">
-                        <div class="input-group">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text bg-primary text-white">Filter Kelas</span>
-                            </div>
-                            <select name="kelas" class="form-control" onchange="this.form.submit()" style="width: 200px;">
-                                <option value="">-- Semua Kelas --</option>
-                                <?php foreach($data_kelas as $kls) : ?>
-                                    <option value="<?= $kls['id_kelas'] ?>" <?= (isset($_GET['kelas']) && $_GET['kelas'] == $kls['id_kelas']) ? 'selected' : '' ?>>
-                                        <?= $kls['nama_kelas'] ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
+                        <select name="kelas" class="form-control filter-kelas" onchange="this.form.submit()" style="width: 250px;">
+                            <option value="">-- Semua Kelas --</option>
+                            <?php foreach($data_kelas as $kls) : ?>
+                                <option value="<?= $kls['id_kelas'] ?>" <?= (isset($_GET['kelas']) && $_GET['kelas'] == $kls['id_kelas']) ? 'selected' : '' ?>>
+                                    <?= $kls['nama_kelas'] ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
                     </form>
                 </div>
                 
@@ -684,7 +679,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 showCancelButton: true,
                 confirmButtonColor: '#d33',
                 cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Ya, Hapus!'
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal'
             }).then((result) => {
                 if (result.isConfirmed) {
                     const form = document.getElementById('formMultiHapus');
@@ -713,7 +709,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     showCancelButton: true,
                     confirmButtonColor: '#d33',
                     cancelButtonColor: '#3085d6',
-                    confirmButtonText: 'Ya, Hapus!'
+                    confirmButtonText: 'Ya, Hapus!',
+                    cancelButtonText: 'Batal'
                 }).then((result) => {
                     if (result.isConfirmed) {
                         window.location.href = href;

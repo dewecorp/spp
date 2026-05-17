@@ -8458,9 +8458,9 @@
   --bs-border-style: solid;
   --bs-border-color: #ebedf2;
   --bs-border-color-translucent: rgba(0, 0, 0, 0.175);
-  --bs-border-radius: 0.375rem;
-  --bs-border-radius-sm: 0.25rem;
-  --bs-border-radius-lg: 0.5rem;
+  --bs-border-radius: 8px;
+  --bs-border-radius-sm: 6px;
+  --bs-border-radius-lg: 10px;
   --bs-border-radius-xl: 1rem;
   --bs-border-radius-xxl: 2rem;
   --bs-border-radius-2xl: var(--bs-border-radius-xxl);
@@ -10465,7 +10465,7 @@ progress {
 .tt-hint, .select2-container--default .select2-selection--single .select2-search__field, .select2-container--default .select2-selection--single {
   display: block;
   width: 100%;
-  padding: 0.94rem 1.375rem;
+  padding: 1rem 1.375rem;
   font-size: 0.8125rem;
   font-weight: 400;
   line-height: 1;
@@ -10474,7 +10474,7 @@ progress {
   background-color: #ffffff;
   background-clip: padding-box;
   border: var(--bs-border-width) solid var(--bs-border-color);
-  border-radius: 2px;
+  border-radius: 8px;
   transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 @media (prefers-reduced-motion: reduce) {
@@ -10519,8 +10519,9 @@ progress {
 .form-control::placeholder, .typeahead::placeholder,
 .tt-query::placeholder,
 .tt-hint::placeholder, .select2-container--default .select2-selection--single .select2-search__field::placeholder, .select2-container--default .select2-selection--single::placeholder {
-  color: #c9c8c8;
+  color: #111111;
   opacity: 1;
+  font-weight: 500;
 }
 .form-control:disabled, .typeahead:disabled,
 .tt-query:disabled,
@@ -11043,6 +11044,7 @@ textarea.form-control-lg {
   flex: 1 1 auto;
   width: 1%;
   min-width: 0;
+  border-radius: 8px;
 }
 .input-group > .form-control:focus, .input-group > .typeahead:focus,
 .input-group > .tt-query:focus,
@@ -11071,7 +11073,7 @@ textarea.form-control-lg {
   white-space: nowrap;
   background-color: var(--bs-tertiary-bg);
   border: var(--bs-border-width) solid var(--bs-border-color);
-  border-radius: 2px;
+  border-radius: 8px;
 }
 
 .input-group-lg > .form-control, .input-group-lg > .typeahead,
@@ -11112,8 +11114,8 @@ textarea.form-control-lg {
 .select2-container--default .select2-selection--single .input-group:not(.has-validation) > .form-floating:not(:last-child) > .select2-search__field,
 .select2-container--default .input-group:not(.has-validation) > .form-floating:not(:last-child) > .select2-selection--single,
 .input-group:not(.has-validation) > .form-floating:not(:last-child) > .form-select {
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
 }
 .input-group.has-validation > :nth-last-child(n+3):not(.dropdown-toggle):not(.dropdown-menu):not(.form-floating),
 .input-group.has-validation > .dropdown-toggle:nth-last-child(n+4),
@@ -11124,20 +11126,20 @@ textarea.form-control-lg {
 .select2-container--default .select2-selection--single .input-group.has-validation > .form-floating:nth-last-child(n+3) > .select2-search__field,
 .select2-container--default .input-group.has-validation > .form-floating:nth-last-child(n+3) > .select2-selection--single,
 .input-group.has-validation > .form-floating:nth-last-child(n+3) > .form-select {
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
 }
 .input-group > :not(:first-child):not(.dropdown-menu):not(.valid-tooltip):not(.valid-feedback):not(.invalid-tooltip):not(.invalid-feedback) {
   margin-left: calc(var(--bs-border-width) * -1);
-  border-top-left-radius: 0;
-  border-bottom-left-radius: 0;
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
 }
 .input-group > .form-floating:not(:first-child) > .form-control, .input-group > .form-floating:not(:first-child) > .typeahead,
 .input-group > .form-floating:not(:first-child) > .tt-query,
 .input-group > .form-floating:not(:first-child) > .tt-hint, .select2-container--default .select2-selection--single .input-group > .form-floating:not(:first-child) > .select2-search__field, .select2-container--default .input-group > .form-floating:not(:first-child) > .select2-selection--single,
 .input-group > .form-floating:not(:first-child) > .form-select {
-  border-top-left-radius: 0;
-  border-bottom-left-radius: 0;
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
 }
 
 .valid-feedback {
@@ -11363,7 +11365,7 @@ textarea.is-invalid.tt-hint, .select2-container--default .select2-selection--sin
   --bs-btn-bg: transparent;
   --bs-btn-border-width: var(--bs-border-width);
   --bs-btn-border-color: transparent;
-  --bs-btn-border-radius: 0.1875rem;
+  --bs-btn-border-radius: 8px;
   --bs-btn-hover-border-color: transparent;
   --bs-btn-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 1px 1px rgba(0, 0, 0, 0.075);
   --bs-btn-disabled-opacity: 0.65;
@@ -11726,14 +11728,14 @@ textarea.is-invalid.tt-hint, .select2-container--default .select2-selection--sin
   --bs-btn-padding-y: 1rem;
   --bs-btn-padding-x: 3rem;
   --bs-btn-font-size: 0.875rem;
-  --bs-btn-border-radius: 0.1875rem;
+  --bs-btn-border-radius: 10px;
 }
 
 .btn-sm, .btn-group-sm > .btn, .ajax-upload-dragdrop .btn-group-sm > .ajax-file-upload {
   --bs-btn-padding-y: 0.5rem;
   --bs-btn-padding-x: 0.81rem;
   --bs-btn-font-size: 0.875rem;
-  --bs-btn-border-radius: 0.1875rem;
+  --bs-btn-border-radius: 6px;
 }
 
 .fade {
@@ -12138,7 +12140,7 @@ textarea.is-invalid.tt-hint, .select2-container--default .select2-selection--sin
 }
 
 .btn-group {
-  border-radius: 0.1875rem;
+  border-radius: 8px;
 }
 .btn-group > :not(.btn-check:first-child) + .btn, .ajax-upload-dragdrop .btn-group > :not(.btn-check:first-child) + .ajax-file-upload,
 .btn-group > .btn-group:not(:first-child) {
@@ -12778,7 +12780,7 @@ textarea.is-invalid.tt-hint, .select2-container--default .select2-selection--sin
   --bs-card-subtitle-color: ;
   --bs-card-border-width: var(--bs-border-width);
   --bs-card-border-color: var(--bs-border-color-translucent);
-  --bs-card-border-radius: 0.3125rem;
+  --bs-card-border-radius: 12px;
   --bs-card-box-shadow: ;
   --bs-card-inner-border-radius: calc(var(--bs-border-radius) - (var(--bs-border-width)));
   --bs-card-cap-padding-y: 0.5rem;
@@ -21785,7 +21787,7 @@ code {
 /* === Components === */
 /* Badges */
 .badge {
-  border-radius: 0.125rem;
+  border-radius: 6px;
   font-size: 11px;
   font-weight: initial;
   line-height: 1;
@@ -24866,7 +24868,7 @@ dl li {
 .select2-container--default .select2-selection--multiple .select2-selection__choice {
   color: #ffffff;
   border: 0;
-  border-radius: 3px;
+  border-radius: 6px;
   padding: 6px;
   font-size: 0.625rem;
   font-family: inherit;
@@ -26825,3 +26827,52 @@ table.dataTable.table-bordered thead td {
 .content-wrapper .card {
   box-shadow: 0 4px 18px rgba(0, 107, 63, 0.14), 0 2px 8px rgba(0, 107, 63, 0.07) !important;
 }
+
+/* Custom Filter Styles */
+.filter-kelas {
+  border: 2px solid #006b3f !important;
+  height: 50px !important;
+  border-radius: 8px !important;
+  color: #000000 !important;
+  font-weight: 600 !important;
+  background-color: #ffffff !important;
+  padding-left: 1.25rem !important;
+}
+.filter-kelas:focus {
+  border-color: #1b8f5a !important;
+  box-shadow: 0 0 0 0.2rem rgba(0, 107, 63, 0.25) !important;
+}
+.filter-kelas option {
+  color: #000000;
+  font-weight: 500;
+  padding: 10px;
+}
+
+/* DataTables Search Enhancement */
+.dataTables_filter input {
+  border: 1px solid #ebedf2 !important;
+  height: 40px !important;
+  border-radius: 10px !important;
+  padding: 0.5rem 1rem !important;
+  color: #000000 !important;
+  font-weight: 500 !important;
+}
+.dataTables_filter input:focus {
+  border-color: #006b3f !important;
+  outline: none;
+  box-shadow: 0 0 0 0.2rem rgba(0, 107, 63, 0.15) !important;
+}
+
+/* SweetAlert Button Fix */
+.swal2-styled {
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 8px !important;
+}
+.swal2-styled:focus {
+  box-shadow: none !important;
+}
+
+
+
+

@@ -19,7 +19,7 @@ $id_kelas = isset($_GET['id_kelas']) ? $_GET['id_kelas'] : '';
                         <div class="col-lg-6 col-xl-5">
                             <div class="form-group">
                                 <label class="fw-semibold" for="id_kelas_laporan">Pilih Kelas</label>
-                                <select id="id_kelas_laporan" name="id_kelas" class="form-control select2 select2-filter-laporan" style="width: 100%;" required onchange="this.form.submit()" data-placeholder="-- Pilih Kelas --">
+                                <select id="id_kelas_laporan" name="id_kelas" class="form-control select2 select2-filter-laporan filter-kelas" style="width: 100%;" required onchange="this.form.submit()" data-placeholder="-- Pilih Kelas --">
                                     <option value="">-- Pilih Kelas --</option>
                                     <?php
                                     $q_kelas = mysqli_query($koneksi, "SELECT * FROM kelas ORDER BY nama_kelas ASC");

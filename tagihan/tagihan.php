@@ -19,7 +19,7 @@ include '../template/sidebar.php';
                         <div class="col-md-5">
                             <div class="form-group">
                                 <label>Pilih Kelas</label>
-                                <select name="id_kelas" id="id_kelas" class="form-control select2" style="width: 100%;" required>
+                                <select name="id_kelas" id="id_kelas" class="form-control select2 filter-kelas" style="width: 100%;" required onchange="this.form.submit()">
                                     <option value="">-- Pilih Kelas --</option>
                                     <?php
                                     $q_kelas = mysqli_query($koneksi, "SELECT * FROM kelas ORDER BY nama_kelas ASC");

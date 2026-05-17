@@ -101,7 +101,7 @@ if (isset($_POST['login'])) {
             font-weight: 500 !important;
         }
         .auth-bg-1 .auto-form-wrapper .form-control::placeholder {
-            color: #6b7280 !important;
+            color: #000000 !important;
             font-weight: 400 !important;
         }
         .auth-bg-1 .auto-form-wrapper .btn-primary.submit-btn {
