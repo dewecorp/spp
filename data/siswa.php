@@ -677,10 +677,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 text: "Yakin ingin menghapus " + checkedItems.length + " data terpilih?",
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Ya, Hapus!',
-                cancelButtonText: 'Batal'
+                confirmButtonText: 'Ya, Hapus!'
             }).then((result) => {
                 if (result.isConfirmed) {
                     const form = document.getElementById('formMultiHapus');
@@ -707,10 +704,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     text: 'Yakin ingin menghapus data siswa ini?',
                     icon: 'warning',
                     showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#3085d6',
-                    confirmButtonText: 'Ya, Hapus!',
-                    cancelButtonText: 'Batal'
+                    confirmButtonText: 'Ya, Hapus!'
                 }).then((result) => {
                     if (result.isConfirmed) {
                         window.location.href = href;

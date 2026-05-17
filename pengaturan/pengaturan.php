@@ -207,10 +207,7 @@ function confirmReset() {
         text: "Semua data transaksi pembayaran akan dihapus permanen! Pastikan Anda sudah melakukan backup/export data terlebih dahulu.",
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Ya, Hapus Semuanya!',
-        cancelButtonText: 'Batal'
+        confirmButtonText: 'Ya, Hapus Semuanya!'
     }).then((result) => {
         if (result.isConfirmed) {
             // Create a hidden input to simulate the button click

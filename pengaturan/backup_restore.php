@@ -254,10 +254,7 @@ if (isset($_POST['restore'])) {
             text: "File backup " + file + " akan dihapus permanen!",
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Ya, Hapus!',
-            cancelButtonText: 'Batal'
+            confirmButtonText: 'Ya, Hapus!'
         }).then((result) => {
             if (result.isConfirmed) {
                 window.location = 'backup_restore.php?aksi=hapus&file=' + file;

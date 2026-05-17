@@ -29,6 +29,34 @@ if (!isset($_SESSION['login']) || !isset($_SESSION['nama_lengkap']) || !isset($_
     <link rel="stylesheet" href="https://cdn.datatables.net/1.10.24/css/dataTables.bootstrap4.min.css">
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+    <script>
+        // Konfigurasi Terpusat SweetAlert2
+        (function() {
+            const OriginalSwal = Swal;
+            const GlobalSwal = OriginalSwal.mixin({
+                confirmButtonColor: '#006b3f',
+                cancelButtonColor: '#d33',
+                cancelButtonText: 'Batal',
+                reverseButtons: true
+            });
+
+            // Override global Swal.fire
+            window.Swal = {
+                ...OriginalSwal,
+                fire: function(...args) {
+                    if (args.length === 1 && typeof args[0] === 'object') {
+                        // Gabungkan dengan default, tapi prioritaskan input user jika ada explicit cancel text
+                        const options = {
+                            cancelButtonText: 'Batal',
+                            ...args[0]
+                        };
+                        return GlobalSwal.fire(options);
+                    }
+                    return GlobalSwal.fire(...args);
+                }
+            };
+        })();
+    </script>
     <style>
         /* Fix Sticky Sidebar Context */
         .container-scroller {
