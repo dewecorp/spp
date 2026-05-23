@@ -4,7 +4,6 @@ require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../include/laporan_helper.php';
 
 // Simple API Key authentication
-// In production, move this to database or environment variable
 $valid_api_key = 'SPP_SECRET_KEY_2026'; 
 
 $api_key = '';
@@ -18,11 +17,29 @@ if (empty($api_key)) {
 
 if ($api_key !== $valid_api_key) {
     http_response_code(401);
-    echo json_encode(['status' => 'error', 'message' => 'Unauthorized: Invalid API Key']);
+    echo json_encode([
+        'status' => 'error', 
+        'message' => 'Unauthorized: Invalid API Key',
+        'env' => $is_local ? 'local' : 'production',
+        'base_url' => $base_url
+    ]);
     exit;
 }
 
 $action = $_GET['action'] ?? '';
+
+// Action 'health' to check connection
+if ($action == 'health') {
+    echo json_encode([
+        'status' => 'success',
+        'message' => 'API is running',
+        'env' => $is_local ? 'local' : 'production',
+        'base_url' => $base_url,
+        'server_time' => date('Y-m-d H:i:s')
+    ]);
+    exit;
+}
+
 $nisn = mysqli_real_escape_string($koneksi, $_GET['nisn'] ?? '');
 
 if (empty($nisn)) {
@@ -77,23 +94,23 @@ if ($action == 'get_tagihan') {
                 // If current is June, index is 11.
                 
                 $is_extracurricular = stripos($jb['nama_pembayaran'], 'ekstrakurikuler') !== false;
+                $total_sisa = 0;
                 
                 foreach ($months as $index => $m) {
-                    // For regular bills, only show up to current month
-                    if (!$is_extracurricular && $index > $current_index && date('Y') == date('Y', strtotime($d_siswa['created_at'] ?? 'now'))) {
-                        // This is a simplified check for future months
-                        // In a real scenario, we might want to show all months of the academic year
-                    }
+                    $is_paid = in_array($m, $paid_months);
                     
-                    if (!in_array($m, $paid_months)) {
+                    if (!$is_paid) {
                         $unpaid_details[] = $m;
+                        
+                        // Only add to total_sisa if it's already due or it's extracurricular (always due)
+                        if ($is_extracurricular || $index <= $current_index) {
+                            $total_sisa += (int)$jb['nominal'];
+                        }
                     }
                 }
                 
                 if (empty($unpaid_details)) {
                     $is_fully_paid = true;
-                } else {
-                    $total_sisa = count($unpaid_details) * $jb['nominal'];
                 }
                 
             } else {
