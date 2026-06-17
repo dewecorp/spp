@@ -3,8 +3,10 @@ $title = 'Dashboard';
 include 'template/header.php';
 include 'template/sidebar.php';
 
-// Auto-delete aktivitas lebih dari 24 jam
-mysqli_query($koneksi, "DELETE FROM log_aktivitas WHERE created_at < NOW() - INTERVAL 24 HOUR");
+if (!isset($_SESSION['last_log_cleanup']) || (time() - (int)$_SESSION['last_log_cleanup']) > 3600) {
+    mysqli_query($koneksi, "DELETE FROM log_aktivitas WHERE created_at < NOW() - INTERVAL 24 HOUR");
+    $_SESSION['last_log_cleanup'] = time();
+}
 
 // 1. Hitung Jumlah Siswa
 $q_siswa = mysqli_query($koneksi, "SELECT COUNT(*) as total FROM siswa");
@@ -46,11 +48,10 @@ while ($row = mysqli_fetch_assoc($q_jenis_total)) {
     $jenis_totals[] = $row;
 }
 
-// 4. Hitung Siswa Belum Bayar (Bulan Ini)
-// Asumsi: Siswa yang belum melakukan transaksi apapun di bulan ini
-$bulan_ini = date('m');
 $tahun_ini = date('Y');
-$q_sudah_bayar = mysqli_query($koneksi, "SELECT COUNT(DISTINCT nisn) as total FROM pembayaran WHERE MONTH(tgl_bayar) = '$bulan_ini' AND YEAR(tgl_bayar) = '$tahun_ini'");
+$start_month = date('Y-m-01');
+$next_month = date('Y-m-01', strtotime('+1 month'));
+$q_sudah_bayar = mysqli_query($koneksi, "SELECT COUNT(DISTINCT nisn) as total FROM pembayaran WHERE tgl_bayar >= '$start_month' AND tgl_bayar < '$next_month'");
 $d_sudah_bayar = mysqli_fetch_assoc($q_sudah_bayar);
 $jml_sudah_bayar = $d_sudah_bayar['total'];
 $jml_belum_bayar = $jml_siswa - $jml_sudah_bayar;
@@ -58,21 +59,29 @@ if ($jml_belum_bayar < 0) $jml_belum_bayar = 0; // Prevent negative if data inco
 
 // Data Grafik Pembayaran per Bulan (Tahun Ini)
 $chart_labels = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
-$chart_data = [];
-for ($i = 1; $i <= 12; $i++) {
-    $q_chart = mysqli_query($koneksi, "SELECT SUM(jumlah_bayar) as total FROM pembayaran WHERE MONTH(tgl_bayar) = '$i' AND YEAR(tgl_bayar) = '$tahun_ini'");
-    $d_chart = mysqli_fetch_assoc($q_chart);
-    $chart_data[] = $d_chart['total'] ?? 0;
+$chart_data = array_fill(0, 12, 0);
+$start_year = $tahun_ini . '-01-01';
+$next_year = ((int)$tahun_ini + 1) . '-01-01';
+$q_chart = mysqli_query($koneksi, "SELECT MONTH(tgl_bayar) AS bulan, COALESCE(SUM(jumlah_bayar), 0) AS total FROM pembayaran WHERE tgl_bayar >= '$start_year' AND tgl_bayar < '$next_year' GROUP BY MONTH(tgl_bayar)");
+while ($r = mysqli_fetch_assoc($q_chart)) {
+    $idx = ((int)($r['bulan'] ?? 0)) - 1;
+    if ($idx >= 0 && $idx < 12) {
+        $chart_data[$idx] = $r['total'] ?? 0;
+    }
 }
 
 // Data Aktivitas Pengguna (24 Jam Terakhir)
+$q_aktivitas_count = mysqli_query($koneksi, "SELECT COUNT(*) AS total FROM log_aktivitas WHERE created_at >= NOW() - INTERVAL 24 HOUR");
+$d_aktivitas_count = mysqli_fetch_assoc($q_aktivitas_count);
+$jml_aktivitas = $d_aktivitas_count['total'] ?? 0;
 $q_aktivitas = mysqli_query($koneksi, "
     SELECT l.*, p.nama_lengkap 
     FROM log_aktivitas l
     LEFT JOIN pengguna p ON l.id_pengguna = p.id_pengguna
+    WHERE l.created_at >= NOW() - INTERVAL 24 HOUR
     ORDER BY l.created_at DESC
+    LIMIT 200
 ");
-$jml_aktivitas = mysqli_num_rows($q_aktivitas);
 ?>
 
 <style>

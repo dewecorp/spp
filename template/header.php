@@ -1,10 +1,18 @@
 <?php
 include_once __DIR__ . '/../config/config.php';
 
-// Ambil data pengaturan untuk logo
-$q_setting = mysqli_query($koneksi, "SELECT logo FROM pengaturan WHERE id_pengaturan = 1");
-$d_setting = mysqli_fetch_assoc($q_setting);
-$logo_sekolah = $d_setting['logo'] ?? '';
+if (!isset($_SESSION['logo_sekolah_cache'])) {
+    $q_setting = mysqli_query($koneksi, "SELECT logo FROM pengaturan WHERE id_pengaturan = 1");
+    $d_setting = mysqli_fetch_assoc($q_setting);
+    $_SESSION['logo_sekolah_cache'] = $d_setting['logo'] ?? '';
+}
+$logo_sekolah = (string)$_SESSION['logo_sekolah_cache'];
+
+$style_path = __DIR__ . '/../assets/css/style.css';
+$style_ver = @filemtime($style_path);
+if ($style_ver === false) {
+    $style_ver = 1;
+}
 
 if (!isset($_SESSION['login']) || !isset($_SESSION['nama_lengkap']) || !isset($_SESSION['role'])) {
     session_destroy();
@@ -23,7 +31,7 @@ if (!isset($_SESSION['login']) || !isset($_SESSION['nama_lengkap']) || !isset($_
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?= base_url('assets/vendors/mdi/css/materialdesignicons.min.css') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/vendors/css/vendor.bundle.base.css') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/css/style.css') ?>?v=<?= time() ?>">
+    <link rel="stylesheet" href="<?= base_url('assets/css/style.css') ?>?v=<?= $style_ver ?>">
     <link rel="shortcut icon" href="<?= base_url('assets/images/favicon_pembayaran.svg') ?>" type="image/svg+xml" />
     <!-- DataTables -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.10.24/css/dataTables.bootstrap4.min.css">
