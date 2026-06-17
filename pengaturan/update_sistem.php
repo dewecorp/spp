@@ -275,4 +275,4 @@ if (!empty($copyErrors)) {
     $respond('Perhatian', $msg, 'warning', 200);
 }
 
-$respond('Berhasil', "Update sistem berhasil", 'success', 200);
+$respond('Sukses', "Update sistem berhasil", 'success', 200);
