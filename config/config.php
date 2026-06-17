@@ -17,8 +17,8 @@ if (session_status() == PHP_SESSION_NONE) {
 
 if ($is_local) {
     $host = "127.0.0.1";
-    $user = "dev";
-    $pass = "devpass";
+    $user = "root";
+    $pass = "";
     $db   = "spp"; 
 } else {
     $host = "localhost";
