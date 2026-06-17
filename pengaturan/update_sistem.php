@@ -6,13 +6,26 @@ if (!isset($_SESSION['login']) || !isset($_SESSION['role'])) {
     exit;
 }
 
-$render = static function (string $title, string $text, string $icon): void {
-    $redirectUrl = base_url('index.php');
-    echo '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">';
-    echo '<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>';
-    echo '</head><body>';
-    echo '<script>Swal.fire({title:' . json_encode($title) . ',text:' . json_encode($text) . ',icon:' . json_encode($icon) . '}).then(()=>{window.location.href=' . json_encode($redirectUrl) . ';});</script>';
-    echo '</body></html>';
+$return_to = isset($_REQUEST['return_to']) ? (string)$_REQUEST['return_to'] : '';
+$return_to = str_replace(["\r", "\n"], '', $return_to);
+$redirectUrl = base_url('index.php');
+$baseFull = rtrim(base_url(), '/');
+if ($return_to !== '' && strpos($return_to, '://') === false && strpos($return_to, '//') !== 0) {
+    $return_to = ltrim($return_to, '/');
+    $redirectUrl = $baseFull . '/' . $return_to;
+}
+
+$render = static function (string $swalTitle, string $swalText, string $swalIcon) use ($redirectUrl): void {
+    $title = 'Update Sistem';
+    include __DIR__ . '/../template/header.php';
+    include __DIR__ . '/../template/sidebar.php';
+    echo '<div class="row"><div class="col-12"><div class="card"><div class="card-body">';
+    echo '<h4 class="card-title">Update Sistem</h4>';
+    echo '<p>Memproses update...</p>';
+    echo '</div></div></div></div>';
+    echo '<script>Swal.fire({title:' . json_encode($swalTitle) . ',text:' . json_encode($swalText) . ',icon:' . json_encode($swalIcon) . '}).then(()=>{window.location.href=' . json_encode($redirectUrl) . ';});</script>';
+    include __DIR__ . '/../template/footer.php';
+    exit;
 };
 
 if ($_SESSION['role'] !== 'admin') {
