@@ -15,6 +15,37 @@
         <!-- page-body-wrapper ends -->
     </div>
     <!-- container-scroller -->
+    <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin') : ?>
+        <?php
+        if (!isset($_SESSION['update_token']) || !is_string($_SESSION['update_token']) || $_SESSION['update_token'] === '') {
+            $_SESSION['update_token'] = bin2hex(random_bytes(16));
+        }
+        $update_token = $_SESSION['update_token'];
+        ?>
+        <div class="modal fade" id="modalUpdateSistem" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Konfirmasi Update Sistem</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-warning mb-0">
+                            Proses ini akan mengunduh versi terbaru dari GitHub dan menimpa file sistem.
+                            File konfigurasi server tidak akan ditimpa.
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <form action="<?= base_url('pengaturan/update_sistem.php') ?>" method="post" class="d-inline">
+                            <input type="hidden" name="token" value="<?= htmlspecialchars($update_token, ENT_QUOTES) ?>">
+                            <button type="submit" class="btn btn-primary">Lanjutkan Update</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <?php endif; ?>
     <script src="<?= base_url('assets/vendors/js/vendor.bundle.base.js') ?>"></script>
     <script src="<?= base_url('assets/js/off-canvas.js') ?>"></script>
     <script src="<?= base_url('assets/js/misc.js') ?>"></script>

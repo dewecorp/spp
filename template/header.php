@@ -346,6 +346,17 @@ if (!isset($_SESSION['login']) || !isset($_SESSION['nama_lengkap']) || !isset($_
                             <img class="img-xs rounded-circle navbar-profile-img" src="<?= htmlspecialchars($foto_url, ENT_QUOTES, 'UTF-8') ?>" alt="Profile image" style="object-fit: cover;">
                         </a>
                         <div class="dropdown-menu dropdown-menu-right navbar-dropdown" aria-labelledby="UserDropdown">
+                            <?php if (($nav_role ?? '') === 'admin') : ?>
+                                <?php
+                                if (!isset($_SESSION['update_token']) || !is_string($_SESSION['update_token']) || $_SESSION['update_token'] === '') {
+                                    $_SESSION['update_token'] = bin2hex(random_bytes(16));
+                                }
+                                $update_token = $_SESSION['update_token'];
+                                ?>
+                                <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#modalUpdateSistem">
+                                    Update Sistem
+                                </a>
+                            <?php endif; ?>
                             <a class="dropdown-item mt-2" href="<?= base_url('auth/logout.php') ?>" onclick="confirmLogout(event)">
                                 Sign Out
                             </a>
