@@ -37,7 +37,8 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                        <form action="<?= base_url('pengaturan/update_sistem.php') ?>" method="post" class="d-inline">
+                        <form action="<?= base_url('pengaturan/update_sistem.php') ?>" method="get" class="d-inline">
+                            <input type="hidden" name="do" value="1">
                             <input type="hidden" name="token" value="<?= htmlspecialchars($update_token, ENT_QUOTES) ?>">
                             <button type="submit" class="btn btn-primary">Lanjutkan Update</button>
                         </form>

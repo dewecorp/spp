@@ -6,26 +6,6 @@ if (!isset($_SESSION['login']) || !isset($_SESSION['role'])) {
     exit;
 }
 
-if ($_SESSION['role'] !== 'admin') {
-    http_response_code(403);
-    echo 'Forbidden';
-    exit;
-}
-
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo 'Method Not Allowed';
-    exit;
-}
-
-$token = isset($_POST['token']) ? (string)$_POST['token'] : '';
-$sessionToken = isset($_SESSION['update_token']) ? (string)$_SESSION['update_token'] : '';
-if ($token === '' || $sessionToken === '' || !hash_equals($sessionToken, $token)) {
-    http_response_code(400);
-    echo 'Invalid token';
-    exit;
-}
-
 $render = static function (string $title, string $text, string $icon): void {
     $redirectUrl = base_url('index.php');
     echo '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">';
@@ -34,6 +14,31 @@ $render = static function (string $title, string $text, string $icon): void {
     echo '<script>Swal.fire({title:' . json_encode($title) . ',text:' . json_encode($text) . ',icon:' . json_encode($icon) . '}).then(()=>{window.location.href=' . json_encode($redirectUrl) . ';});</script>';
     echo '</body></html>';
 };
+
+if ($_SESSION['role'] !== 'admin') {
+    http_response_code(403);
+    $render('Gagal', 'Akses ditolak.', 'error');
+    exit;
+}
+
+if (!isset($_SESSION['update_token']) || !is_string($_SESSION['update_token']) || $_SESSION['update_token'] === '') {
+    $_SESSION['update_token'] = bin2hex(random_bytes(16));
+}
+
+$do = isset($_REQUEST['do']) ? (string)$_REQUEST['do'] : '';
+$token = isset($_POST['token']) ? (string)$_POST['token'] : (isset($_GET['token']) ? (string)$_GET['token'] : '');
+$sessionToken = isset($_SESSION['update_token']) ? (string)$_SESSION['update_token'] : '';
+if ($do !== '1') {
+    http_response_code(400);
+    $render('Gagal', 'Aksi tidak valid.', 'error');
+    exit;
+}
+
+if ($token === '' || $sessionToken === '' || !hash_equals($sessionToken, $token)) {
+    http_response_code(400);
+    $render('Gagal', 'Token tidak valid. Silakan buka menu Update Sistem lagi.', 'error');
+    exit;
+}
 
 $repoOwner = 'dewecorp';
 $repoName = 'spp';
