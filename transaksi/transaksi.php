@@ -43,16 +43,219 @@ if (isset($_POST['tambah'])) {
     $tgl_bayar = isset($_POST['tgl_bayar']) ? $_POST['tgl_bayar'] : '';
     $tahun_bayar = date('Y', strtotime($tgl_bayar));
     $payment_data = isset($_POST['payment']) && is_array($_POST['payment']) ? $_POST['payment'] : [];
+    $payment_items_by_id = [];
+    foreach ($payment_data as $payment_key => $payment_item) {
+        if (!is_array($payment_item)) {
+            continue;
+        }
 
-    $id_jenis_bayar_input = isset($_POST['id_jenis_bayar']) ? $_POST['id_jenis_bayar'] : [];
-    if (!is_array($id_jenis_bayar_input)) {
-        $id_jenis_bayar_input = [$id_jenis_bayar_input];
+        $candidate_ids = [];
+        $payment_key_str = trim((string)$payment_key);
+        if ($payment_key_str !== '' && ctype_digit($payment_key_str) && (int)$payment_key_str >= 0) {
+            $candidate_ids[] = (int)$payment_key_str;
+        }
+
+        if (isset($payment_item['id_jenis_bayar'])) {
+            $payment_id_str = trim((string)$payment_item['id_jenis_bayar']);
+            if ($payment_id_str !== '' && ctype_digit($payment_id_str) && (int)$payment_id_str >= 0) {
+                $candidate_ids[] = (int)$payment_id_str;
+            }
+        }
+
+        foreach (array_unique($candidate_ids) as $candidate_id) {
+            $payment_items_by_id[$candidate_id] = $payment_item;
+        }
     }
+    if (!empty($payment_data)) {
+        $payment_scan_stack = [[$payment_data, null]];
+        while (!empty($payment_scan_stack)) {
+            $payment_scan_node = array_pop($payment_scan_stack);
+            $payment_scan_val = $payment_scan_node[0];
+            $payment_scan_key = $payment_scan_node[1];
+            if (!is_array($payment_scan_val)) {
+                continue;
+            }
+
+            $found_ids = [];
+            if (isset($payment_scan_val['id_jenis_bayar'])) {
+                $scan_id_str = trim((string)$payment_scan_val['id_jenis_bayar']);
+                if ($scan_id_str !== '' && ctype_digit($scan_id_str) && (int)$scan_id_str >= 0) {
+                    $found_ids[] = (int)$scan_id_str;
+                }
+            }
+
+            if ($payment_scan_key !== null) {
+                $scan_key_str = trim((string)$payment_scan_key);
+                if ($scan_key_str !== '' && ctype_digit($scan_key_str) && (int)$scan_key_str >= 0) {
+                    $has_expected_shape = array_key_exists('bulan_bayar', $payment_scan_val) || array_key_exists('cicilan_ke', $payment_scan_val) || array_key_exists('nominal', $payment_scan_val);
+                    if ($has_expected_shape) {
+                        $found_ids[] = (int)$scan_key_str;
+                    }
+                }
+            }
+
+            foreach (array_unique($found_ids) as $found_id) {
+                $payment_items_by_id[$found_id] = $payment_scan_val;
+            }
+
+            foreach ($payment_scan_val as $child_key => $child_val) {
+                if (is_array($child_val)) {
+                    $payment_scan_stack[] = [$child_val, $child_key];
+                }
+            }
+        }
+    }
+
+    $id_jenis_bayar_post = isset($_POST['id_jenis_bayar']) ? $_POST['id_jenis_bayar'] : [];
+    if (!is_array($id_jenis_bayar_post)) {
+        $id_jenis_bayar_post = [$id_jenis_bayar_post];
+    }
+    $normalized_id_jenis_bayar = [];
+    foreach ($id_jenis_bayar_post as $id_jb_value) {
+        if (!is_scalar($id_jb_value)) {
+            continue;
+        }
+        $id_jb_clean = trim((string)$id_jb_value);
+        if ($id_jb_clean !== '' && ctype_digit($id_jb_clean) && (int)$id_jb_clean >= 0) {
+            $normalized_id_jenis_bayar[] = (int)$id_jb_clean;
+        }
+    }
+    if (!empty($payment_items_by_id)) {
+        foreach (array_keys($payment_items_by_id) as $payment_item_id) {
+            $normalized_id_jenis_bayar[] = (int)$payment_item_id;
+        }
+    }
+    $id_jenis_bayar_input = array_values(array_unique($normalized_id_jenis_bayar));
+    $normalize_kelas = static function ($kelas_value) {
+        $kelas = strtoupper(trim((string)$kelas_value));
+        $kelas = preg_replace('/\s+/', '', $kelas);
+        if ($kelas === null) {
+            $kelas = '';
+        }
+        $roman_map = [
+            'I' => '1',
+            'II' => '2',
+            'III' => '3',
+            'IV' => '4',
+            'V' => '5',
+            'VI' => '6',
+        ];
+        if (isset($roman_map[$kelas])) {
+            return $roman_map[$kelas];
+        }
+        if (preg_match('/([1-6])/', $kelas, $kelas_match)) {
+            return $kelas_match[1];
+        }
+        return $kelas;
+    };
 
     $error_tambah = '';
     $success_count = 0;
+    $debug_trace_id = 'trx-' . date('YmdHis') . '-' . substr(md5($nisn . '|' . $tgl_bayar . '|' . json_encode($id_jenis_bayar_input)), 0, 8);
+    // #region debug-point A:request-entry
+    $debug_report = static function ($hypothesisId, $msg, array $data = []) use ($debug_trace_id) {
+        $debug_env_path = dirname(__DIR__) . DIRECTORY_SEPARATOR . '.dbg' . DIRECTORY_SEPARATOR . 'lks-hosting-fail.env';
+        $debug_url = 'http://127.0.0.1:7777/event';
+        $debug_session = 'lks-hosting-fail';
+        if (is_file($debug_env_path) && is_readable($debug_env_path)) {
+            $debug_env_lines = @file($debug_env_path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+            if (is_array($debug_env_lines)) {
+                foreach ($debug_env_lines as $debug_env_line) {
+                    if (strpos($debug_env_line, 'DEBUG_SERVER_URL=') === 0) {
+                        $debug_url = trim(substr($debug_env_line, 17));
+                    } elseif (strpos($debug_env_line, 'DEBUG_SESSION_ID=') === 0) {
+                        $debug_session = trim(substr($debug_env_line, 17));
+                    }
+                }
+            }
+        }
+        $debug_payload = json_encode([
+            'sessionId' => $debug_session,
+            'runId' => 'pre-fix',
+            'hypothesisId' => $hypothesisId,
+            'location' => 'transaksi/transaksi.php:tambah',
+            'msg' => '[DEBUG] ' . $msg,
+            'data' => $data,
+            'traceId' => $debug_trace_id,
+            'ts' => round(microtime(true) * 1000),
+        ]);
+        if ($debug_payload !== false) {
+            @file_get_contents($debug_url, false, stream_context_create([
+                'http' => [
+                    'method' => 'POST',
+                    'header' => "Content-Type: application/json\r\n",
+                    'content' => $debug_payload,
+                    'timeout' => 1,
+                    'ignore_errors' => true,
+                ],
+            ]));
+        }
+    };
+    $debug_report('A', 'Transaksi tambah diterima', [
+        'nisn' => $nisn,
+        'tgl_bayar' => $tgl_bayar,
+        'id_petugas' => $id_petugas,
+        'raw_id_jenis_bayar' => $id_jenis_bayar_post,
+        'normalized_id_jenis_bayar' => $id_jenis_bayar_input,
+        'payment_keys' => array_keys($payment_data),
+        'payment_item_ids' => array_keys($payment_items_by_id),
+        'host' => isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'cli',
+    ]);
+    // #endregion
+    $is_hosting_env = isset($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'] !== 'localhost' && $_SERVER['HTTP_HOST'] !== '127.0.0.1';
+    $suspect_lks_13 = in_array(2, $id_jenis_bayar_input, true) || isset($payment_items_by_id[2]) || array_key_exists('2', $payment_data) || array_key_exists(2, $payment_data) || in_array('2', array_map('strval', $id_jenis_bayar_post), true);
+    // #region debug-point G:file-log-fallback
+    $debug_append_hosting = static function (array $payload) use ($debug_trace_id, $nisn, $tgl_bayar, $id_jenis_bayar_post, $id_jenis_bayar_input, $payment_data, $payment_items_by_id) {
+        $payload_base = [
+            'ts' => round(microtime(true) * 1000),
+            'traceId' => $debug_trace_id,
+            'host' => isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'cli',
+            'nisn_hash' => substr(md5((string)$nisn), 0, 10),
+            'tgl_bayar' => $tgl_bayar,
+            'post_keys' => array_keys($_POST),
+            'id_jenis_bayar_raw_type' => isset($_POST['id_jenis_bayar']) ? gettype($_POST['id_jenis_bayar']) : 'unset',
+            'payment_raw_type' => isset($_POST['payment']) ? gettype($_POST['payment']) : 'unset',
+            'raw_id_jenis_bayar' => $id_jenis_bayar_post,
+            'normalized_id_jenis_bayar' => $id_jenis_bayar_input,
+            'payment_keys' => is_array($payment_data) ? array_keys($payment_data) : [],
+            'payment_item_ids' => array_keys($payment_items_by_id),
+        ];
+        $debug_line = json_encode($payload_base + $payload, JSON_UNESCAPED_UNICODE);
+        if ($debug_line === false) {
+            return;
+        }
 
-    if ($id_petugas <= 0 || $nisn === '' || $tgl_bayar === '' || empty($id_jenis_bayar_input)) {
+        $paths = [
+            __DIR__ . DIRECTORY_SEPARATOR . 'debug_post_log_hosting.ndjson',
+            rtrim((string)sys_get_temp_dir(), "\\/") . DIRECTORY_SEPARATOR . 'spp_debug_post_log_hosting.ndjson',
+        ];
+
+        foreach ($paths as $path) {
+            $ok = @file_put_contents($path, $debug_line . PHP_EOL, FILE_APPEND);
+            if ($ok !== false) {
+                break;
+            }
+        }
+
+        $trace_paths = [
+            __DIR__ . DIRECTORY_SEPARATOR . 'debug_' . $debug_trace_id . '.json',
+            rtrim((string)sys_get_temp_dir(), "\\/") . DIRECTORY_SEPARATOR . 'spp_debug_' . $debug_trace_id . '.json',
+        ];
+        foreach ($trace_paths as $trace_path) {
+            $ok = @file_put_contents($trace_path, $debug_line);
+            if ($ok !== false) {
+                break;
+            }
+        }
+
+        @error_log('[SPP DEBUG] ' . $debug_line);
+    };
+    if ($is_hosting_env && $suspect_lks_13) {
+        $debug_append_hosting(['stage' => 'entry']);
+    }
+    // #endregion
+
+    if ($id_petugas <= 0 || $nisn === '' || $tgl_bayar === '' || (empty($id_jenis_bayar_input) && empty($payment_data))) {
         $error_tambah = 'Input transaksi belum lengkap.';
     } else {
         mysqli_begin_transaction($koneksi);
@@ -80,6 +283,15 @@ if (isset($_POST['tambah'])) {
             $res_ks = mysqli_stmt_get_result($stmt_kelas_siswa);
             $row_ks = $res_ks ? mysqli_fetch_assoc($res_ks) : null;
             $kelas_siswa_nama = $row_ks ? trim((string)$row_ks['nama_kelas']) : '';
+            $kelas_siswa_normalized = $normalize_kelas($kelas_siswa_nama);
+            // #region debug-point B:kelas-siswa
+            $debug_report('B', 'Kelas siswa berhasil dibaca', [
+                'nisn' => $nisn,
+                'kelas_siswa_nama' => $kelas_siswa_nama,
+                'kelas_siswa_normalized' => $kelas_siswa_normalized,
+                'kelas_stmt_has_result' => (bool)$res_ks,
+            ]);
+            // #endregion
 
             $stmt_cek_jb = mysqli_prepare($koneksi, "SELECT id_jenis_bayar, tipe_bayar, nominal, IFNULL(tagihan_kelas,'') AS tagihan_kelas FROM jenis_bayar WHERE id_jenis_bayar = ? LIMIT 1");
             $stmt_insert = mysqli_prepare($koneksi, "INSERT INTO pembayaran (id_petugas, nisn, tgl_bayar, id_jenis_bayar, jumlah_bayar, cicilan_ke, ket, bulan_bayar, tahun_bayar, no_transaksi) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
@@ -90,11 +302,11 @@ if (isset($_POST['tambah'])) {
 
             foreach ($id_jenis_bayar_input as $id_jb_raw) {
                 $id_jb = (int)$id_jb_raw;
-                if ($id_jb <= 0) {
+                if ($id_jb < 0) {
                     continue;
                 }
 
-                $detail = isset($payment_data[$id_jb]) ? $payment_data[$id_jb] : [];
+                $detail = isset($payment_items_by_id[$id_jb]) ? $payment_items_by_id[$id_jb] : [];
                 if (!is_array($detail)) {
                     $detail = [];
                 }
@@ -103,8 +315,23 @@ if (isset($_POST['tambah'])) {
                 mysqli_stmt_execute($stmt_cek_jb);
                 $res_jb = mysqli_stmt_get_result($stmt_cek_jb);
                 $d_jb = $res_jb ? mysqli_fetch_assoc($res_jb) : null;
+                // #region debug-point C:item-loaded
+                $debug_report('C', 'Jenis bayar dimuat untuk validasi', [
+                    'id_jb_raw' => $id_jb_raw,
+                    'id_jb_cast' => $id_jb,
+                    'detail_keys' => array_keys($detail),
+                    'detail' => $detail,
+                    'jb_found' => (bool)$d_jb,
+                    'jb_tipe_bayar' => $d_jb ? $d_jb['tipe_bayar'] : null,
+                    'jb_tagihan_kelas' => $d_jb ? $d_jb['tagihan_kelas'] : null,
+                    'kelas_siswa_nama' => $kelas_siswa_nama,
+                ]);
+                // #endregion
 
                 if (!$d_jb) {
+                    if ($id_jb === 0) {
+                        continue;
+                    }
                     throw new Exception("Jenis pembayaran ID $id_jb tidak ditemukan.");
                 }
 
@@ -114,7 +341,19 @@ if (isset($_POST['tambah'])) {
                         throw new Exception('Data kelas siswa tidak ditemukan untuk NISN ini.');
                     }
                     $allowed_kelas = array_map('trim', explode(',', $tagihan_raw));
-                    if (!in_array($kelas_siswa_nama, $allowed_kelas, true)) {
+                    $allowed_kelas_normalized = array_map($normalize_kelas, $allowed_kelas);
+                    $kelas_match = in_array($kelas_siswa_nama, $allowed_kelas, true) || in_array($kelas_siswa_normalized, $allowed_kelas_normalized, true);
+                    // #region debug-point D:kelas-filter
+                    $debug_report('D', 'Memvalidasi kelas siswa terhadap tagihan_kelas', [
+                        'id_jb' => $id_jb,
+                        'kelas_siswa_nama' => $kelas_siswa_nama,
+                        'kelas_siswa_normalized' => $kelas_siswa_normalized,
+                        'allowed_kelas' => $allowed_kelas,
+                        'allowed_kelas_normalized' => $allowed_kelas_normalized,
+                        'kelas_match' => $kelas_match,
+                    ]);
+                    // #endregion
+                    if (!$kelas_match) {
                         throw new Exception('Jenis pembayaran tidak tersedia untuk kelas siswa ini.');
                     }
                 }
@@ -152,7 +391,18 @@ if (isset($_POST['tambah'])) {
                 $success_count++;
             }
 
+            // #region debug-point E:loop-summary
+            $debug_report('E', 'Ringkasan akhir loop simpan transaksi', [
+                'success_count' => $success_count,
+                'posted_id_jenis_bayar' => $id_jenis_bayar_input,
+                'payment_keys' => array_keys($payment_data),
+                'no_transaksi' => $no_transaksi,
+            ]);
+            // #endregion
             if ($success_count <= 0) {
+                if ($is_hosting_env && $suspect_lks_13) {
+                    $debug_append_hosting(['stage' => 'no-valid-items', 'success_count' => $success_count]);
+                }
                 throw new Exception('Tidak ada item pembayaran yang valid untuk disimpan.');
             }
 
@@ -163,6 +413,17 @@ if (isset($_POST['tambah'])) {
         } catch (Exception $e) {
             mysqli_rollback($koneksi);
             $error_tambah = $e->getMessage();
+            // #region debug-point F:exception
+            $debug_report('F', 'Transaksi tambah gagal di catch block', [
+                'error_tambah' => $error_tambah,
+                'success_count' => $success_count,
+                'posted_id_jenis_bayar' => $id_jenis_bayar_input,
+                'payment_keys' => array_keys($payment_data),
+            ]);
+            // #endregion
+            if ($is_hosting_env && $suspect_lks_13) {
+                $debug_append_hosting(['stage' => 'exception', 'error' => $error_tambah, 'success_count' => $success_count]);
+            }
         }
     }
 
@@ -175,12 +436,15 @@ if (isset($_POST['tambah'])) {
                 icon: 'success',
                 timer: 1500,
                 showConfirmButton: false
-            }).then(() => {
-                window.location.href = '" . base_url('transaksi/transaksi') . "';
             });
         </script>";
     } else {
-        $error_safe = htmlspecialchars($error_tambah !== '' ? $error_tambah : 'Data gagal ditambahkan', ENT_QUOTES);
+        $is_hosting_env = isset($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'] !== 'localhost' && $_SERVER['HTTP_HOST'] !== '127.0.0.1';
+        $error_final = $error_tambah !== '' ? $error_tambah : 'Data gagal ditambahkan';
+        if ($is_hosting_env && isset($debug_trace_id) && $debug_trace_id !== '') {
+            $error_final .= ' (Ref: ' . $debug_trace_id . ')';
+        }
+        $error_safe = htmlspecialchars($error_final, ENT_QUOTES);
         echo "<script>Swal.fire('Gagal', '$error_safe', 'error');</script>";
     }
 }
@@ -272,8 +536,6 @@ if (isset($_POST['update_transaksi'])) {
                 icon: 'success',
                 timer: 1500,
                 showConfirmButton: false
-            }).then(() => {
-                window.location.href = '" . base_url('transaksi/transaksi') . "';
             });
         </script>";
     } else {
@@ -302,8 +564,6 @@ if (isset($_GET['hapus_transaksi'])) {
                 icon: 'success',
                 timer: 1500,
                 showConfirmButton: false
-            }).then(() => {
-                window.location='" . base_url('transaksi/transaksi') . "';
             });
         </script>";
     } else {
@@ -491,6 +751,29 @@ if (isset($_GET['hapus_transaksi'])) {
             return onlyDigits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
         }
 
+        function normalizeKelas(value) {
+            var kelas = String(value || '').trim().toUpperCase().replace(/\s+/g, '');
+            var romanMap = {
+                'I': '1',
+                'II': '2',
+                'III': '3',
+                'IV': '4',
+                'V': '5',
+                'VI': '6'
+            };
+
+            if (romanMap[kelas]) {
+                return romanMap[kelas];
+            }
+
+            var numberMatch = kelas.match(/[1-6]/);
+            if (numberMatch) {
+                return numberMatch[0];
+            }
+
+            return kelas;
+        }
+
         /**
          * Jenis bayar dengan tagihan_kelas: hanya aktif jika kelas siswa masuk daftar.
          * Jika siswa belum dipilih, opsi yang punya pembatasan kelas dinonaktifkan.
@@ -498,6 +781,7 @@ if (isset($_GET['hapus_transaksi'])) {
         function syncJenisBayarByKelas() {
             var kelasSiswa = $('#nisnTambah option:selected').attr('data-kelas');
             kelasSiswa = kelasSiswa ? String(kelasSiswa).trim() : '';
+            var kelasSiswaNormalized = normalizeKelas(kelasSiswa);
             var $jb = $('#jbTambah');
 
             $jb.find('option').each(function () {
@@ -512,7 +796,8 @@ if (isset($_GET['hapus_transaksi'])) {
                         allowed = false;
                     } else {
                         var parts = tagihan.split(',').map(function (s) { return s.trim(); });
-                        allowed = parts.indexOf(kelasSiswa) !== -1;
+                        var normalizedParts = parts.map(function (s) { return normalizeKelas(s); });
+                        allowed = parts.indexOf(kelasSiswa) !== -1 || normalizedParts.indexOf(kelasSiswaNormalized) !== -1;
                     }
                 }
                 $o.prop('disabled', !allowed);
@@ -609,8 +894,7 @@ if (isset($_GET['hapus_transaksi'])) {
                 var html = '<div class="card mb-2 border"><div class="card-body p-2" style="background: #f8f9fa;">';
                 html += '<h6 class="mb-2 text-primary">' + nama + ' (' + tipe + ')</h6>';
                 
-                // Add hidden input for ID Type
-                // We use array structure: payment[id_jenis_bayar]
+                html += '<input type="hidden" name="id_jenis_bayar[]" value="' + id + '">';
                 html += '<input type="hidden" name="payment[' + id + '][id_jenis_bayar]" value="' + id + '">';
 
                 if (tipe === 'Bulanan') {
@@ -665,10 +949,12 @@ if (isset($_GET['hapus_transaksi'])) {
             var siswaSelect = $(this).closest('.modal-body').find('select[name="nisn"]');
             var selectedSiswa = siswaSelect.find('option:selected');
             var kelasSiswa = selectedSiswa.attr('data-kelas');
+            var kelasSiswaNormalized = normalizeKelas(kelasSiswa);
 
             if (tagihan && tagihan !== '' && kelasSiswa) {
-                var allowedKelas = tagihan.split(',').map(s => s.trim());
-                if (!allowedKelas.includes(kelasSiswa)) {
+                var allowedKelas = tagihan.split(',').map(function (s) { return s.trim(); });
+                var allowedKelasNormalized = allowedKelas.map(function (s) { return normalizeKelas(s); });
+                if (!allowedKelas.includes(kelasSiswa) && !allowedKelasNormalized.includes(kelasSiswaNormalized)) {
                     Swal.fire({
                         icon: 'error',
                         title: 'Oops...',
