@@ -21,6 +21,18 @@
             $_SESSION['update_token'] = bin2hex(random_bytes(16));
         }
         $update_token = $_SESSION['update_token'];
+        $base_path = (string)(parse_url(base_url(), PHP_URL_PATH) ?? '');
+        $req_path = (string)(parse_url((string)($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH) ?? '');
+        $req_query = (string)($_SERVER['QUERY_STRING'] ?? '');
+        if ($base_path !== '' && $req_path !== '' && strpos($req_path, $base_path) === 0) {
+            $rel_path = substr($req_path, strlen($base_path));
+        } else {
+            $rel_path = ltrim($req_path, '/');
+        }
+        $return_to = ltrim((string)$rel_path, '/');
+        if ($req_query !== '') {
+            $return_to .= '?' . $req_query;
+        }
         ?>
         <div class="modal fade" id="modalUpdateSistem" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog">
@@ -40,8 +52,24 @@
                         <form action="<?= base_url('pengaturan/update_sistem.php') ?>" method="get" class="d-inline">
                             <input type="hidden" name="do" value="1">
                             <input type="hidden" name="token" value="<?= htmlspecialchars($update_token, ENT_QUOTES) ?>">
+                            <input type="hidden" name="return_to" value="<?= htmlspecialchars($return_to, ENT_QUOTES) ?>">
                             <button type="submit" class="btn btn-primary">Lanjutkan Update</button>
                         </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="modalUpdateProses" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Update Sistem</h5>
+                    </div>
+                    <div class="modal-body">
+                        <div class="d-flex align-items-center" style="gap: .75rem;">
+                            <div class="spinner-border text-primary" role="status" aria-hidden="true"></div>
+                            <div>Sedang memproses update. Jangan tutup halaman ini.</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -121,5 +149,63 @@
         setInterval(updateDateTime, 1000);
         updateDateTime();
     </script>
+    <script>
+        (function () {
+            var form = document.querySelector('#modalUpdateSistem form');
+            if (!form || !window.fetch || !window.bootstrap) {
+                return;
+            }
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                var confirmModalEl = document.getElementById('modalUpdateSistem');
+                var processModalEl = document.getElementById('modalUpdateProses');
+                if (!confirmModalEl || !processModalEl) {
+                    form.submit();
+                    return;
+                }
+                var confirmModal = bootstrap.Modal.getOrCreateInstance(confirmModalEl);
+                var processModal = bootstrap.Modal.getOrCreateInstance(processModalEl);
+                confirmModal.hide();
+                processModal.show();
+                var params = new URLSearchParams(new FormData(form));
+                params.set('ajax', '1');
+                fetch(form.action + '?' + params.toString(), { method: 'GET', cache: 'no-store' })
+                    .then(function (r) { return r.json(); })
+                    .then(function (data) {
+                        processModal.hide();
+                        var title = data && data.title ? data.title : 'Info';
+                        var text = data && data.text ? data.text : '';
+                        var icon = data && data.icon ? data.icon : 'info';
+                        Swal.fire({ title: title, text: text, icon: icon }).then(function () {
+                            if (params.get('return_to')) {
+                                window.location.href = <?= json_encode(rtrim(base_url(), '/') . '/') ?> + params.get('return_to');
+                            } else {
+                                window.location.reload();
+                            }
+                        });
+                    })
+                    .catch(function () {
+                        processModal.hide();
+                        Swal.fire({ title: 'Gagal', text: 'Update gagal dijalankan. Coba ulang atau cek koneksi server.', icon: 'error' });
+                    });
+            });
+        })();
+    </script>
+    <?php if (isset($_SESSION['flash_swal']) && is_array($_SESSION['flash_swal'])) : ?>
+        <?php
+        $flash = $_SESSION['flash_swal'];
+        unset($_SESSION['flash_swal']);
+        $flash_title = isset($flash['title']) ? (string)$flash['title'] : '';
+        $flash_text = isset($flash['text']) ? (string)$flash['text'] : '';
+        $flash_icon = isset($flash['icon']) ? (string)$flash['icon'] : 'info';
+        ?>
+        <script>
+            Swal.fire({
+                title: <?= json_encode($flash_title) ?>,
+                text: <?= json_encode($flash_text) ?>,
+                icon: <?= json_encode($flash_icon) ?>
+            });
+        </script>
+    <?php endif; ?>
 </body>
 </html>

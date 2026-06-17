@@ -58,6 +58,10 @@ if (!isset($_SESSION['login']) || !isset($_SESSION['nama_lengkap']) || !isset($_
         })();
     </script>
     <style>
+        .swal2-popup {
+            font-family: 'Poppins', sans-serif !important;
+        }
+
         /* Fix Sticky Sidebar Context */
         .container-scroller {
             overflow: visible !important;
