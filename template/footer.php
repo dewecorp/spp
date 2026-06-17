@@ -43,7 +43,7 @@
                     </div>
                     <div class="modal-body">
                         <div class="alert alert-warning mb-0">
-                            Proses ini akan mengunduh versi terbaru dari GitHub dan menimpa file sistem.
+                            Proses ini akan mengunduh versi terbaru.
                             File konfigurasi server tidak akan ditimpa.
                         </div>
                     </div>
