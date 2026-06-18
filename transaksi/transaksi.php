@@ -684,8 +684,8 @@ if (isset($_GET['hapus_transaksi'])) {
             syncJenisBayarByKelas();
         });
 
-        // Handler for Edit Button Click
-        $('.btn-edit-transaksi').on('click', function() {
+        // Handler for Edit Button Click (delegated so DataTables pagination pages 2+ work)
+        $(document).on('click', '.btn-edit-transaksi', function() {
             var no_transaksi = $(this).data('id');
             var modalBody = $('#modalEditBody');
             
@@ -827,8 +827,8 @@ if (isset($_GET['hapus_transaksi'])) {
             }
         });
         
-        // Delete Confirmation
-        $('.btn-hapus').on('click', function(e) {
+        // Delete Confirmation (delegated so DataTables pagination pages 2+ work)
+        $(document).on('click', '.btn-hapus', function(e) {
             e.preventDefault();
             const href = $(this).attr('href');
             Swal.fire({
