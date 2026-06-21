@@ -15,9 +15,9 @@ include '../template/sidebar.php';
             <div class="card-body">
                 <h4 class="card-title">Filter Tagihan Siswa</h4>
                 <form action="" method="get">
-                    <div class="row">
-                        <div class="col-md-5">
-                            <div class="form-group">
+                    <div class="d-flex flex-wrap align-items-end gap-3">
+                        <div style="min-width: 220px; flex: 0 1 280px;">
+                            <div class="form-group mb-0">
                                 <label>Pilih Kelas</label>
                                 <select name="id_kelas" id="id_kelas" class="form-control select2 filter-kelas" style="width: 100%;" required onchange="this.form.submit()">
                                     <option value="">-- Pilih Kelas --</option>
@@ -31,6 +31,13 @@ include '../template/sidebar.php';
                                 </select>
                             </div>
                         </div>
+                        <?php if (isset($_GET['id_kelas']) && $_GET['id_kelas'] !== ''): ?>
+                            <div class="pb-1">
+                                <a href="cetak_semua.php?id_kelas=<?= $_GET['id_kelas'] ?>" class="btn btn-primary btn-icon-text" target="_blank">
+                                    <i class="mdi mdi-printer btn-icon-prepend"></i> Cetak Tagihan Semua Siswa
+                                </a>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </form>
             </div>
@@ -49,12 +56,7 @@ if (isset($_GET['id_kelas'])) {
     <div class="col-lg-12 grid-margin stretch-card">
         <div class="card">
             <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h4 class="card-title mb-0">Data Siswa Kelas: <?= $d_kelas['nama_kelas'] ?></h4>
-                    <a href="cetak_semua.php?id_kelas=<?= $id_kelas ?>" class="btn btn-primary" target="_blank">
-                        <i class="mdi mdi-printer"></i> Cetak Tagihan Semua Siswa
-                    </a>
-                </div>
+                <h4 class="card-title mb-3">Data Siswa Kelas: <?= $d_kelas['nama_kelas'] ?></h4>
                 <div class="table-responsive">
                     <table class="table table-bordered table-striped">
                         <thead>
