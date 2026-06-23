@@ -13,48 +13,46 @@ if (!$d_siswa) {
 }
 ?>
 
-<div class="row">
-    <div class="col-md-12 grid-margin stretch-card">
-        <div class="card">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h4 class="card-title mb-0">Laporan Pembayaran Siswa</h4>
-                    <div>
-                        <a href="cetak_laporan.php?nisn=<?= $nisn ?>" target="_blank" class="btn btn-warning btn-icon-text">
-                            <i class="mdi mdi-printer btn-icon-prepend"></i> Cetak Laporan
-                        </a>
-                        <a href="laporan.php?id_kelas=<?= $d_siswa['id_kelas'] ?>" class="btn btn-outline-primary btn-sm fw-semibold shadow-sm ms-2">
-                            <i class="mdi mdi-arrow-left"></i> Kembali
-                        </a>
-                    </div>
+<div class="app-page">
+    <div class="app-surface">
+            <div class="app-titlebar">
+                <h4 class="text-xl font-extrabold tracking-normal text-slate-950">Laporan Pembayaran Siswa</h4>
+                <div class="flex items-center gap-2">
+                    <a href="cetak_laporan.php?nisn=<?= $nisn ?>" target="_blank" class="inline-flex items-center gap-2 rounded-lg bg-amber-500 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-amber-600">
+                        <i class="mdi mdi-printer"></i> Cetak Laporan
+                    </a>
+                    <a href="laporan.php?id_kelas=<?= $d_siswa['id_kelas'] ?>" class="inline-flex items-center gap-2 rounded-lg border border-primary px-4 py-2 text-sm font-bold text-primary shadow-sm transition hover:bg-primary hover:text-white">
+                        <i class="mdi mdi-arrow-left"></i> Kembali
+                    </a>
                 </div>
+            </div>
 
-                <div class="row mb-4">
-                    <div class="col-md-6">
-                        <table class="table table-borderless">
-                            <tr>
-                                <th width="150">NISN</th>
-                                <td>: <?= $d_siswa['nisn'] ?></td>
-                            </tr>
-                            <tr>
-                                <th>Nama Siswa</th>
-                                <td>: <?= $d_siswa['nama'] ?></td>
-                            </tr>
-                        </table>
-                    </div>
-                    <div class="col-md-6">
-                        <table class="table table-borderless">
-                            <tr>
-                                <th width="150">Kelas</th>
-                                <td>: <?= $d_siswa['nama_kelas'] ?></td>
-                            </tr>
-                            <tr>
-                                <th>Tahun Ajaran</th>
-                                <td>: <?= date('Y') ?></td>
-                            </tr>
-                        </table>
-                    </div>
+            <div class="mb-6 grid grid-cols-1 gap-4 rounded-lg border border-slate-200 bg-slate-50 p-4 md:grid-cols-2">
+                <div>
+                    <table>
+                        <tr>
+                            <th class="w-[150px] text-left py-1">NISN</th>
+                            <td class="py-1">: <?= $d_siswa['nisn'] ?></td>
+                        </tr>
+                        <tr>
+                            <th class="text-left py-1">Nama Siswa</th>
+                            <td class="py-1">: <?= $d_siswa['nama'] ?></td>
+                        </tr>
+                    </table>
                 </div>
+                <div>
+                    <table>
+                        <tr>
+                            <th class="w-[150px] text-left py-1">Kelas</th>
+                            <td class="py-1">: <?= $d_siswa['nama_kelas'] ?></td>
+                        </tr>
+                        <tr>
+                            <th class="text-left py-1">Tahun Ajaran</th>
+                            <td class="py-1">: <?= date('Y') ?></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
 
                 <?php
                 // Ambil semua jenis pembayaran yang berlaku untuk kelas siswa ini
@@ -73,14 +71,14 @@ if (!$d_siswa) {
 
                     if ($applies) {
                 ?>
-                        <div class="card mb-4 border border-secondary">
-                            <div class="card-header bg-primary text-white border-0">
-                                <h6 class="mb-0 text-white fw-semibold"><?= $d_jenis['nama_pembayaran'] ?> (<?= $d_jenis['tipe_bayar'] ?>) - Rp. <?= number_format($d_jenis['nominal'], 0, ',', '.') ?></h6>
+                        <div class="mb-6 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+                            <div class="bg-primary p-4 text-white">
+                                <h6 class="font-semibold text-white"><?= $d_jenis['nama_pembayaran'] ?> (<?= $d_jenis['tipe_bayar'] ?>) - Rp. <?= number_format($d_jenis['nominal'], 0, ',', '.') ?></h6>
                             </div>
-                            <div class="card-body p-0">
-                                <table class="table table-bordered">
-                                    <?php if ($d_jenis['tipe_bayar'] == 'Bulanan') { ?>
-                                        <thead class="bg-primary text-white">
+                            <div class="p-0">
+                                <table class="app-table min-w-full">
+                                            <?php if ($d_jenis['tipe_bayar'] == 'Bulanan') { ?>
+                                        <thead>
                                             <tr>
                                                 <th>Bulan</th>
                                                 <th>Status</th>
@@ -97,7 +95,7 @@ if (!$d_siswa) {
                                             foreach ($bulan as $bln) {
                                                 $d_bayar = $paid_by_month[$bln] ?? null;
                                                 
-                                                $status = $d_bayar ? '<span class="badge badge-success">Lunas</span>' : '<span class="badge badge-danger">Belum Bayar</span>';
+                                                $status = $d_bayar ? '<span class="inline-flex px-2 py-0.5 text-xs font-medium rounded-full bg-emerald-100 text-emerald-800">Lunas</span>' : '<span class="inline-flex px-2 py-0.5 text-xs font-medium rounded-full bg-red-100 text-red-800">Belum Bayar</span>';
                                                 $tgl = $d_bayar ? date('d/m/Y', strtotime($d_bayar['tgl_bayar'])) : '-';
                                                 $jml = $d_bayar ? 'Rp. ' . number_format($d_bayar['jumlah'], 0, ',', '.') : '-';
                                             ?>
@@ -115,29 +113,17 @@ if (!$d_siswa) {
                                         $d_total = mysqli_fetch_assoc($q_total_bayar);
                                         $total_bayar = $d_total['total'] ?? 0;
                                         $sisa = $d_jenis['nominal'] - $total_bayar;
-                                        $status_lunas = ($sisa <= 0) ? '<span class="badge badge-success">Lunas</span>' : '<span class="badge badge-warning">Belum Lunas</span>';
+                                        $status_lunas = ($sisa <= 0) ? '<span class="inline-flex px-2 py-0.5 text-xs font-medium rounded-full bg-emerald-100 text-emerald-800">Lunas</span>' : '<span class="inline-flex px-2 py-0.5 text-xs font-medium rounded-full bg-amber-100 text-amber-800">Belum Lunas</span>';
                                     ?>
                                         <tbody>
-                                            <tr>
-                                                <td width="200">Total Tagihan</td>
-                                                <td>Rp. <?= number_format($d_jenis['nominal'], 0, ',', '.') ?></td>
-                                            </tr>
-                                            <tr>
-                                                <td>Total Dibayar</td>
-                                                <td>Rp. <?= number_format($total_bayar, 0, ',', '.') ?></td>
-                                            </tr>
-                                            <tr>
-                                                <td>Sisa Tagihan</td>
-                                                <td class="text-danger font-weight-bold">Rp. <?= number_format($sisa > 0 ? $sisa : 0, 0, ',', '.') ?></td>
-                                            </tr>
-                                            <tr>
-                                                <td>Status</td>
-                                                <td><?= $status_lunas ?></td>
-                                            </tr>
+                                            <tr><td class="w-[200px]">Total Tagihan</td><td>Rp. <?= number_format($d_jenis['nominal'], 0, ',', '.') ?></td></tr>
+                                            <tr><td>Total Dibayar</td><td>Rp. <?= number_format($total_bayar, 0, ',', '.') ?></td></tr>
+                                            <tr><td>Sisa Tagihan</td><td class="text-red-500 font-bold">Rp. <?= number_format($sisa > 0 ? $sisa : 0, 0, ',', '.') ?></td></tr>
+                                            <tr><td>Status</td><td><?= $status_lunas ?></td></tr>
                                             <tr>
                                                 <td colspan="2">
                                                     <strong>Riwayat Pembayaran:</strong>
-                                                    <ul class="mt-2">
+                                                    <ul class="mt-2 ml-4 list-disc">
                                                         <?php
                                                         $q_riwayat = mysqli_query($koneksi, "SELECT * FROM pembayaran WHERE nisn = '$nisn' AND id_jenis_bayar = '" . $d_jenis['id_jenis_bayar'] . "' ORDER BY tgl_bayar ASC");
                                                         if (mysqli_num_rows($q_riwayat) > 0) {
@@ -160,9 +146,6 @@ if (!$d_siswa) {
                     } // end if applies
                 } // end while jenis bayar
                 ?>
-
-            </div>
-        </div>
     </div>
 </div>
 

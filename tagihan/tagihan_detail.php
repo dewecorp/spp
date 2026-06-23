@@ -20,41 +20,39 @@ $nama_kelas = $d_siswa['nama_kelas'];
 $q_jb = mysqli_query($koneksi, "SELECT * FROM jenis_bayar WHERE status = 'Aktif' ORDER BY tipe_bayar ASC, nama_pembayaran ASC");
 ?>
 
-<div class="row">
-    <div class="col-lg-12 grid-margin stretch-card">
-        <div class="card">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <div class="d-flex align-items-center">
-                        <a href="tagihan.php?id_kelas=<?= $id_kelas ?>" class="btn btn-outline-primary btn-sm fw-semibold shadow-sm me-3">
-                            <i class="mdi mdi-arrow-left"></i> Kembali
-                        </a>
-                        <h4 class="card-title mb-0 text-truncate" style="max-width: 100%;">Detail Tagihan: <?= $d_siswa['nama'] ?> (<?= $nama_kelas ?>)</h4>
-                    </div>
-                    <div class="d-flex align-items-center">
-                        <a href="export_excel.php?nisn=<?= $nisn ?>&id_kelas=<?= $id_kelas ?>" 
-                           class="btn btn-success btn-sm me-2" target="_blank" title="Export Excel">
-                            <i class="mdi mdi-file-excel"></i>
-                        </a>
-                        <a href="export_pdf.php?nisn=<?= $nisn ?>&id_kelas=<?= $id_kelas ?>" 
-                           class="btn btn-danger btn-sm" target="_blank" title="Cetak Tagihan">
-                            <i class="mdi mdi-printer"></i>
-                        </a>
-                    </div>
+<div class="app-page">
+    <div class="app-surface">
+            <div class="app-titlebar">
+                <div class="flex min-w-0 flex-wrap items-center gap-3">
+                    <a href="tagihan.php?id_kelas=<?= $id_kelas ?>" class="inline-flex items-center gap-2 rounded-lg border border-primary px-4 py-2 text-sm font-bold text-primary shadow-sm transition hover:bg-primary hover:text-white">
+                        <i class="mdi mdi-arrow-left"></i> Kembali
+                    </a>
+                    <h4 class="truncate text-xl font-extrabold tracking-normal text-slate-950">Detail Tagihan: <?= $d_siswa['nama'] ?> (<?= $nama_kelas ?>)</h4>
                 </div>
+                <div class="flex items-center gap-2">
+                    <a href="export_excel.php?nisn=<?= $nisn ?>&id_kelas=<?= $id_kelas ?>" 
+                       class="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500 text-white shadow-sm transition hover:bg-emerald-600" target="_blank" title="Export Excel">
+                        <i class="mdi mdi-file-excel"></i>
+                    </a>
+                    <a href="export_pdf.php?nisn=<?= $nisn ?>&id_kelas=<?= $id_kelas ?>" 
+                       class="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-red-500 text-white shadow-sm transition hover:bg-red-600" target="_blank" title="Cetak Tagihan">
+                        <i class="mdi mdi-printer"></i>
+                    </a>
+                </div>
+            </div>
 
-                <div class="table-responsive">
-                    <table class="table table-bordered table-striped">
-                        <thead>
-                            <tr>
-                                <th width="5%">No</th>
-                                <th width="20%">Jenis Pembayaran</th>
-                                <th width="15%">Tipe</th>
-                                <th width="15%">Nominal / Tagihan</th>
-                                <th>Status Pembayaran</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+            <div class="table-responsive">
+                <table class="app-table min-w-full">
+                    <thead>
+                        <tr>
+                            <th width="5%">No</th>
+                            <th width="20%">Jenis Pembayaran</th>
+                            <th width="15%">Tipe</th>
+                            <th width="15%">Nominal / Tagihan</th>
+                            <th>Status Pembayaran</th>
+                        </tr>
+                    </thead>
+                    <tbody>
                             <?php
                             $no = 1;
                             $months = ['Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni'];
@@ -132,25 +130,23 @@ $q_jb = mysqli_query($koneksi, "SELECT * FROM jenis_bayar WHERE status = 'Aktif'
 
                                 if ($jb['tipe_bayar'] == 'Bulanan') {
                                     $is_extracurricular = stripos($jb['nama_pembayaran'], 'ekstrakurikuler') !== false;
-                                    echo '<div class="d-flex flex-wrap">';
+                                    echo '<div class="flex flex-wrap gap-3">';
                                     foreach ($months as $index => $m) {
                                         if (!$is_extracurricular && $index > $limit_index) continue; // Skip future months (non-ekskul)
                                         if (in_array($m, $paid_months)) continue; // Skip paid months
 
-                                        $icon = '<i class="mdi mdi-close-circle text-danger" style="font-size: 1.2em;"></i>';
+                                        $icon = '<i class="mdi mdi-close-circle text-red-500" style="font-size: 1.2em;"></i>';
                                         
-                                        echo '<div class="me-3 mb-2 d-inline-block">';
-                                        echo '<div class="d-flex align-items-center">';
-                                        echo '<span class="me-2" style="margin-right: 5px;">' . $icon . '</span>';
+                                        echo '<div class="inline-flex items-center gap-2">';
+                                        echo '<span>' . $icon . '</span>';
                                         echo '<span>' . $m . '</span>';
-                                        echo '</div>';
                                         echo '</div>';
                                     }
                                     echo '</div>';
                                 } else {
-                                    echo '<div class="d-flex flex-column">';
+                                    echo '<div class="flex flex-col gap-1">';
                                     echo '<span>Sudah Bayar: Rp ' . number_format($total_bayar, 0, ',', '.') . '</span>';
-                                    echo '<span class="text-danger font-weight-bold"><i class="mdi mdi-close-circle"></i> Kurang: Rp ' . number_format($sisa, 0, ',', '.') . '</span>';
+                                    echo '<span class="text-red-500 font-bold"><i class="mdi mdi-close-circle"></i> Kurang: Rp ' . number_format($sisa, 0, ',', '.') . '</span>';
                                     echo '</div>';
                                 }
 
@@ -159,14 +155,12 @@ $q_jb = mysqli_query($koneksi, "SELECT * FROM jenis_bayar WHERE status = 'Aktif'
                             }
 
                             if ($displayed_bills == 0) {
-                                echo '<tr><td colspan="5" class="text-center font-weight-bold text-danger">Tidak ada tagihan (Lunas Semua)</td></tr>';
+                                echo '<tr><td colspan="5" class="text-center text-red-500 font-bold py-4">Tidak ada tagihan (Lunas Semua)</td></tr>';
                             }
                             ?>
                         </tbody>
                     </table>
                 </div>
-            </div>
-        </div>
     </div>
 </div>
 

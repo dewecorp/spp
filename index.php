@@ -84,104 +84,48 @@ $q_aktivitas = mysqli_query($koneksi, "
 ");
 ?>
 
-<style>
-    /* Widget dashboard — seragam putih tanpa border tebal (sama seperti kartu jenis bayar) */
-    .dashboard-stat-card .card-body { padding: 0.7rem 0.85rem; }
-    .dashboard-stat-card .stat-title {
-        font-size: 0.78rem;
-        line-height: 1.2;
-        margin-bottom: 0.2rem !important;
-        color: #0f172a !important;
-        font-weight: 600 !important;
-    }
-    .dashboard-stat-card .stat-value {
-        font-size: 1rem;
-        line-height: 1.2;
-        margin-bottom: 0 !important;
-        color: #0f172a !important;
-        font-weight: 700 !important;
-    }
-    .dashboard-stat-card .icon-lg { font-size: 1.2rem !important; }
-    .dashboard-stat-card .text-right { text-align: right !important; }
-</style>
-
-<div class="row">
-    <!-- Kartu ringkasan: desktop 4 kolom; hp (xs): 2 kolom lewat col-6 -->
-    <!-- Card Jumlah Siswa -->
-    <div class="col-6 col-sm-6 col-md-3 col-lg-3 col-xl-3 grid-margin stretch-card">
-        <div class="card card-statistics dashboard-stat-card">
-            <div class="card-body">
-                <div class="clearfix">
-                    <div class="float-left">
-                        <i class="mdi mdi-account-multiple text-primary icon-lg"></i>
-                    </div>
-                    <div class="float-right">
-                        <p class="mb-0 text-right stat-title">Jumlah Siswa</p>
-                        <div class="fluid-container">
-                            <h3 class="font-weight-medium text-right stat-value"><?= number_format($jml_siswa) ?></h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+<div class="mb-7 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+        <p class="text-sm font-semibold text-emerald-700">Ringkasan pembayaran</p>
+        <h1 class="mt-1 text-2xl font-extrabold tracking-normal text-slate-950">Dashboard SiBayar</h1>
     </div>
-    <!-- Card Jumlah Jenis Bayar -->
-    <div class="col-6 col-sm-6 col-md-3 col-lg-3 col-xl-3 grid-margin stretch-card">
-        <div class="card card-statistics dashboard-stat-card">
-            <div class="card-body">
-                <div class="clearfix">
-                    <div class="float-left">
-                        <i class="mdi mdi-receipt text-primary icon-lg"></i>
-                    </div>
-                    <div class="float-right">
-                        <p class="mb-0 text-right stat-title">Jenis Bayar</p>
-                        <div class="fluid-container">
-                            <h3 class="font-weight-medium text-right stat-value"><?= number_format($jml_jenis) ?></h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- Card Total Pembayaran -->
-    <div class="col-6 col-sm-6 col-md-3 col-lg-3 col-xl-3 grid-margin stretch-card">
-        <div class="card card-statistics dashboard-stat-card">
-            <div class="card-body">
-                <div class="clearfix">
-                    <div class="float-left">
-                        <i class="mdi mdi-cash-multiple text-primary icon-lg"></i>
-                    </div>
-                    <div class="float-right">
-                        <p class="mb-0 text-right stat-title">Total Pembayaran</p>
-                        <div class="fluid-container">
-                            <h3 class="font-weight-medium text-right stat-value" style="white-space: nowrap;">Rp <?= number_format($total_bayar, 0, ',', '.') ?></h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- Card Siswa Belum Bayar -->
-    <div class="col-6 col-sm-6 col-md-3 col-lg-3 col-xl-3 grid-margin stretch-card">
-        <div class="card card-statistics dashboard-stat-card">
-            <div class="card-body">
-                <div class="clearfix">
-                    <div class="float-left">
-                        <i class="mdi mdi-account-off text-primary icon-lg"></i>
-                    </div>
-                    <div class="float-right">
-                        <p class="mb-0 text-right stat-title">Belum Bayar (Bln Ini)</p>
-                        <div class="fluid-container">
-                            <h3 class="font-weight-medium text-right stat-value"><?= number_format($jml_belum_bayar) ?></h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div class="inline-flex w-fit items-center gap-2 rounded-full border border-emerald-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 shadow-sm">
+        <i class="mdi mdi-calendar-clock text-emerald-600"></i>
+        Tahun <?= $tahun_ini ?>
     </div>
 </div>
 
-<div class="row">
+<div class="mb-6 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+    <?php
+    $summary_cards = [
+        ['label' => 'Jumlah Siswa', 'value' => number_format($jml_siswa), 'icon' => 'mdi-account-multiple', 'tone' => 'emerald'],
+        ['label' => 'Jenis Bayar Aktif', 'value' => number_format($jml_jenis), 'icon' => 'mdi-receipt-text', 'tone' => 'sky'],
+        ['label' => 'Total Pembayaran', 'value' => 'Rp ' . number_format($total_bayar, 0, ',', '.'), 'icon' => 'mdi-cash-multiple', 'tone' => 'violet'],
+        ['label' => 'Belum Bayar Bulan Ini', 'value' => number_format($jml_belum_bayar), 'icon' => 'mdi-account-alert', 'tone' => 'amber'],
+    ];
+    foreach ($summary_cards as $card) :
+        $tone_class = [
+            'emerald' => 'bg-emerald-50 text-emerald-700 ring-emerald-100',
+            'sky' => 'bg-sky-50 text-sky-700 ring-sky-100',
+            'violet' => 'bg-violet-50 text-violet-700 ring-violet-100',
+            'amber' => 'bg-amber-50 text-amber-700 ring-amber-100',
+        ][$card['tone']];
+    ?>
+    <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
+        <div class="flex items-start justify-between gap-4">
+            <div>
+                <p class="text-sm font-semibold text-slate-500"><?= $card['label'] ?></p>
+                <h3 class="mt-2 break-words text-2xl font-extrabold tracking-normal text-slate-950"><?= $card['value'] ?></h3>
+            </div>
+            <div class="grid h-11 w-11 shrink-0 place-items-center rounded-lg ring-1 <?= $tone_class ?>">
+                <i class="mdi <?= $card['icon'] ?> text-2xl"></i>
+            </div>
+        </div>
+    </div>
+    <?php endforeach; ?>
+</div>
+
+<div class="mb-6 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
     <?php
     $icon_by_keyword = [
         'ekstrakurikuler' => 'mdi-soccer',
@@ -201,101 +145,89 @@ $q_aktivitas = mysqli_query($koneksi, "
             }
         }
     ?>
-    <div class="col-6 col-sm-6 col-md-3 col-lg-3 col-xl-3 grid-margin stretch-card">
-        <div class="card card-statistics dashboard-stat-card">
-            <div class="card-body">
-                <div class="clearfix">
-                    <div class="float-left">
-                        <i class="mdi <?= $icon ?> text-primary icon-lg"></i>
-                    </div>
-                    <div class="float-right">
-                        <p class="mb-0 text-right stat-title text-truncate" title="Total Bayar <?= htmlspecialchars($nama_jenis_tampil) ?>">
-                            Total Bayar <?= htmlspecialchars($nama_jenis_tampil) ?>
-                        </p>
-                        <div class="fluid-container">
-                            <h3 class="font-weight-medium text-right stat-value" style="white-space: nowrap;">
-                                Rp <?= number_format($jenis_item['total_bayar_jenis'], 0, ',', '.') ?>
-                            </h3>
-                        </div>
-                    </div>
-                </div>
+    <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
+        <div class="flex items-start justify-between gap-4">
+            <div class="min-w-0">
+                <p class="truncate text-sm font-semibold text-slate-500" title="Total Bayar <?= htmlspecialchars($nama_jenis_tampil) ?>">
+                    Total Bayar <?= htmlspecialchars($nama_jenis_tampil) ?>
+                </p>
+                <h3 class="mt-2 break-words text-xl font-extrabold tracking-normal text-slate-950">
+                    Rp <?= number_format($jenis_item['total_bayar_jenis'], 0, ',', '.') ?>
+                </h3>
+            </div>
+            <div class="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100">
+                <i class="mdi <?= $icon ?> text-2xl"></i>
             </div>
         </div>
     </div>
     <?php endforeach; ?>
 </div>
 
-<div class="row">
+<div class="mb-6 grid grid-cols-1 gap-5">
     <!-- Grafik Pembayaran -->
-    <div class="col-md-12 grid-margin stretch-card">
-        <div class="card">
-            <div class="card-body">
-                <h4 class="card-title">Grafik Pembayaran Tahun <?= $tahun_ini ?></h4>
-                <div style="position: relative; height: 300px; width: 100%;">
-                    <canvas id="pembayaranChart"></canvas>
-                </div>
+    <div class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+            <h4 class="mb-4 text-lg font-extrabold tracking-normal text-slate-950">Grafik Pembayaran Tahun <?= $tahun_ini ?></h4>
+            <div style="position: relative; height: 300px; width: 100%;">
+                <canvas id="pembayaranChart"></canvas>
             </div>
-        </div>
     </div>
 </div>
 
-<div class="row">
+<div class="grid grid-cols-1 gap-5">
     <!-- Timeline Aktivitas -->
-    <div class="col-md-12 grid-margin stretch-card">
-        <div class="card">
-            <div class="card-body">
-                <h4 class="card-title">
-                    Aktivitas Pengguna (24 Jam Terakhir)
-                    <span class="badge badge-primary ml-2"><?= $jml_aktivitas ?></span>
-                </h4>
-                <p class="card-description">Memantau aktivitas login, logout, dan manajemen data.</p>
-                <style>
-                    .activity-timeline { list-style: none; margin: 0; padding: 0 0 0 56px; position: relative; }
-                    .activity-timeline:before { content: ""; position: absolute; left: 28px; top: 0; bottom: 0; width: 2px; background: #f0f0f0; }
-                    .activity-timeline li { position: relative; margin-bottom: 16px; }
-                    .activity-item-card { background: #ffffff; border: 1px solid #eee; border-radius: 12px; padding: 12px 16px; padding-left: 56px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); display: flex; gap: 12px; align-items: flex-start; position: relative; }
-                    .activity-icon { position: absolute; left: 16px; top: 16px; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; }
-                    .activity-content { flex: 1; }
-                    .activity-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
-                    .badge-type { display: inline-block; padding: 4px 8px; border-radius: 999px; font-size: 12px; line-height: 1; }
-                    .type-Login .badge-type { background: #eaf7f0; color: #2ecc71; }
-                    .type-Logout .badge-type { background: #eef0f2; color: #6c757d; }
-                    .type-Create .badge-type { background: #e9f0ff; color: #4e73df; }
-                    .type-Update .badge-type { background: #fff7e6; color: #f6c23e; }
-                    .type-Delete .badge-type { background: #ffecec; color: #e74a3b; }
-                    .type-Login .activity-item-card { border-left: 4px solid #2ecc71; }
-                    .type-Logout .activity-item-card { border-left: 4px solid #6c757d; }
-                    .type-Create .activity-item-card { border-left: 4px solid #4e73df; }
-                    .type-Update .activity-item-card { border-left: 4px solid #f6c23e; }
-                    .type-Delete .activity-item-card { border-left: 4px solid #e74a3b; }
-                    .activity-title { font-weight: 600; font-size: 14px; }
-                    .activity-desc { margin: 4px 0 6px; color: #2c2e33; }
-                    .activity-meta { font-size: 12px; color: #6c757d; display: flex; align-items: center; gap: 6px; }
-                </style>
-                
-                <div style="height: 400px; overflow-y: auto; overflow-x: hidden;">
+    <div class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+            <h4 class="mb-2 text-lg font-extrabold tracking-normal text-slate-950">
+                Aktivitas Pengguna (24 Jam Terakhir)
+                <span class="inline-flex px-2 py-0.5 text-xs font-medium rounded-full bg-primary text-white ml-2"><?= $jml_aktivitas ?></span>
+            </h4>
+            <p class="text-gray-500 text-sm mb-4">Memantau aktivitas login, logout, dan manajemen data.</p>
+            <style>
+                .activity-timeline { list-style: none; margin: 0; padding: 0 0 0 56px; position: relative; }
+                .activity-timeline:before { content: ""; position: absolute; left: 28px; top: 0; bottom: 0; width: 2px; background: #f0f0f0; }
+                .activity-timeline li { position: relative; margin-bottom: 16px; }
+                .activity-item-card { background: #ffffff; border: 1px solid #eee; border-radius: 12px; padding: 12px 16px; padding-left: 56px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); display: flex; gap: 12px; align-items: flex-start; position: relative; }
+                .activity-icon { position: absolute; left: 16px; top: 16px; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; }
+                .activity-content { flex: 1; }
+                .activity-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+                .badge-type { display: inline-block; padding: 4px 8px; border-radius: 999px; font-size: 12px; line-height: 1; }
+                .type-Login .badge-type { background: #eaf7f0; color: #2ecc71; }
+                .type-Logout .badge-type { background: #eef0f2; color: #6c757d; }
+                .type-Create .badge-type { background: #e9f0ff; color: #4e73df; }
+                .type-Update .badge-type { background: #fff7e6; color: #f6c23e; }
+                .type-Delete .badge-type { background: #ffecec; color: #e74a3b; }
+                .type-Login .activity-item-card { border-left: 4px solid #2ecc71; }
+                .type-Logout .activity-item-card { border-left: 4px solid #6c757d; }
+                .type-Create .activity-item-card { border-left: 4px solid #4e73df; }
+                .type-Update .activity-item-card { border-left: 4px solid #f6c23e; }
+                .type-Delete .activity-item-card { border-left: 4px solid #e74a3b; }
+                .activity-title { font-weight: 600; font-size: 14px; }
+                .activity-desc { margin: 4px 0 6px; color: #2c2e33; }
+                .activity-meta { font-size: 12px; color: #6c757d; display: flex; align-items: center; gap: 6px; }
+            </style>
+            
+            <div class="h-[400px] overflow-y-auto overflow-x-hidden">
                     <ul class="activity-timeline">
                         <?php if ($jml_aktivitas > 0) : ?>
                             <?php while ($row = mysqli_fetch_assoc($q_aktivitas)) : 
                                 $jenis = $row['jenis_aktivitas'];
                                 $icon = 'mdi-information';
-                                $bg_color = 'bg-info';
+                                $bg_color = 'bg-sky-500';
     
                                 if ($jenis == 'Login') {
                                     $icon = 'mdi-login';
-                                    $bg_color = 'bg-success';
+                                    $bg_color = 'bg-emerald-500';
                                 } elseif ($jenis == 'Logout') {
                                     $icon = 'mdi-logout';
-                                    $bg_color = 'bg-secondary';
+                                    $bg_color = 'bg-gray-500';
                                 } elseif ($jenis == 'Create') {
                                     $icon = 'mdi-plus-circle';
                                     $bg_color = 'bg-primary';
                                 } elseif ($jenis == 'Update') {
                                     $icon = 'mdi-pencil';
-                                    $bg_color = 'bg-warning';
+                                    $bg_color = 'bg-amber-500';
                                 } elseif ($jenis == 'Delete') {
                                     $icon = 'mdi-delete';
-                                    $bg_color = 'bg-danger';
+                                    $bg_color = 'bg-red-500';
                                 }
                             ?>
                             <li class="type-<?= $jenis ?>">
@@ -321,15 +253,13 @@ $q_aktivitas = mysqli_query($koneksi, "
                             <?php endwhile; ?>
                         <?php else : ?>
                             <li>
-                                <p class="text-center text-muted">Belum ada aktivitas dalam 24 jam terakhir.</p>
+                                <p class="text-center text-gray-500">Belum ada aktivitas dalam 24 jam terakhir.</p>
                             </li>
                         <?php endif; ?>
                     </ul>
                 </div>
             </div>
         </div>
-    </div>
-</div>
 
 <?php include 'template/footer.php'; ?>
 
@@ -343,21 +273,38 @@ $q_aktivitas = mysqli_query($koneksi, "
                 datasets: [{
                     label: 'Total Pembayaran (Rp)',
                     data: <?= json_encode($chart_data) ?>,
-                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 1
+                    backgroundColor: 'rgba(5, 150, 105, 0.18)',
+                    borderColor: '#10b981',
+                    borderRadius: 8,
+                    borderSkipped: false,
+                    borderWidth: 1,
+                    maxBarThickness: 42
                 }]
             },
             options: {
                 animation: false,
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#475569',
+                            font: { family: 'Plus Jakarta Sans', weight: '600' }
+                        }
+                    }
+                },
                 scales: {
                     y: {
                         beginAtZero: true,
+                        grid: { color: '#e2e8f0' },
                         ticks: {
+                            color: '#64748b',
                             callback: function(value, index, values) {
                                 return 'Rp ' + value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
                             }
                         }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#64748b' }
                     }
                 },
                 responsive: true,

@@ -2,7 +2,7 @@
                 <!-- content-wrapper ends -->
                 <footer class="footer">
                     <div class="container-fluid clearfix">
-                        <span class="text-muted d-block text-center text-sm-left d-sm-inline-block">
+                        <span class="text-gray-500 block text-center text-sm-left sm:inline-block">
                             Copyright © <?= date('Y') ?> Sistem Pembayaran Siswa -
                             <a href="https://misultanfattah.sch.id/" target="_blank" style="text-decoration: none !important;">MI Sultan Fattah Sukosono</a>
                         </span>
@@ -34,40 +34,44 @@
             $return_to .= '?' . $req_query;
         }
         ?>
-        <div class="modal fade" id="modalUpdateSistem" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Konfirmasi Update Sistem</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div x-show="$store.updateSystem.showUpdateModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
+            <div class="flex items-center justify-center min-h-screen px-4">
+                <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity" @click="$store.updateSystem.showUpdateModal = false"></div>
+                <div class="relative bg-white rounded-xl shadow-xl max-w-md w-full">
+                    <div class="flex items-center justify-between p-6 border-b">
+                        <h5 class="text-lg font-semibold">Konfirmasi Update Sistem</h5>
+                        <button type="button" class="text-gray-400 hover:text-gray-600" @click="$store.updateSystem.showUpdateModal = false">
+                            <i class="mdi mdi-close text-xl"></i>
+                        </button>
                     </div>
-                    <div class="modal-body">
-                        <div class="alert alert-warning mb-0">
+                    <div class="p-6">
+                        <div class="p-4 rounded-lg bg-amber-50 text-amber-800 border border-amber-200">
                             Proses ini akan mengunduh versi terbaru.
                             File konfigurasi server tidak akan ditimpa.
                         </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                        <form action="<?= base_url('pengaturan/update_sistem.php') ?>" method="get" class="d-inline">
+                    <div class="flex items-center justify-end gap-3 p-6 border-t">
+                        <button type="button" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition" @click="$store.updateSystem.showUpdateModal = false">Batal</button>
+                        <form action="<?= base_url('pengaturan/update_sistem.php') ?>" method="get" @submit.prevent="$store.updateSystem.startUpdate($event)">
                             <input type="hidden" name="do" value="1">
                             <input type="hidden" name="token" value="<?= htmlspecialchars($update_token, ENT_QUOTES) ?>">
                             <input type="hidden" name="return_to" value="<?= htmlspecialchars($return_to, ENT_QUOTES) ?>">
-                            <button type="submit" class="btn btn-primary">Lanjutkan Update</button>
+                            <button type="submit" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition">Lanjutkan Update</button>
                         </form>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="modal fade" id="modalUpdateProses" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Update Sistem</h5>
+        <div x-show="$store.updateSystem.showUpdateProses" x-cloak class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
+            <div class="flex items-center justify-center min-h-screen px-4">
+                <div class="fixed inset-0 bg-black bg-opacity-50"></div>
+                <div class="relative bg-white rounded-xl shadow-xl max-w-md w-full">
+                    <div class="p-6 border-b">
+                        <h5 class="text-lg font-semibold">Update Sistem</h5>
                     </div>
-                    <div class="modal-body">
-                        <div class="d-flex align-items-center" style="gap: .75rem;">
-                            <div class="spinner-border text-primary" role="status" aria-hidden="true"></div>
+                    <div class="p-6">
+                        <div class="flex items-center gap-3">
+                            <div class="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full"></div>
                             <div>Sedang memproses update. Jangan tutup halaman ini.</div>
                         </div>
                     </div>
@@ -75,18 +79,16 @@
             </div>
         </div>
     <?php endif; ?>
-    <script src="<?= base_url('assets/vendors/js/vendor.bundle.base.js') ?>"></script>
-    <script src="<?= base_url('assets/js/off-canvas.js') ?>"></script>
-    <script src="<?= base_url('assets/js/misc.js') ?>"></script>
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <!-- Chart.js -->
     <script src="<?= base_url('assets/vendors/chart.js/chart.umd.js') ?>"></script>
     <!-- DataTables -->
     <script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.10.24/js/dataTables.bootstrap4.min.js"></script>
     <script>
         $(document).ready(function() {
-            // Jangan init DataTables pada <table> di dalam modal (tersembunyi saat init)
-            // — lebar kolom salah → kolom terpotong di hosting / layar sempit.
             $('table.table').each(function() {
                 if ($(this).closest('.modal').length) {
                     return;
@@ -96,7 +98,6 @@
                 }
                 var enableScrollX = $(this).attr('data-dt-scroll-x') === '1';
                 $(this).DataTable({
-                    /* scrollX memecah thead/tbody → header tidak selaras; hanya pakai di tabel bertanda data-dt-scroll-x */
                     scrollX: enableScrollX,
                     autoWidth: false
                 });
@@ -150,46 +151,38 @@
         updateDateTime();
     </script>
     <script>
-        (function () {
-            var form = document.querySelector('#modalUpdateSistem form');
-            if (!form || !window.fetch || !window.bootstrap) {
-                return;
-            }
-            form.addEventListener('submit', function (e) {
-                e.preventDefault();
-                var confirmModalEl = document.getElementById('modalUpdateSistem');
-                var processModalEl = document.getElementById('modalUpdateProses');
-                if (!confirmModalEl || !processModalEl) {
-                    form.submit();
-                    return;
-                }
-                var confirmModal = bootstrap.Modal.getOrCreateInstance(confirmModalEl);
-                var processModal = bootstrap.Modal.getOrCreateInstance(processModalEl);
-                confirmModal.hide();
-                processModal.show();
-                var params = new URLSearchParams(new FormData(form));
-                params.set('ajax', '1');
-                fetch(form.action + '?' + params.toString(), { method: 'GET', cache: 'no-store' })
-                    .then(function (r) { return r.json(); })
-                    .then(function (data) {
-                        processModal.hide();
-                        var title = data && data.title ? data.title : 'Info';
-                        var text = data && data.text ? data.text : '';
-                        var icon = data && data.icon ? data.icon : 'info';
-                        Swal.fire({ title: title, text: text, icon: icon }).then(function () {
+        document.addEventListener('alpine:init', () => {
+            Alpine.store('updateSystem', {
+                showUpdateModal: false,
+                showUpdateProses: false,
+                async startUpdate(e) {
+                    this.showUpdateModal = false;
+                    this.showUpdateProses = true;
+                    const form = e.target;
+                    const params = new URLSearchParams(new FormData(form));
+                    params.set('ajax', '1');
+                    try {
+                        const r = await fetch(form.action + '?' + params.toString(), { method: 'GET', cache: 'no-store' });
+                        const data = await r.json();
+                        this.showUpdateProses = false;
+                        Swal.fire({
+                            title: data.title || 'Info',
+                            text: data.text || '',
+                            icon: data.icon || 'info'
+                        }).then(() => {
                             if (params.get('return_to')) {
                                 window.location.href = <?= json_encode(rtrim(base_url(), '/') . '/') ?> + params.get('return_to');
                             } else {
                                 window.location.reload();
                             }
                         });
-                    })
-                    .catch(function () {
-                        processModal.hide();
+                    } catch (err) {
+                        this.showUpdateProses = false;
                         Swal.fire({ title: 'Gagal', text: 'Update gagal dijalankan. Coba ulang atau cek koneksi server.', icon: 'error' });
-                    });
+                    }
+                }
             });
-        })();
+        });
     </script>
     <?php if (isset($_SESSION['flash_swal']) && is_array($_SESSION['flash_swal'])) : ?>
         <?php

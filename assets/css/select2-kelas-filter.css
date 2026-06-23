@@ -5,13 +5,13 @@
 
 #id_kelas + .select2-container .select2-selection.select2-selection--single,
 #id_kelas_laporan + .select2-container .select2-selection.select2-selection--single {
-  border: 1px solid #006b3f !important;
+  border: 1px solid #10b981 !important;
   border-radius: 10px !important;
   height: auto !important;
   min-height: 3.25rem !important;
   background-color: #ffffff !important;
   color: #111111 !important;
-  font-family: "Poppins", system-ui, sans-serif !important;
+  font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif !important;
   font-size: 1rem !important;
   line-height: 1.35 !important;
   box-shadow: none !important;
@@ -45,30 +45,30 @@
 #id_kelas + .select2-container.select2-container--focus .select2-selection--single,
 #id_kelas_laporan + .select2-container.select2-container--open .select2-selection--single,
 #id_kelas_laporan + .select2-container.select2-container--focus .select2-selection--single {
-  border-color: #006b3f !important;
-  box-shadow: 0 0 0 0.125rem rgba(0, 107, 63, 0.18) !important;
+  border-color: #10b981 !important;
+  box-shadow: 0 0 0 0.125rem rgba(5, 150, 105, 0.18) !important;
 }
 
 #id_kelas + .select2-container .select2-selection__arrow b,
 #id_kelas_laporan + .select2-container .select2-selection__arrow b {
-  border-color: #006b3f transparent transparent transparent !important;
+  border-color: #10b981 transparent transparent transparent !important;
   border-width: 0.35rem 0.3rem 0 0.3rem !important;
 }
 
 /* Panel dropdown — kelas ditambahkan lewat JS saat open */
 .select2-kelas-filter-dropdown.select2-dropdown,
 .select2-container--bootstrap .select2-kelas-filter-dropdown.select2-dropdown {
-  border: 1px solid #006b3f !important;
+  border: 1px solid #10b981 !important;
   border-radius: 10px !important;
 }
 
 /* Highlight opsi tidak biru — selaras tema hijau (hanya saat dropdown filter kelas) */
 .select2-kelas-filter-dropdown .select2-results__option--highlighted {
-  background-color: #0d7d4d !important;
+  background-color: #10b981 !important;
   color: #ffffff !important;
 }
 
 .select2-kelas-filter-dropdown .select2-results__option[aria-selected="true"]:not(.select2-results__option--highlighted) {
-  background-color: #e9f5ef !important;
+  background-color: #d1fae5 !important;
   color: #111111 !important;
 }

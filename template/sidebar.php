@@ -1,4 +1,4 @@
-            <nav class="sidebar sidebar-offcanvas" id="sidebar">
+            <nav class="sidebar sidebar-offcanvas" id="sidebar" x-data="{ openMenu: false }">
                 <ul class="nav">
                     <li class="nav-item">
                         <a class="nav-link" href="<?= base_url('index.php') ?>">
@@ -8,12 +8,12 @@
                     </li>
                     <?php if ($_SESSION['role'] == 'admin') : ?>
                     <li class="nav-item">
-                        <a class="nav-link" data-bs-toggle="collapse" href="#ui-basic" data-bs-target="#ui-basic" aria-expanded="false" aria-controls="ui-basic">
+                        <a class="nav-link" @click="openMenu = !openMenu" :aria-expanded="openMenu">
                             <i class="menu-icon mdi mdi-content-copy"></i>
                             <span class="menu-title">Data Master</span>
-                            <i class="menu-arrow"></i>
+                            <i class="menu-arrow" :class="{ 'rotated': openMenu }"></i>
                         </a>
-                        <div class="collapse" id="ui-basic">
+                        <div x-show="openMenu" x-collapse x-cloak>
                             <ul class="nav flex-column sub-menu">
                                 <li class="nav-item">
                                     <a class="nav-link" href="<?= base_url('data/siswa.php?v=1') ?>">Data Siswa</a>

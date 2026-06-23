@@ -62,138 +62,78 @@ if (isset($_POST['login'])) {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?= base_url('assets/vendors/mdi/css/materialdesignicons.min.css') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/vendors/css/vendor.bundle.base.css') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/css/style.css') ?>">
     <link rel="shortcut icon" href="<?= base_url('assets/images/favicon_pembayaran.svg') ?>" type="image/svg+xml" />
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: { DEFAULT: '#059669', dark: '#047857', light: '#10b981' },
+                    },
+                    fontFamily: { sans: ['Poppins', 'system-ui', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
-    <style>
-        /* Tipografi login: Poppins + hitam tegas (halaman ini tidak memakai template/header.php) */
-        body.auth-login-page {
-            font-family: "Poppins", system-ui, sans-serif !important;
-        }
-        .auth-bg-1 .auto-form-wrapper h4,
-        .auth-bg-1 .auto-form-wrapper h6,
-        .auth-bg-1 .auto-form-wrapper label,
-        .auth-bg-1 .auto-form-wrapper .form-control,
-        .auth-bg-1 .auto-form-wrapper .submit-btn {
-            font-family: "Poppins", system-ui, sans-serif !important;
-        }
-        /* Ikon MDI tidak memakai Poppins */
-        .auth-bg-1 .mdi[class*="mdi-"] {
-            font-family: "Material Design Icons" !important;
-        }
-        .auth-bg-1 .auto-form-wrapper h4.font-weight-bold.text-dark {
-            color: #000000 !important;
-            font-weight: 700 !important;
-            letter-spacing: 0.02em;
-        }
-        .auth-bg-1 .auto-form-wrapper h6.font-weight-light.text-dark {
-            color: #1a1a1a !important;
-            font-weight: 500 !important;
-        }
-        .auth-bg-1 .auto-form-wrapper label.label.text-dark {
-            color: #000000 !important;
-            font-weight: 600 !important;
-        }
-        .auth-bg-1 .auto-form-wrapper .form-control {
-            color: #111827 !important;
-            font-weight: 500 !important;
-        }
-        .auth-bg-1 .auto-form-wrapper .form-control::placeholder {
-            color: #000000 !important;
-            font-weight: 400 !important;
-        }
-        .auth-bg-1 .auto-form-wrapper .btn-primary.submit-btn {
-            font-weight: 600 !important;
-            letter-spacing: 0.04em;
-            border-radius: 12px !important;
-        }
-
-        /* Field login: satu blok rapi, ikon di dalam input (tanpa kotak tambahan) */
-        .auth-bg-1 .login-field {
-            position: relative;
-            margin-bottom: 0;
-        }
-        .auth-bg-1 .login-field .login-field-icon {
-            position: absolute;
-            left: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 1.15rem;
-            color: #006b3f;
-            pointer-events: none;
-            z-index: 2;
-            line-height: 1;
-        }
-        .auth-bg-1 .login-field .login-field-input {
-            width: 100%;
-            min-height: 3rem;
-            padding: 0.65rem 1rem 0.65rem 2.85rem !important;
-            border: 1px solid #e5e7eb !important;
-            border-radius: 12px !important;
-            background-color: #f9fafb !important;
-            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
-            transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
-        }
-        .auth-bg-1 .login-field .login-field-input:hover {
-            border-color: #d1d5db !important;
-        }
-        .auth-bg-1 .login-field .login-field-input:focus {
-            outline: none !important;
-            background-color: #ffffff !important;
-            border-color: #006b3f !important;
-            box-shadow: 0 0 0 3px rgba(0, 107, 63, 0.12) !important;
-        }
-        .auth-bg-1 .auto-form-wrapper .form-group label.label {
-            display: block;
-            margin-bottom: 0.4rem;
-            font-size: 0.875rem;
-        }
-    </style>
+    <script>
+        const OriginalSwal = Swal;
+        const GlobalSwal = OriginalSwal.mixin({
+            confirmButtonColor: '#059669',
+            cancelButtonColor: '#d33',
+            cancelButtonText: 'Batal',
+            reverseButtons: true
+        });
+        window.Swal = {
+            ...OriginalSwal,
+            fire: function(...args) {
+                if (args.length === 1 && typeof args[0] === 'object') {
+                    const options = { cancelButtonText: 'Batal', ...args[0] };
+                    return GlobalSwal.fire(options);
+                }
+                return GlobalSwal.fire(...args);
+            }
+        };
+    </script>
 </head>
-<body class="auth-login-page">
-    <div class="container-scroller">
-        <div class="container-fluid page-body-wrapper full-page-wrapper">
-            <div class="content-wrapper d-flex align-items-center auth auth-bg-1 theme-one" style="<?= !empty($bg_login) ? "background-image: url('" . base_url('assets/images/' . $bg_login) . "'); background-size: cover; background-position: center;" : "" ?>">
-                <div class="row w-100">
-                    <div class="col-lg-4 mx-auto">
-                        <div class="auto-form-wrapper" style="background-color: rgba(255, 255, 255, 0.9); padding: 30px; border-radius: 10px; box-shadow: 0px 0px 20px rgba(0,0,0,0.3);">
-                            <div class="text-center mb-4">
-                                <?php if(!empty($logo_sekolah)): ?>
-                                    <img src="<?= base_url('assets/images/'.$logo_sekolah) ?>" alt="logo" style="width: 80px; margin-bottom: 10px;">
-                                <?php endif; ?>
-                                <h4 class="font-weight-bold text-dark text-uppercase"><?= $nama_sekolah ?></h4>
-                                <h6 class="font-weight-light text-dark">Sistem Pembayaran Siswa</h6>
-                            </div>
-                            <form action="" method="post">
-                                <div class="form-group">
-                                    <label class="label text-dark font-weight-bold" for="login-username">Username</label>
-                                    <div class="login-field">
-                                        <i class="mdi mdi-account-outline login-field-icon" aria-hidden="true"></i>
-                                        <input id="login-username" type="text" name="username" class="form-control login-field-input" placeholder="Masukkan username" required autocomplete="username">
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label class="label text-dark font-weight-bold" for="login-password">Password</label>
-                                    <div class="login-field">
-                                        <i class="mdi mdi-lock-outline login-field-icon" aria-hidden="true"></i>
-                                        <input id="login-password" type="password" name="password" class="form-control login-field-input" placeholder="Masukkan password" required autocomplete="current-password">
-                                    </div>
-                                </div>
-                                <div class="form-group text-center">
-                                    <button type="submit" name="login" class="btn btn-primary submit-btn shadow-sm px-5">MASUK APLIKASI</button>
-                                </div>
-                            </form>
-                        </div>
-                        <!-- Info default user removed -->
-                    </div>
+<body class="font-sans bg-gray-100">
+    <div class="min-h-screen flex items-center justify-center p-4" style="<?= !empty($bg_login) ? "background-image: url('" . base_url('assets/images/' . $bg_login) . "'); background-size: cover; background-position: center;" : "background-color: #f3f4f6;" ?>">
+        <div class="w-full max-w-md">
+            <div class="bg-white bg-opacity-90 p-8 rounded-2xl shadow-2xl">
+                <div class="text-center mb-6">
+                    <?php if(!empty($logo_sekolah)): ?>
+                        <img src="<?= base_url('assets/images/'.$logo_sekolah) ?>" alt="logo" class="w-20 mx-auto mb-3">
+                    <?php endif; ?>
+                    <h4 class="font-bold text-black text-xl uppercase"><?= $nama_sekolah ?></h4>
+                    <h6 class="font-medium text-gray-700 mt-1">Sistem Pembayaran Siswa</h6>
                 </div>
+                <form action="" method="post">
+                    <div class="mb-4">
+                        <label class="label block text-black font-semibold text-sm mb-2" for="login-username">Username</label>
+                        <div class="relative">
+                            <i class="mdi mdi-account-outline absolute left-4 top-1/2 -translate-y-1/2 text-xl text-primary pointer-events-none z-10" aria-hidden="true"></i>
+                            <input id="login-username" type="text" name="username" class="w-full min-h-[3rem] py-3 pl-12 pr-4 border border-gray-200 rounded-xl bg-gray-50 hover:border-gray-300 focus:outline-none focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary focus:ring-opacity-20 transition text-gray-900 font-medium placeholder:text-black placeholder:font-normal" placeholder="Masukkan username" required autocomplete="username">
+                        </div>
+                    </div>
+                    <div class="mb-6">
+                        <label class="label block text-black font-semibold text-sm mb-2" for="login-password">Password</label>
+                        <div class="relative">
+                            <i class="mdi mdi-lock-outline absolute left-4 top-1/2 -translate-y-1/2 text-xl text-primary pointer-events-none z-10" aria-hidden="true"></i>
+                            <input id="login-password" type="password" name="password" class="w-full min-h-[3rem] py-3 pl-12 pr-4 border border-gray-200 rounded-xl bg-gray-50 hover:border-gray-300 focus:outline-none focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary focus:ring-opacity-20 transition text-gray-900 font-medium placeholder:text-black placeholder:font-normal" placeholder="Masukkan password" required autocomplete="current-password">
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <button type="submit" name="login" class="px-8 py-3 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition shadow-sm tracking-wide">MASUK APLIKASI</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
-    <script src="<?= base_url('assets/vendors/js/vendor.bundle.base.js') ?>"></script>
-    <script src="<?= base_url('assets/js/misc.js') ?>"></script>
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <?= $script ?>
 </body>
 </html>
