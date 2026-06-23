@@ -34,35 +34,12 @@
             $return_to .= '?' . $req_query;
         }
         ?>
-        <div x-show="$store.updateSystem.showUpdateModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
-            <div class="flex items-center justify-center min-h-screen px-4">
-                <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity" @click="$store.updateSystem.showUpdateModal = false"></div>
-                <div class="relative bg-white rounded-xl shadow-xl max-w-md w-full">
-                    <div class="flex items-center justify-between p-6 border-b">
-                        <h5 class="text-lg font-semibold">Konfirmasi Update Sistem</h5>
-                        <button type="button" class="text-gray-400 hover:text-gray-600" @click="$store.updateSystem.showUpdateModal = false">
-                            <i class="mdi mdi-close text-xl"></i>
-                        </button>
-                    </div>
-                    <div class="p-6">
-                        <div class="p-4 rounded-lg bg-amber-50 text-amber-800 border border-amber-200">
-                            Proses ini akan mengunduh versi terbaru.
-                            File konfigurasi server tidak akan ditimpa.
-                        </div>
-                    </div>
-                    <div class="flex items-center justify-end gap-3 p-6 border-t">
-                        <button type="button" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition" @click="$store.updateSystem.showUpdateModal = false">Batal</button>
-                        <form action="<?= base_url('pengaturan/update_sistem.php') ?>" method="get" @submit.prevent="$store.updateSystem.startUpdate($event)">
-                            <input type="hidden" name="do" value="1">
-                            <input type="hidden" name="token" value="<?= htmlspecialchars($update_token, ENT_QUOTES) ?>">
-                            <input type="hidden" name="return_to" value="<?= htmlspecialchars($return_to, ENT_QUOTES) ?>">
-                            <button type="submit" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition">Lanjutkan Update</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div x-show="$store.updateSystem.showUpdateProses" x-cloak class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
+        <form id="updateSystemForm" action="<?= base_url('pengaturan/update_sistem.php') ?>" method="get" class="hidden" style="display: none;">
+            <input type="hidden" name="do" value="1">
+            <input type="hidden" name="token" value="<?= htmlspecialchars($update_token, ENT_QUOTES) ?>">
+            <input type="hidden" name="return_to" value="<?= htmlspecialchars($return_to, ENT_QUOTES) ?>">
+        </form>
+        <div id="updateSystemProcessModal" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
             <div class="flex items-center justify-center min-h-screen px-4">
                 <div class="fixed inset-0 bg-black bg-opacity-50"></div>
                 <div class="relative bg-white rounded-xl shadow-xl max-w-md w-full">
@@ -151,38 +128,71 @@
         updateDateTime();
     </script>
     <script>
-        document.addEventListener('alpine:init', () => {
-            Alpine.store('updateSystem', {
-                showUpdateModal: false,
-                showUpdateProses: false,
-                async startUpdate(e) {
-                    this.showUpdateModal = false;
-                    this.showUpdateProses = true;
-                    const form = e.target;
-                    const params = new URLSearchParams(new FormData(form));
-                    params.set('ajax', '1');
-                    try {
-                        const r = await fetch(form.action + '?' + params.toString(), { method: 'GET', cache: 'no-store' });
-                        const data = await r.json();
-                        this.showUpdateProses = false;
-                        Swal.fire({
-                            title: data.title || 'Info',
-                            text: data.text || '',
-                            icon: data.icon || 'info'
-                        }).then(() => {
-                            if (params.get('return_to')) {
-                                window.location.href = <?= json_encode(rtrim(base_url(), '/') . '/') ?> + params.get('return_to');
-                            } else {
-                                window.location.reload();
-                            }
-                        });
-                    } catch (err) {
-                        this.showUpdateProses = false;
-                        Swal.fire({ title: 'Gagal', text: 'Update gagal dijalankan. Coba ulang atau cek koneksi server.', icon: 'error' });
+        (function() {
+            const baseUrl = <?= json_encode(rtrim(base_url(), '/') . '/') ?>;
+
+            function setUpdateProcessVisible(visible) {
+                const modal = document.getElementById('updateSystemProcessModal');
+                if (!modal) return;
+                modal.style.display = visible ? 'block' : 'none';
+                document.body.classList.toggle('modal-open', visible);
+            }
+
+            async function runUpdateSystem() {
+                const form = document.getElementById('updateSystemForm');
+                if (!form) return;
+
+                const params = new URLSearchParams(new FormData(form));
+                params.set('ajax', '1');
+                setUpdateProcessVisible(true);
+
+                try {
+                    const response = await fetch(form.action + '?' + params.toString(), { method: 'GET', cache: 'no-store' });
+                    const data = await response.json();
+                    setUpdateProcessVisible(false);
+                    Swal.fire({
+                        title: data.title || 'Info',
+                        text: data.text || '',
+                        icon: data.icon || 'info'
+                    }).then(() => {
+                        if (params.get('return_to')) {
+                            window.location.href = baseUrl + params.get('return_to');
+                        } else {
+                            window.location.reload();
+                        }
+                    });
+                } catch (err) {
+                    setUpdateProcessVisible(false);
+                    Swal.fire({
+                        title: 'Gagal',
+                        text: 'Update gagal dijalankan. Coba ulang atau cek koneksi server.',
+                        icon: 'error'
+                    });
+                }
+            }
+
+            window.confirmUpdateSystem = function(event) {
+                if (event) event.preventDefault();
+                Swal.fire({
+                    title: 'Konfirmasi Update Sistem',
+                    text: 'Proses ini akan mengunduh versi terbaru. File konfigurasi server tidak akan ditimpa.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Lanjutkan Update'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        runUpdateSystem();
                     }
+                });
+            };
+
+            document.addEventListener('click', function(event) {
+                const trigger = event.target.closest('[data-update-system-trigger]');
+                if (trigger) {
+                    window.confirmUpdateSystem(event);
                 }
             });
-        });
+        })();
     </script>
     <?php if (isset($_SESSION['flash_swal']) && is_array($_SESSION['flash_swal'])) : ?>
         <?php

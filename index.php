@@ -105,20 +105,20 @@ $q_aktivitas = mysqli_query($koneksi, "
     ];
     foreach ($summary_cards as $card) :
         $tone_class = [
-            'emerald' => 'bg-emerald-50 text-emerald-700 ring-emerald-100',
-            'sky' => 'bg-sky-50 text-sky-700 ring-sky-100',
-            'violet' => 'bg-violet-50 text-violet-700 ring-violet-100',
-            'amber' => 'bg-amber-50 text-amber-700 ring-amber-100',
+            'emerald' => 'bg-emerald-500 shadow-emerald-500/20',
+            'sky' => 'bg-sky-500 shadow-sky-500/20',
+            'violet' => 'bg-sky-500 shadow-sky-500/20',
+            'amber' => 'bg-amber-500 shadow-amber-500/20',
         ][$card['tone']];
     ?>
-    <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
-        <div class="flex items-start justify-between gap-4">
-            <div>
-                <p class="text-sm font-semibold text-slate-500"><?= $card['label'] ?></p>
-                <h3 class="mt-2 break-words text-2xl font-extrabold tracking-normal text-slate-950"><?= $card['value'] ?></h3>
-            </div>
-            <div class="grid h-11 w-11 shrink-0 place-items-center rounded-lg ring-1 <?= $tone_class ?>">
+    <div class="rounded-lg border border-slate-200 bg-white px-5 py-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
+        <div class="flex items-center gap-4">
+            <div class="grid h-12 w-12 shrink-0 place-items-center rounded-lg text-white shadow-lg <?= $tone_class ?>">
                 <i class="mdi <?= $card['icon'] ?> text-2xl"></i>
+            </div>
+            <div class="min-w-0">
+                <p class="text-sm font-semibold leading-5 text-slate-500"><?= $card['label'] ?></p>
+                <h3 class="mt-1 break-words text-xl font-extrabold leading-7 tracking-normal text-slate-950"><?= $card['value'] ?></h3>
             </div>
         </div>
     </div>
@@ -287,7 +287,7 @@ $q_aktivitas = mysqli_query($koneksi, "
                     legend: {
                         labels: {
                             color: '#475569',
-                            font: { family: 'Plus Jakarta Sans', weight: '600' }
+                            font: { family: 'Inter', weight: '600' }
                         }
                     }
                 },

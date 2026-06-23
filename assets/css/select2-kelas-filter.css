@@ -7,17 +7,17 @@
 #id_kelas_laporan + .select2-container .select2-selection.select2-selection--single {
   border: 1px solid #10b981 !important;
   border-radius: 10px !important;
-  height: auto !important;
-  min-height: 3.25rem !important;
+  height: 46px !important;
+  min-height: 46px !important;
   background-color: #ffffff !important;
   color: #111111 !important;
-  font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif !important;
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif !important;
   font-size: 1rem !important;
   line-height: 1.35 !important;
   box-shadow: none !important;
   -webkit-box-shadow: none !important;
-  padding-top: 0.55rem !important;
-  padding-bottom: 0.55rem !important;
+  padding-top: 0.45rem !important;
+  padding-bottom: 0.45rem !important;
   padding-left: 0.25rem !important;
   padding-right: 2.25rem !important;
 }
@@ -25,7 +25,7 @@
 #id_kelas + .select2-container .select2-selection__rendered,
 #id_kelas_laporan + .select2-container .select2-selection__rendered {
   color: #111111 !important;
-  line-height: 1.45 !important;
+  line-height: 1.75 !important;
   padding-left: 0.65rem !important;
   padding-right: 0 !important;
   padding-top: 0 !important;

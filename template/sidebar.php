@@ -11,7 +11,7 @@
                         <a class="nav-link" @click="openMenu = !openMenu" :aria-expanded="openMenu">
                             <i class="menu-icon mdi mdi-content-copy"></i>
                             <span class="menu-title">Data Master</span>
-                            <i class="menu-arrow" :class="{ 'rotated': openMenu }"></i>
+                            <i class="menu-arrow mdi mdi-chevron-right" :class="{ 'rotated': openMenu }" aria-hidden="true"></i>
                         </a>
                         <div x-show="openMenu" x-collapse x-cloak>
                             <ul class="nav flex-column sub-menu">

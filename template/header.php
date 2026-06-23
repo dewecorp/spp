@@ -28,7 +28,7 @@ if (!isset($_SESSION['login']) || !isset($_SESSION['nama_lengkap']) || !isset($_
     <title><?= isset($title) ? $title . ' - ' : '' ?>SiBayar</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?= base_url('assets/vendors/mdi/css/materialdesignicons.min.css') ?>">
     <link rel="shortcut icon" href="<?= base_url('assets/images/favicon_pembayaran.svg') ?>" type="image/svg+xml" />
     <!-- Tailwind CSS -->
@@ -39,7 +39,7 @@ if (!isset($_SESSION['login']) || !isset($_SESSION['nama_lengkap']) || !isset($_
                     colors: {
                         primary: { DEFAULT: '#10b981', dark: '#059669', light: '#34d399', soft: '#d1fae5' },
                     },
-                    fontFamily: { sans: ['Plus Jakarta Sans', 'ui-sans-serif', 'system-ui', 'sans-serif'] }
+                    fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'] }
                 }
             }
         }
@@ -150,7 +150,7 @@ if (!isset($_SESSION['login']) || !isset($_SESSION['nama_lengkap']) || !isset($_
     </script>
     <style>
         .swal2-popup {
-            font-family: 'Plus Jakarta Sans', sans-serif !important;
+            font-family: 'Inter', ui-sans-serif, system-ui, sans-serif !important;
         }
     </style>
 </head>
@@ -219,12 +219,14 @@ if (!isset($_SESSION['login']) || !isset($_SESSION['nama_lengkap']) || !isset($_
                                 }
                                 $update_token = $_SESSION['update_token'];
                                 ?>
-                                <a class="dropdown-item block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" href="#" @click.prevent="$store.updateSystem.showUpdateModal = true">
-                                    Update Sistem
+                                <a class="dropdown-item flex items-center gap-3 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100" href="#" data-update-system-trigger>
+                                    <i class="mdi mdi-update text-lg text-emerald-600"></i>
+                                    <span>Update Sistem</span>
                                 </a>
                             <?php endif; ?>
-                            <a class="dropdown-item block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 mt-2" href="<?= base_url('auth/logout.php') ?>" onclick="confirmLogout(event)">
-                                Sign Out
+                            <a class="dropdown-item mt-1 flex items-center gap-3 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100" href="<?= base_url('auth/logout.php') ?>" onclick="confirmLogout(event)">
+                                <i class="mdi mdi-logout text-lg text-red-500"></i>
+                                <span>Sign Out</span>
                             </a>
                         </div>
                     </li>
