@@ -10,33 +10,227 @@ include '../template/sidebar.php';
     .select2-container {
         width: 100% !important;
     }
-    .select2-selection--multiple {
-        width: 100% !important;
-    }
-    /* Ensure placeholder is visible */
-    .select2-search__field {
-        width: 100% !important;
-        min-width: 200px !important;
-    }
+
     #modalTambah .select2-container,
     #modalEdit .select2-container {
         display: block !important;
         width: 100% !important;
+        font-family: "Nunito Sans", ui-sans-serif, system-ui, sans-serif !important;
     }
-    #modalTambah .select2-selection,
-    #modalEdit .select2-selection {
-        min-height: 40px !important;
+
+    body.overflow-hidden {
+        overflow: hidden !important;
+    }
+
+    #modalTambah,
+    #modalEdit {
+        overflow-x: hidden !important;
+        overscroll-behavior: contain !important;
+    }
+
+    #modalTambah .select2-container--default .select2-selection,
+    #modalEdit .select2-container--default .select2-selection {
+        min-height: 42px !important;
         border: 1px solid #cbd5e1 !important;
         border-radius: 8px !important;
+        background: #ffffff !important;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+        transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease !important;
     }
-    #modalTambah .select2-selection__rendered,
-    #modalEdit .select2-selection__rendered {
-        line-height: 38px !important;
+
+    #modalTambah .select2-container--default.select2-container--focus .select2-selection,
+    #modalTambah .select2-container--default.select2-container--open .select2-selection,
+    #modalEdit .select2-container--default.select2-container--focus .select2-selection,
+    #modalEdit .select2-container--default.select2-container--open .select2-selection {
+        border-color: #10b981 !important;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.13), 0 1px 2px rgba(15, 23, 42, 0.05) !important;
     }
+
+    #modalTambah .select2-container--default .select2-selection--single,
+    #modalEdit .select2-container--default .select2-selection--single {
+        height: 42px !important;
+        padding: 0 2.5rem 0 0.25rem !important;
+    }
+
+    #modalTambah .select2-container--default .select2-selection--single .select2-selection__rendered,
+    #modalEdit .select2-container--default .select2-selection--single .select2-selection__rendered {
+        color: #334155 !important;
+        font-size: 0.925rem !important;
+        font-weight: 600 !important;
+        line-height: 40px !important;
+        padding-left: 0.55rem !important;
+        padding-right: 0 !important;
+    }
+
+    #modalTambah .select2-container--default .select2-selection--single .select2-selection__arrow,
+    #modalEdit .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 40px !important;
+        right: 0.65rem !important;
+    }
+
+    #modalTambah .select2-container--default .select2-selection--single .select2-selection__arrow b,
+    #modalEdit .select2-container--default .select2-selection--single .select2-selection__arrow b {
+        border-color: #94a3b8 transparent transparent transparent !important;
+        border-width: 5px 4px 0 4px !important;
+    }
+
+    #modalTambah .select2-container--default.select2-container--open .select2-selection--single .select2-selection__arrow b,
+    #modalEdit .select2-container--default.select2-container--open .select2-selection--single .select2-selection__arrow b {
+        border-color: transparent transparent #10b981 transparent !important;
+        border-width: 0 4px 5px 4px !important;
+    }
+
+    #modalTambah .select2-container--default .select2-selection--multiple,
+    #modalEdit .select2-container--default .select2-selection--multiple {
+        display: flex !important;
+        align-items: center !important;
+        width: 100% !important;
+        min-height: 42px !important;
+        padding: 4px 2.15rem 4px 0.35rem !important;
+    }
+
+    #modalTambah .select2-container--default .select2-selection--multiple .select2-selection__rendered,
+    #modalEdit .select2-container--default .select2-selection--multiple .select2-selection__rendered {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        align-items: center !important;
+        gap: 5px !important;
+        width: 100% !important;
+        padding: 0 !important;
+        line-height: 1.3 !important;
+    }
+
+    #modalTambah .select2-container--default .select2-selection--multiple .select2-selection__choice,
+    #modalEdit .select2-container--default .select2-selection--multiple .select2-selection__choice {
+        display: inline-flex !important;
+        align-items: center !important;
+        min-height: 28px !important;
+        margin: 0 !important;
+        padding: 0 0.65rem 0 0.45rem !important;
+        border: 1px solid #bbf7d0 !important;
+        border-radius: 7px !important;
+        background: #ecfdf5 !important;
+        color: #047857 !important;
+        font-size: 0.875rem !important;
+        font-weight: 700 !important;
+    }
+
+    #modalTambah .select2-container--default .select2-selection--multiple .select2-selection__choice__remove,
+    #modalEdit .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+        margin-right: 0.35rem !important;
+        color: #059669 !important;
+        font-size: 1rem !important;
+        font-weight: 800 !important;
+    }
+
+    #modalTambah .select2-container--default .select2-search--inline,
+    #modalEdit .select2-container--default .select2-search--inline {
+        flex: 1 1 9rem !important;
+        min-width: 8rem !important;
+        margin: 0 !important;
+    }
+
+    #modalTambah .select2-container--default .select2-search--inline .select2-search__field,
+    #modalEdit .select2-container--default .select2-search--inline .select2-search__field {
+        width: 100% !important;
+        min-width: 7rem !important;
+        height: 28px !important;
+        margin: 0 !important;
+        border: 0 !important;
+        outline: 0 !important;
+        box-shadow: none !important;
+        color: #334155 !important;
+        font-family: inherit !important;
+        font-size: 0.925rem !important;
+    }
+
+    #modalTambah .select2-container--default .select2-selection__clear,
+    #modalEdit .select2-container--default .select2-selection__clear {
+        position: absolute !important;
+        top: 50% !important;
+        right: 0.8rem !important;
+        transform: translateY(-50%) !important;
+        margin: 0 !important;
+        color: #64748b !important;
+        font-size: 1rem !important;
+        font-weight: 800 !important;
+    }
+
+    #modalTambah .select2-container--default .select2-selection__placeholder,
+    #modalEdit .select2-container--default .select2-selection__placeholder {
+        color: #94a3b8 !important;
+        font-weight: 500 !important;
+    }
+
+    #modalTambah .select2-dropdown,
+    #modalEdit .select2-dropdown,
+    body > .select2-container--open .select2-dropdown {
+        overflow: hidden !important;
+        margin-top: 6px !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 8px !important;
+        background: #ffffff !important;
+        box-shadow: 0 18px 38px rgba(15, 23, 42, 0.18) !important;
+    }
+
+    #modalTambah .select2-search--dropdown,
+    #modalEdit .select2-search--dropdown,
+    body > .select2-container--open .select2-search--dropdown {
+        padding: 0.6rem !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+    }
+
+    #modalTambah .select2-search--dropdown .select2-search__field,
+    #modalEdit .select2-search--dropdown .select2-search__field,
+    body > .select2-container--open .select2-search--dropdown .select2-search__field {
+        height: 38px !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 8px !important;
+        outline: 0 !important;
+        padding: 0 0.75rem !important;
+        color: #334155 !important;
+        font-size: 0.925rem !important;
+    }
+
+    #modalTambah .select2-results__options,
+    #modalEdit .select2-results__options,
+    body > .select2-container--open .select2-results__options {
+        max-height: 220px !important;
+        padding: 0.35rem !important;
+    }
+
+    #modalTambah .select2-results__option,
+    #modalEdit .select2-results__option,
+    body > .select2-container--open .select2-results__option {
+        border-radius: 7px !important;
+        padding: 0.65rem 0.75rem !important;
+        color: #334155 !important;
+        font-size: 0.925rem !important;
+        font-weight: 600 !important;
+    }
+
+    #modalTambah .select2-container--default .select2-results__option--highlighted[aria-selected],
+    #modalEdit .select2-container--default .select2-results__option--highlighted[aria-selected],
+    body > .select2-container--default .select2-results__option--highlighted[aria-selected] {
+        background: #10b981 !important;
+        color: #ffffff !important;
+    }
+
+    #modalTambah .select2-container--default .select2-results__option[aria-selected="true"],
+    #modalEdit .select2-container--default .select2-results__option[aria-selected="true"],
+    body > .select2-container--default .select2-results__option[aria-selected="true"] {
+        background: #d1fae5 !important;
+        color: #065f46 !important;
+    }
+
     #modalTambah .select2-container--open,
     #modalEdit .select2-container--open,
     .select2-dropdown {
         z-index: 1065 !important;
+    }
+
+    body > .select2-container--open {
+        z-index: 1066 !important;
     }
 </style>
 
@@ -602,8 +796,7 @@ if (isset($_GET['hapus_transaksi'])) {
 <script>
     $(document).ready(function() {
         function getSelect2Parent($element) {
-            var $parent = $element.closest('[data-tailwind-modal]');
-            return $parent.length ? $parent : $(document.body);
+            return $(document.body);
         }
 
         function initSelect2Field($element, extraOptions) {
@@ -796,7 +989,7 @@ if (isset($_GET['hapus_transaksi'])) {
                 initSelect2Field($(this), {
                     placeholder: "Pilih Bulan",
                     allowClear: true,
-                    dropdownParent: $('#modalTambah')
+                    dropdownParent: $(document.body)
                 });
             });
         });

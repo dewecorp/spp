@@ -122,7 +122,7 @@ if (isset($_POST['no_transaksi'])) {
                 placeholder: "Pilih Jenis Bayar",
                 allowClear: true,
                 width: '100%',
-                dropdownParent: $('#modalEdit')
+                dropdownParent: $(document.body)
             });
 
             // Init Select2 for Existing Months
@@ -130,7 +130,7 @@ if (isset($_POST['no_transaksi'])) {
                 placeholder: "Pilih Bulan",
                 allowClear: true,
                 width: '100%',
-                dropdownParent: $('#modalEdit')
+                dropdownParent: $(document.body)
             });
 
             // Handle Change on Jenis Bayar
@@ -222,7 +222,7 @@ if (isset($_POST['no_transaksi'])) {
                     placeholder: "Pilih Bulan",
                     allowClear: true,
                     width: '100%',
-                    dropdownParent: $('#modalEdit')
+                    dropdownParent: $(document.body)
                 });
             });
         });
