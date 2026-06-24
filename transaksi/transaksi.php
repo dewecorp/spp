@@ -6,9 +6,7 @@ include '../template/sidebar.php';
 // Include Select2 CSS
 ?>
 <link rel="stylesheet" href="<?= base_url('assets/vendors/select2/select2.min.css') ?>">
-<link rel="stylesheet" href="<?= base_url('assets/vendors/select2-bootstrap-theme/select2-bootstrap.min.css') ?>">
 <style>
-    /* Fix Select2 width issue in Bootstrap Modals */
     .select2-container {
         width: 100% !important;
     }
@@ -19,6 +17,26 @@ include '../template/sidebar.php';
     .select2-search__field {
         width: 100% !important;
         min-width: 200px !important;
+    }
+    #modalTambah .select2-container,
+    #modalEdit .select2-container {
+        display: block !important;
+        width: 100% !important;
+    }
+    #modalTambah .select2-selection,
+    #modalEdit .select2-selection {
+        min-height: 40px !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 8px !important;
+    }
+    #modalTambah .select2-selection__rendered,
+    #modalEdit .select2-selection__rendered {
+        line-height: 38px !important;
+    }
+    #modalTambah .select2-container--open,
+    #modalEdit .select2-container--open,
+    .select2-dropdown {
+        z-index: 1065 !important;
     }
 </style>
 
@@ -592,7 +610,9 @@ if (isset($_GET['hapus_transaksi'])) {
             $('body').addClass('overflow-hidden');
             $modal.scrollTop(0);
             $modal.find('.overflow-y-auto').first().scrollTop(0);
-            $modal.trigger('shown.bs.modal');
+            window.requestAnimationFrame(function() {
+                $modal.trigger('shown.bs.modal');
+            });
         }
 
         function closeTailwindModal($modal) {
@@ -602,6 +622,27 @@ if (isset($_GET['hapus_transaksi'])) {
                 $('body').removeClass('overflow-hidden');
             }
             $modal.trigger('hidden.bs.modal');
+        }
+
+        function getSelect2Parent($element) {
+            var $parent = $element.closest('[data-tailwind-modal]');
+            if (!$parent.length) {
+                $parent = $element.closest('.modal');
+            }
+            return $parent.length ? $parent : $(document.body);
+        }
+
+        function initSelect2Field($element, extraOptions) {
+            if (!$element.length || !$.fn.select2) return;
+            if ($element.hasClass('select2-hidden-accessible')) {
+                $element.select2('destroy');
+            }
+            $element.select2($.extend({
+                width: '100%',
+                dropdownParent: getSelect2Parent($element),
+                placeholder: $element.data('placeholder') || "Pilih Options",
+                allowClear: true
+            }, extraOptions || {}));
         }
 
         $(document).on('click', '[data-tailwind-modal-target]', function(e) {
@@ -699,30 +740,27 @@ if (isset($_GET['hapus_transaksi'])) {
 
         // Initialize Select2 in Modals
         $('.select2-modal').each(function() {
-            $(this).select2({
-                theme: "bootstrap",
-                width: '100%',
-                dropdownParent: $(this).closest('.modal')
-            });
+            initSelect2Field($(this), { allowClear: false });
         });
 
         // Re-adjust Select2 when modal is shown (Crucial for width calculation)
         $('#modalTambah').on('shown.bs.modal', function () {
-            $(this).find('.modal-body').scrollTop(0);
-            $('.select2-modal, .select2-multiple').each(function() {
-                $(this).select2({
-                    theme: "bootstrap",
-                    width: '100%',
-                    dropdownParent: $(this).closest('.modal'),
-                    placeholder: $(this).data('placeholder') || "Pilih Options",
-                    allowClear: true
+            $(this).find('.overflow-y-auto').first().scrollTop(0);
+            $(this).find('.select2-modal, .select2-multiple').each(function() {
+                initSelect2Field($(this), {
+                    allowClear: $(this).is('[multiple]') || !!$(this).data('placeholder')
                 });
             });
             syncJenisBayarByKelas();
         });
 
         $('#modalEdit').on('shown.bs.modal', function () {
-            $(this).find('.modal-body').scrollTop(0);
+            $(this).find('.overflow-y-auto').first().scrollTop(0);
+            $(this).find('.select2-modal, .select2-multiple, .select-jenis-bayar').each(function() {
+                initSelect2Field($(this), {
+                    allowClear: $(this).is('[multiple]') || !!$(this).data('placeholder')
+                });
+            });
         });
 
         // Saat siswa berubah, sesuaikan opsi jenis bayar dengan kelas (Biaya Ujian & Rekreasi hanya kelas 6 sesuai tagihan_kelas)
@@ -755,12 +793,9 @@ if (isset($_GET['hapus_transaksi'])) {
         // Initialize Select2 Multiple for Bulan
         $('.select2-multiple').each(function() {
             var placeholder = $(this).data('placeholder') || "Pilih Bulan";
-            $(this).select2({
+            initSelect2Field($(this), {
                 placeholder: placeholder,
-                allowClear: true,
-                theme: "bootstrap",
-                width: '100%',
-                dropdownParent: $(this).closest('.modal')
+                allowClear: true
             });
         });
 
@@ -805,11 +840,12 @@ if (isset($_GET['hapus_transaksi'])) {
             });
 
             // Re-init Select2 for new elements
-            $('.select2-dynamic-bulan').select2({
-                placeholder: "Pilih Bulan",
-                allowClear: true,
-                theme: "bootstrap",
-                dropdownParent: $('#modalTambah')
+            $('.select2-dynamic-bulan').each(function() {
+                initSelect2Field($(this), {
+                    placeholder: "Pilih Bulan",
+                    allowClear: true,
+                    dropdownParent: $('#modalTambah')
+                });
             });
         });
 
@@ -831,8 +867,8 @@ if (isset($_GET['hapus_transaksi'])) {
             var targetId = $(this).data('target');
             
             // Validation Logic
-            var modalId = $(this).closest('.modal').attr('id');
-            var siswaSelect = $(this).closest('.modal-body').find('select[name="nisn"]');
+            var modalId = $(this).closest('[data-tailwind-modal], .modal').attr('id');
+            var siswaSelect = $(this).closest('[data-tailwind-modal], .modal').find('select[name="nisn"]');
             var selectedSiswa = siswaSelect.find('option:selected');
             var kelasSiswa = selectedSiswa.attr('data-kelas');
             var kelasSiswaNormalized = normalizeKelas(kelasSiswa);

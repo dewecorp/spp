@@ -124,7 +124,7 @@ if (isset($_GET['hapus'])) {
         <div class="card">
             <div class="card-body">
                 <h4 class="card-title">Data Pengguna</h4>
-                <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#modalTambah">
+                <button type="button" class="btn btn-primary mb-3" data-tailwind-modal-target="#modalTambah">
                     <i class="mdi mdi-plus"></i> Tambah Pengguna
                 </button>
                 <div class="table-responsive">
@@ -189,17 +189,17 @@ if (isset($_GET['hapus'])) {
 </div>
 
 <!-- Modal Tambah -->
-<div class="modal fade" id="modalTambah" tabindex="-1" role="dialog" aria-labelledby="modalTambahLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalTambahLabel">Tambah Pengguna</h5>
-                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close" style="background: transparent; border: none;">
+<div class="fixed inset-0 z-[1055] hidden overflow-y-auto bg-slate-950/60 px-4 py-6 backdrop-blur-sm" id="modalTambah" tabindex="-1" role="dialog" aria-labelledby="modalTambahLabel" aria-hidden="true" data-tailwind-modal>
+    <div class="mx-auto flex min-h-full w-full max-w-2xl items-start">
+        <div class="flex max-h-[calc(100vh-3rem)] w-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl">
+            <div class="flex shrink-0 items-center justify-between border-b border-slate-200 px-6 py-4">
+                <h5 class="text-base font-extrabold text-slate-900" id="modalTambahLabel">Tambah Pengguna</h5>
+                <button type="button" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-100 hover:text-slate-900" data-tailwind-modal-close aria-label="Close" style="background: transparent; border: none;">
                     <i class="mdi mdi-close"></i>
                 </button>
             </div>
             <form action="" method="post" enctype="multipart/form-data">
-                <div class="modal-body">
+                <div class="min-h-0 flex-1 overflow-y-auto px-6 py-5">
                     <div class="form-group">
                         <label>Nama Lengkap</label>
                         <input type="text" name="nama_lengkap" class="form-control" required>
@@ -225,8 +225,8 @@ if (isset($_GET['hapus'])) {
                         <small class="text-muted">Format: JPG, JPEG, PNG.</small>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <div class="flex shrink-0 items-center justify-end gap-3 border-t border-slate-200 px-6 py-4">
+                    <button type="button" class="btn btn-secondary" data-tailwind-modal-close>Batal</button>
                     <button type="submit" name="tambah" class="btn btn-primary">Simpan</button>
                 </div>
             </form>
@@ -235,17 +235,17 @@ if (isset($_GET['hapus'])) {
 </div>
 
 <!-- Modal Edit -->
-<div class="modal fade" id="modalEdit" tabindex="-1" role="dialog" aria-labelledby="modalEditLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalEditLabel">Edit Pengguna</h5>
-                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close" style="background: transparent; border: none;">
+<div class="fixed inset-0 z-[1055] hidden overflow-y-auto bg-slate-950/60 px-4 py-6 backdrop-blur-sm" id="modalEdit" tabindex="-1" role="dialog" aria-labelledby="modalEditLabel" aria-hidden="true" data-tailwind-modal>
+    <div class="mx-auto flex min-h-full w-full max-w-2xl items-start">
+        <div class="flex max-h-[calc(100vh-3rem)] w-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl">
+            <div class="flex shrink-0 items-center justify-between border-b border-slate-200 px-6 py-4">
+                <h5 class="text-base font-extrabold text-slate-900" id="modalEditLabel">Edit Pengguna</h5>
+                <button type="button" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-100 hover:text-slate-900" data-tailwind-modal-close aria-label="Close" style="background: transparent; border: none;">
                     <i class="mdi mdi-close"></i>
                 </button>
             </div>
             <form action="" method="post" enctype="multipart/form-data">
-                <div class="modal-body">
+                <div class="min-h-0 flex-1 overflow-y-auto px-6 py-5">
                     <input type="hidden" name="id_pengguna" id="edit_id">
                     <div class="form-group">
                         <label>Nama Lengkap</label>
@@ -272,8 +272,8 @@ if (isset($_GET['hapus'])) {
                         <small class="text-muted">Format: JPG, JPEG, PNG. Biarkan kosong jika tidak ingin mengganti foto.</small>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <div class="flex shrink-0 items-center justify-end gap-3 border-t border-slate-200 px-6 py-4">
+                    <button type="button" class="btn btn-secondary" data-tailwind-modal-close>Batal</button>
                     <button type="submit" name="edit" class="btn btn-primary">Simpan Perubahan</button>
                 </div>
             </form>
@@ -319,3 +319,4 @@ if (isset($_GET['hapus'])) {
         });
     });
 </script>
+

@@ -247,6 +247,16 @@
 .navbar.default-layout .navbar-menu-wrapper .mdi {
     color: #ffffff !important;
 }
+.navbar.default-layout .navbar-menu-wrapper .navbar-dropdown .dropdown-item,
+.navbar.default-layout .navbar-menu-wrapper .navbar-dropdown .dropdown-item span {
+    color: #374151 !important;
+}
+.navbar.default-layout .navbar-menu-wrapper .navbar-dropdown .dropdown-item .mdi-update {
+    color: #059669 !important;
+}
+.navbar.default-layout .navbar-menu-wrapper .navbar-dropdown .dropdown-item .mdi-logout {
+    color: #dc2626 !important;
+}
 #UserDropdown.dropdown-toggle::after {
     display: none !important;
 }
@@ -337,8 +347,7 @@
 }
 
 /* Panel dropdown — emerald theme */
-.select2-kelas-filter-dropdown.select2-dropdown,
-.select2-container--bootstrap .select2-kelas-filter-dropdown.select2-dropdown {
+.select2-kelas-filter-dropdown.select2-dropdown {
     border: 1px solid #10b981 !important;
     border-radius: 10px !important;
 }
@@ -498,9 +507,9 @@ a {
 }
 
 .sidebar {
-    background: linear-gradient(180deg, #064e3b 0%, #0f172a 58%) !important;
-    border-right: 1px solid rgba(148, 163, 184, 0.16);
-    box-shadow: 14px 0 32px rgba(15, 23, 42, 0.08);
+    background: linear-gradient(120deg, #10b981, #059669) !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.16);
+    box-shadow: 14px 0 32px rgba(5, 150, 105, 0.16);
 }
 
 @media (min-width: 992px) {
@@ -690,7 +699,6 @@ a {
 }
 
 .card,
-.modal-content,
 .swal2-popup {
     border-radius: var(--app-radius) !important;
 }
@@ -949,79 +957,6 @@ table.dataTable thead th::after {
     border-color: var(--app-border) !important;
 }
 
-.modal {
-    position: fixed;
-    inset: 0;
-    z-index: 1055;
-    display: none;
-    overflow-x: hidden;
-    overflow-y: auto;
-    background: rgba(15, 23, 42, 0.52);
-}
-
-.modal.show {
-    display: block;
-}
-
-.modal-dialog {
-    width: min(96vw, 620px);
-    margin: 28px auto;
-}
-
-.modal-dialog.modal-lg,
-.modal-lg {
-    width: min(96vw, 920px);
-}
-
-.modal-content {
-    background: #ffffff;
-    border: 1px solid var(--app-border);
-    box-shadow: 0 28px 70px rgba(15, 23, 42, 0.26);
-}
-
-.modal-header,
-.modal-footer {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 18px 22px !important;
-    border-color: var(--app-border) !important;
-}
-
-.modal-header {
-    justify-content: space-between;
-    border-bottom: 1px solid var(--app-border);
-}
-
-.modal-footer {
-    justify-content: flex-end;
-    border-top: 1px solid var(--app-border);
-}
-
-.modal-body {
-    padding: 22px !important;
-}
-
-.modal-title {
-    color: var(--app-slate);
-    font-size: 1rem;
-    font-weight: 800;
-}
-
-.close {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 34px;
-    height: 34px;
-    border: 0;
-    border-radius: var(--app-radius);
-    background: #f1f5f9;
-    color: #475569;
-    font-size: 1.35rem;
-    line-height: 1;
-}
-
 .alert {
     padding: 12px 14px;
     border-radius: var(--app-radius);
@@ -1094,66 +1029,6 @@ table.dataTable thead th::after {
     transition: width 0.2s ease;
 }
 
-.modal-open {
-    overflow: hidden;
-}
-
-/* Keep long transaction modals usable on small screens. */
-.modal.show {
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
-    padding: 24px 12px !important;
-}
-
-.modal.show .modal-dialog {
-    margin: 0 auto !important;
-    min-height: calc(100vh - 48px);
-    display: flex;
-    align-items: flex-start;
-}
-
-.modal.show .modal-dialog-scrollable .modal-content,
-.modal.show .modal-content {
-    width: 100%;
-    max-height: calc(100vh - 48px);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden !important;
-}
-
-.modal.show .modal-dialog-scrollable .modal-body,
-.modal.show .modal-body {
-    overflow-y: auto !important;
-    max-height: none;
-    min-height: 0;
-    flex: 1 1 auto;
-    overscroll-behavior: contain;
-}
-
-.modal.show .modal-header,
-.modal.show .modal-footer {
-    flex: 0 0 auto;
-}
-
-#modalTambah .modal-dialog,
-#modalEdit .modal-dialog {
-    width: min(96vw, 680px);
-}
-
-@media (max-width: 640px) {
-    .modal.show {
-        padding: 12px 8px !important;
-    }
-
-    .modal.show .modal-dialog {
-        min-height: calc(100vh - 24px);
-    }
-
-    .modal.show .modal-content {
-        max-height: calc(100vh - 24px);
-    }
-}
-
 @media (max-width: 991px) {
     .page-body-wrapper {
         padding-top: 68px;
@@ -1200,8 +1075,7 @@ table.dataTable thead th::after {
         padding: 14px !important;
     }
 
-    .card-body,
-    .modal-body {
+    .card-body {
         padding: 18px !important;
     }
 
@@ -1235,4 +1109,53 @@ table.dataTable thead th::after {
     .no-print {
         display: none !important;
     }
+}
+
+/* Final Tailwind migration overrides */
+.navbar.default-layout,
+.sidebar {
+    background: linear-gradient(120deg, #10b981, #059669) !important;
+}
+
+.sidebar .nav .nav-item .nav-link {
+    background: transparent !important;
+    color: #ffffff !important;
+    text-shadow: 0 1px 1px rgba(4, 120, 87, 0.22);
+}
+
+.sidebar .nav .nav-item .nav-link:hover,
+.sidebar .nav .nav-item .nav-link.active,
+.sidebar .nav .nav-item .nav-link[aria-expanded="true"] {
+    background: rgba(255, 255, 255, 0.22) !important;
+    color: #ffffff !important;
+    box-shadow: inset 3px 0 0 #ffffff;
+}
+
+.sidebar .nav .nav-item .nav-link i.menu-icon,
+.sidebar .nav .nav-item .nav-link .menu-arrow {
+    color: #ecfdf5 !important;
+}
+
+.sidebar .nav .nav-item .nav-link .menu-title {
+    color: #ffffff !important;
+    font-weight: 800 !important;
+}
+
+.sidebar .nav.sub-menu .nav-item .nav-link {
+    color: #f0fdf4 !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.sidebar .nav.sub-menu .nav-item .nav-link:hover,
+.sidebar .nav.sub-menu .nav-item .nav-link.active {
+    background: rgba(255, 255, 255, 0.24) !important;
+    color: #ffffff !important;
+}
+
+.navbar.default-layout .navbar-menu-wrapper .navbar-dropdown .dropdown-item .mdi-update {
+    color: #059669 !important;
+}
+
+.navbar.default-layout .navbar-menu-wrapper .navbar-dropdown .dropdown-item .mdi-logout {
+    color: #dc2626 !important;
 }

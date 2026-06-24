@@ -114,7 +114,7 @@ if (isset($_GET['hapus'])) {
         <div class="card">
             <div class="card-body">
                 <h4 class="card-title">Data Jenis Bayar</h4>
-                <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#modalTambahJenis">
+                <button type="button" class="btn btn-primary mb-3" data-tailwind-modal-target="#modalTambahJenis">
                     <i class="mdi mdi-plus"></i> Tambah Jenis Bayar
                 </button>
                 <div class="table-responsive">
@@ -171,7 +171,7 @@ if (isset($_GET['hapus'])) {
                                         <?php endif; ?>
                                     </td>
                                     <td>
-                                        <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEdit<?= $row['id_jenis_bayar'] ?>">
+                                        <button type="button" class="btn btn-warning btn-sm" data-tailwind-modal-target="#modalEdit<?= $row['id_jenis_bayar'] ?>">
                                             <i class="mdi mdi-pencil"></i>
                                         </button>
                                         <a href="jenis_bayar.php?hapus=<?= $row['id_jenis_bayar'] ?>" class="btn btn-danger btn-sm btn-hapus">
@@ -181,17 +181,17 @@ if (isset($_GET['hapus'])) {
                                 </tr>
 
                                 <!-- Modal Edit -->
-                                <div class="modal fade" id="modalEdit<?= $row['id_jenis_bayar'] ?>" tabindex="-1" role="dialog" aria-labelledby="labelEdit<?= $row['id_jenis_bayar'] ?>" aria-hidden="true">
-                                    <div class="modal-dialog" role="document">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title" id="labelEdit<?= $row['id_jenis_bayar'] ?>">Edit Jenis Bayar</h5>
-                                                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close" style="background: transparent; border: none;">
+                                <div class="fixed inset-0 z-[1055] hidden overflow-y-auto bg-slate-950/60 px-4 py-6 backdrop-blur-sm" id="modalEdit<?= $row['id_jenis_bayar'] ? data-tailwind-modal>" tabindex="-1" role="dialog" aria-labelledby="labelEdit<?= $row['id_jenis_bayar'] ?>" aria-hidden="true">
+                                    <div class="mx-auto flex min-h-full w-full max-w-2xl items-start">
+                                        <div class="flex max-h-[calc(100vh-3rem)] w-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl">
+                                            <div class="flex shrink-0 items-center justify-between border-b border-slate-200 px-6 py-4">
+                                                <h5 class="text-base font-extrabold text-slate-900" id="labelEdit<?= $row['id_jenis_bayar'] ?>">Edit Jenis Bayar</h5>
+                                                <button type="button" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-100 hover:text-slate-900" data-tailwind-modal-close aria-label="Close" style="background: transparent; border: none;">
                                                     <i class="mdi mdi-close"></i>
                                                 </button>
                                             </div>
                                             <form action="" method="post">
-                                                <div class="modal-body">
+                                                <div class="min-h-0 flex-1 overflow-y-auto px-6 py-5">
                                                     <input type="hidden" name="id_jenis_bayar" value="<?= $row['id_jenis_bayar'] ?>">
                                                     <div class="form-group">
                                                         <label>Nama Pembayaran</label>
@@ -234,8 +234,8 @@ if (isset($_GET['hapus'])) {
                                                         </select>
                                                     </div>
                                                 </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                                                <div class="flex shrink-0 items-center justify-end gap-3 border-t border-slate-200 px-6 py-4">
+                                                    <button type="button" class="btn btn-secondary" data-tailwind-modal-close>Batal</button>
                                                     <button type="submit" name="edit" class="btn btn-primary">Simpan</button>
                                                 </div>
                                             </form>
@@ -252,17 +252,17 @@ if (isset($_GET['hapus'])) {
 </div>
 
 <!-- Modal Tambah -->
-<div class="modal fade" id="modalTambahJenis" tabindex="-1" role="dialog" aria-labelledby="labelTambahJenis" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="labelTambahJenis">Tambah Jenis Bayar</h5>
-                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close" style="background: transparent; border: none;">
+<div class="fixed inset-0 z-[1055] hidden overflow-y-auto bg-slate-950/60 px-4 py-6 backdrop-blur-sm" id="modalTambahJenis" tabindex="-1" role="dialog" aria-labelledby="labelTambahJenis" aria-hidden="true" data-tailwind-modal>
+    <div class="mx-auto flex min-h-full w-full max-w-2xl items-start">
+        <div class="flex max-h-[calc(100vh-3rem)] w-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl">
+            <div class="flex shrink-0 items-center justify-between border-b border-slate-200 px-6 py-4">
+                <h5 class="text-base font-extrabold text-slate-900" id="labelTambahJenis">Tambah Jenis Bayar</h5>
+                <button type="button" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-100 hover:text-slate-900" data-tailwind-modal-close aria-label="Close" style="background: transparent; border: none;">
                     <i class="mdi mdi-close"></i>
                 </button>
             </div>
             <form action="" method="post">
-                <div class="modal-body">
+                <div class="min-h-0 flex-1 overflow-y-auto px-6 py-5">
                     <div class="form-group">
                         <label>Nama Pembayaran</label>
                         <input type="text" name="nama_pembayaran" class="form-control" placeholder="Contoh: SPP Juli 2024" required>
@@ -302,8 +302,8 @@ if (isset($_GET['hapus'])) {
                         </select>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <div class="flex shrink-0 items-center justify-end gap-3 border-t border-slate-200 px-6 py-4">
+                    <button type="button" class="btn btn-secondary" data-tailwind-modal-close>Batal</button>
                     <button type="submit" name="tambah" class="btn btn-primary">Simpan</button>
                 </div>
             </form>
@@ -391,3 +391,4 @@ if (isset($_GET['hapus'])) {
         });
     });
 </script>
+

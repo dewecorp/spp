@@ -79,81 +79,14 @@ if (!isset($_SESSION['login']) || !isset($_SESSION['nama_lengkap']) || !isset($_
         })();
     </script>
     <script>
-        // Lightweight Bootstrap modal compatibility for pages still using data-bs-*.
-        (function() {
-            class Modal {
-                constructor(element) {
-                    this.element = element;
-                }
-                show() {
-                    if (!this.element) return;
-                    this.element.style.display = 'block';
-                    this.element.removeAttribute('aria-hidden');
-                    this.element.classList.add('show');
-                    document.body.classList.add('modal-open');
-                    this.element.scrollTop = 0;
-                    const modalBody = this.element.querySelector('.modal-body');
-                    if (modalBody) {
-                        modalBody.scrollTop = 0;
-                    }
-                    this.element.dispatchEvent(new Event('shown.bs.modal'));
-                }
-                hide() {
-                    if (!this.element) return;
-                    this.element.classList.remove('show');
-                    this.element.setAttribute('aria-hidden', 'true');
-                    this.element.style.display = 'none';
-                    if (!document.querySelector('.modal.show')) {
-                        document.body.classList.remove('modal-open');
-                    }
-                    this.element.dispatchEvent(new Event('hidden.bs.modal'));
-                }
-                static getOrCreateInstance(element) {
-                    if (!element) return new Modal(null);
-                    if (!element._appModal) {
-                        element._appModal = new Modal(element);
-                    }
-                    return element._appModal;
-                }
-            }
-
-            window.bootstrap = window.bootstrap || {};
-            window.bootstrap.Modal = window.bootstrap.Modal || Modal;
-
-            document.addEventListener('click', function(event) {
-                const toggle = event.target.closest('[data-bs-toggle="modal"]');
-                if (toggle) {
-                    event.preventDefault();
-                    const selector = toggle.getAttribute('data-bs-target') || toggle.getAttribute('href');
-                    const modal = selector ? document.querySelector(selector) : null;
-                    window.bootstrap.Modal.getOrCreateInstance(modal).show();
-                }
-
-                const offcanvasToggle = event.target.closest('[data-toggle="offcanvas"]');
-                if (offcanvasToggle) {
-                    event.preventDefault();
-                    const sidebar = document.getElementById('sidebar');
-                    if (sidebar) sidebar.classList.toggle('active');
-                }
-
-                const dismiss = event.target.closest('[data-bs-dismiss="modal"]');
-                if (dismiss) {
-                    event.preventDefault();
-                    const modal = dismiss.closest('.modal');
-                    window.bootstrap.Modal.getOrCreateInstance(modal).hide();
-                }
-
-                if (event.target.classList && event.target.classList.contains('modal')) {
-                    window.bootstrap.Modal.getOrCreateInstance(event.target).hide();
-                }
-            });
-
-            document.addEventListener('keydown', function(event) {
-                if (event.key !== 'Escape') return;
-                const modal = document.querySelector('.modal.show');
-                if (modal) window.bootstrap.Modal.getOrCreateInstance(modal).hide();
-            });
-        })();
+        // Tailwind-only sidebar toggle for mobile.
+        document.addEventListener('click', function(event) {
+            const offcanvasToggle = event.target.closest('[data-toggle="offcanvas"]');
+            if (!offcanvasToggle) return;
+            event.preventDefault();
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) sidebar.classList.toggle('active');
+        });
     </script>
     <style>
         .swal2-popup {

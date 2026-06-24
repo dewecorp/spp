@@ -309,10 +309,10 @@ $jumlah_siswa = mysqli_num_rows($query_siswa);
                 
                 <div class="toolbar d-flex justify-content-between mb-3 align-items-center">
                     <div>
-                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalTambah">
+                        <button type="button" class="btn btn-primary" data-tailwind-modal-target="#modalTambah">
                             <i class="mdi mdi-plus"></i> Tambah Siswa
                         </button>
-                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalImport">
+                        <button type="button" class="btn btn-success" data-tailwind-modal-target="#modalImport">
                             <i class="mdi mdi-file-excel"></i> Import Data
                         </button>
                         <form action="" method="post" style="display: inline;" id="formSinkronSimad">
@@ -389,7 +389,7 @@ $jumlah_siswa = mysqli_num_rows($query_siswa);
                                     <td><?= $row['nama_kelas'] ?></td>
                                     <td><?= $row['nama_wali'] ?></td>
                                     <td class="aksi-col dt-nowrap text-end">
-                                        <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEdit<?= $row['nisn'] ?>">
+                                        <button type="button" class="btn btn-warning btn-sm" data-tailwind-modal-target="#modalEdit<?= $row['nisn'] ?>">
                                             <i class="mdi mdi-pencil"></i>
                                         </button>
                                         <a href="siswa.php?hapus=<?= $row['nisn'] ?>" class="btn btn-danger btn-sm btn-hapus">
@@ -399,17 +399,17 @@ $jumlah_siswa = mysqli_num_rows($query_siswa);
                                 </tr>
 
                                 <!-- Modal Edit -->
-                                <div class="modal fade" id="modalEdit<?= $row['nisn'] ?>" tabindex="-1" role="dialog" aria-hidden="true">
-                                    <div class="modal-dialog" role="document">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title">Edit Siswa</h5>
-                                                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                                <div class="fixed inset-0 z-[1055] hidden overflow-y-auto bg-slate-950/60 px-4 py-6 backdrop-blur-sm" id="modalEdit<?= $row['nisn'] ? data-tailwind-modal>" tabindex="-1" role="dialog" aria-hidden="true">
+                                    <div class="mx-auto flex min-h-full w-full max-w-2xl items-start">
+                                        <div class="flex max-h-[calc(100vh-3rem)] w-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl">
+                                            <div class="flex shrink-0 items-center justify-between border-b border-slate-200 px-6 py-4">
+                                                <h5 class="text-base font-extrabold text-slate-900">Edit Siswa</h5>
+                                                <button type="button" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-100 hover:text-slate-900" data-tailwind-modal-close aria-label="Close">
                                                     <span aria-hidden="true">&times;</span>
                                                 </button>
                                             </div>
                                             <form action="" method="post">
-                                                <div class="modal-body">
+                                                <div class="min-h-0 flex-1 overflow-y-auto px-6 py-5">
                                                     <input type="hidden" name="nisn_lama" value="<?= $row['nisn'] ?>">
                                                     <div class="form-group">
                                                         <label>NISN</label>
@@ -461,8 +461,8 @@ $jumlah_siswa = mysqli_num_rows($query_siswa);
                                                         <input type="text" name="nama_wali" class="form-control" value="<?= $row['nama_wali'] ?>">
                                                     </div>
                                                 </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                                                <div class="flex shrink-0 items-center justify-end gap-3 border-t border-slate-200 px-6 py-4">
+                                                    <button type="button" class="btn btn-secondary" data-tailwind-modal-close>Batal</button>
                                                     <button type="submit" name="edit" class="btn btn-primary">Simpan</button>
                                                 </div>
                                             </form>
@@ -480,17 +480,17 @@ $jumlah_siswa = mysqli_num_rows($query_siswa);
 </div>
 
 <!-- Modal Multi Edit -->
-<div class="modal fade" id="modalMultiEdit" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Edit Data Siswa Terpilih</h5>
-                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+<div class="fixed inset-0 z-[1055] hidden overflow-y-auto bg-slate-950/60 px-4 py-6 backdrop-blur-sm" id="modalMultiEdit" tabindex="-1" role="dialog" aria-hidden="true" data-tailwind-modal>
+    <div class="mx-auto flex min-h-full w-full max-w-2xl items-start">
+        <div class="flex max-h-[calc(100vh-3rem)] w-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl">
+            <div class="flex shrink-0 items-center justify-between border-b border-slate-200 px-6 py-4">
+                <h5 class="text-base font-extrabold text-slate-900">Edit Data Siswa Terpilih</h5>
+                <button type="button" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-100 hover:text-slate-900" data-tailwind-modal-close aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <form action="" method="post">
-                <div class="modal-body">
+                <div class="min-h-0 flex-1 overflow-y-auto px-6 py-5">
                     <div class="table-responsive">
                         <table class="table table-bordered">
                             <thead>
@@ -507,8 +507,8 @@ $jumlah_siswa = mysqli_num_rows($query_siswa);
                         </table>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <div class="flex shrink-0 items-center justify-end gap-3 border-t border-slate-200 px-6 py-4">
+                    <button type="button" class="btn btn-secondary" data-tailwind-modal-close>Batal</button>
                     <button type="submit" name="multi_edit_save" class="btn btn-primary">Simpan Perubahan</button>
                 </div>
             </form>
@@ -717,17 +717,17 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <!-- Modal Tambah -->
-<div class="modal fade" id="modalTambah" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Tambah Siswa</h5>
-                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close" style="background: transparent; border: none;">
+<div class="fixed inset-0 z-[1055] hidden overflow-y-auto bg-slate-950/60 px-4 py-6 backdrop-blur-sm" id="modalTambah" tabindex="-1" role="dialog" aria-hidden="true" data-tailwind-modal>
+    <div class="mx-auto flex min-h-full w-full max-w-2xl items-start">
+        <div class="flex max-h-[calc(100vh-3rem)] w-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl">
+            <div class="flex shrink-0 items-center justify-between border-b border-slate-200 px-6 py-4">
+                <h5 class="text-base font-extrabold text-slate-900">Tambah Siswa</h5>
+                <button type="button" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-100 hover:text-slate-900" data-tailwind-modal-close aria-label="Close" style="background: transparent; border: none;">
                     <i class="mdi mdi-close"></i>
                 </button>
             </div>
             <form action="" method="post">
-                <div class="modal-body">
+                <div class="min-h-0 flex-1 overflow-y-auto px-6 py-5">
                     <div class="form-group">
                         <label>NISN</label>
                         <input type="text" name="nisn" class="form-control" required>
@@ -777,8 +777,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         <input type="text" name="nama_wali" class="form-control">
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <div class="flex shrink-0 items-center justify-end gap-3 border-t border-slate-200 px-6 py-4">
+                    <button type="button" class="btn btn-secondary" data-tailwind-modal-close>Batal</button>
                     <button type="submit" name="tambah" class="btn btn-primary">Simpan</button>
                 </div>
             </form>
@@ -787,17 +787,17 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 
 <!-- Modal Import -->
-<div class="modal fade" id="modalImport" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Import Data Siswa</h5>
-                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close" style="background: transparent; border: none;">
+<div class="fixed inset-0 z-[1055] hidden overflow-y-auto bg-slate-950/60 px-4 py-6 backdrop-blur-sm" id="modalImport" tabindex="-1" role="dialog" aria-hidden="true" data-tailwind-modal>
+    <div class="mx-auto flex min-h-full w-full max-w-2xl items-start">
+        <div class="flex max-h-[calc(100vh-3rem)] w-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl">
+            <div class="flex shrink-0 items-center justify-between border-b border-slate-200 px-6 py-4">
+                <h5 class="text-base font-extrabold text-slate-900">Import Data Siswa</h5>
+                <button type="button" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-100 hover:text-slate-900" data-tailwind-modal-close aria-label="Close" style="background: transparent; border: none;">
                     <i class="mdi mdi-close"></i>
                 </button>
             </div>
             <form id="formImport" action="" method="post" enctype="multipart/form-data" onsubmit="startProgress()">
-                <div class="modal-body">
+                <div class="min-h-0 flex-1 overflow-y-auto px-6 py-5">
                     <div class="alert alert-info">
                         Gunakan file template Excel berikut untuk mengimport data: <br>
                         <a href="template_siswa.xlsx" class="btn btn-sm btn-success mt-2">
@@ -814,8 +814,8 @@ document.addEventListener('DOMContentLoaded', function() {
                              style="width: 0%;" id="progressBar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <div class="flex shrink-0 items-center justify-end gap-3 border-t border-slate-200 px-6 py-4">
+                    <button type="button" class="btn btn-secondary" data-tailwind-modal-close>Batal</button>
                     <button type="submit" name="import" class="btn btn-primary">Import</button>
                 </div>
             </form>
@@ -851,3 +851,4 @@ function startProgress(event) {
 </script>
 
 <?php include '../template/footer.php'; ?>
+
