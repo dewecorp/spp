@@ -136,12 +136,12 @@ if (isset($_POST['login'])) {
                             Sistem Pembayaran Siswa
                         </h1>
                         <p class="mt-4 max-w-sm text-base font-semibold leading-7 text-emerald-50">
-                            Akses bendahara dan petugas untuk transaksi, tagihan, laporan, dan pengaturan sekolah.
+                            Tertib, Transparan, dan Terpercaya
                         </p>
                     </div>
                     <div class="rounded-lg bg-white/12 p-4 ring-1 ring-white/20">
                         <p class="text-sm font-semibold text-emerald-50"><?= htmlspecialchars($nama_sekolah, ENT_QUOTES, 'UTF-8') ?></p>
-                        <p class="mt-1 text-xs font-medium text-emerald-100">Lingkungan aplikasi internal</p>
+                        <p class="mt-1 text-xs font-medium text-emerald-100">Aplikasi Pengelolaan Pembayaran Siswa</p>
                     </div>
                 </section>
 
@@ -155,7 +155,7 @@ if (isset($_POST['login'])) {
                             <?php endif; ?>
                             <p class="text-sm font-extrabold uppercase tracking-normal text-emerald-700">SIBAYAR</p>
                             <h2 class="mt-2 text-2xl font-extrabold tracking-normal text-slate-950"><?= htmlspecialchars($nama_sekolah, ENT_QUOTES, 'UTF-8') ?></h2>
-                            <p class="mt-1 text-sm font-semibold text-slate-500">Masuk ke sistem pembayaran siswa</p>
+                            
                         </div>
 
                         <form action="" method="post" class="space-y-5">
