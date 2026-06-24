@@ -204,7 +204,7 @@ $page_title = "bayar_" . $nama_siswa_slug . "_" . $tgl_bayar_slug;
         </tfoot>
     </table>
 
-    <div class="footer">
+    <div class="app-footer">
         <p><?= $tgl_cetak ?></p>
         <p>Bendahara</p>
         <?php $qr_src_bendahara = generate_qr_bendahara($nama_bendahara, $nama_sekolah, 60); ?>

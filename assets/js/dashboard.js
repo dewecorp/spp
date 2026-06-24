@@ -217,34 +217,42 @@
       todayHighlight: true,
     });
   }
-  if ($.cookie('purple-pro-banner') != "true") {
-    document.querySelector('#proBanner').classList.add('d-flex');
-    document.querySelector('.navbar').classList.remove('fixed-top');
-  } else {
-    document.querySelector('#proBanner').classList.add('d-none');
-    document.querySelector('.navbar').classList.add('fixed-top');
+  var proBanner = document.querySelector('#proBanner');
+  var appNavbar = document.querySelector('.app-navbar');
+  var appBody = document.querySelector('.app-body');
+  var bannerClose = document.querySelector('#bannerClose');
+
+  if (proBanner && appNavbar && appBody) {
+    if ($.cookie('purple-pro-banner') != "true") {
+      proBanner.classList.remove('hidden');
+      proBanner.classList.add('flex');
+      appNavbar.classList.remove('fixed-top');
+    } else {
+      proBanner.classList.add('hidden');
+      appNavbar.classList.add('fixed-top');
+    }
+
+    if ($(appNavbar).hasClass("fixed-top")) {
+      appBody.classList.remove('pt-0');
+      appNavbar.classList.remove('pt-5');
+    } else {
+      appBody.classList.add('pt-0');
+      appNavbar.classList.add('pt-5', 'mt-3');
+    }
   }
 
-  if ($(".navbar").hasClass("fixed-top")) {
-    document.querySelector('.page-body-wrapper').classList.remove('pt-0');
-    document.querySelector('.navbar').classList.remove('pt-5');
-  } else {
-    document.querySelector('.page-body-wrapper').classList.add('pt-0');
-    document.querySelector('.navbar').classList.add('pt-5');
-    document.querySelector('.navbar').classList.add('mt-3');
-
-  }
-  document.querySelector('#bannerClose').addEventListener('click', function () {
-    document.querySelector('#proBanner').classList.add('d-none');
-    document.querySelector('#proBanner').classList.remove('d-flex');
-    document.querySelector('.navbar').classList.remove('pt-5');
-    document.querySelector('.navbar').classList.add('fixed-top');
-    document.querySelector('.page-body-wrapper').classList.add('proBanner-padding-top');
-    document.querySelector('.navbar').classList.remove('mt-3');
-    var date = new Date();
-    date.setTime(date.getTime() + 24 * 60 * 60 * 1000);
-    $.cookie('purple-pro-banner', "true", {
-      expires: date
+  if (bannerClose && proBanner && appNavbar && appBody) {
+    bannerClose.addEventListener('click', function () {
+      proBanner.classList.add('hidden');
+      proBanner.classList.remove('flex');
+      appNavbar.classList.remove('pt-5', 'mt-3');
+      appNavbar.classList.add('fixed-top');
+      appBody.classList.add('proBanner-padding-top');
+      var date = new Date();
+      date.setTime(date.getTime() + 24 * 60 * 60 * 1000);
+      $.cookie('purple-pro-banner', "true", {
+        expires: date
+      });
     });
-  });
+  }
 })(jQuery);

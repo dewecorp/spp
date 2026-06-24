@@ -41,18 +41,18 @@ if (isset($_POST['no_transaksi'])) {
     <input type="hidden" name="nisn" value="<?= $header['nisn'] ?>">
     <input type="hidden" id="kelasSiswaEdit" value="<?= $header['nama_kelas'] ?>">
 
-    <div class="form-group">
+    <div class="app-field">
         <label>Nama Siswa</label>
-        <input type="text" class="form-control" value="<?= $header['nama_siswa'] ?> (<?= $header['nama_kelas'] ?>)" readonly>
+        <input type="text" class="app-control" value="<?= $header['nama_siswa'] ?> (<?= $header['nama_kelas'] ?>)" readonly>
     </div>
-    <div class="form-group">
+    <div class="app-field">
         <label>Tanggal Bayar</label>
-        <input type="date" name="tgl_bayar" class="form-control" value="<?= $header['tgl_bayar'] ?>" required>
+        <input type="date" name="tgl_bayar" class="app-control" value="<?= $header['tgl_bayar'] ?>" required>
     </div>
 
-    <div class="form-group">
+    <div class="app-field">
         <label>Jenis Bayar</label>
-        <select name="id_jenis_bayar[]" class="form-control select2-edit-multiple" id="jbEdit" multiple="multiple" style="width: 100%;" required>
+        <select name="id_jenis_bayar[]" class="app-control select2-edit-multiple" id="jbEdit" multiple="multiple" style="width: 100%;" required>
             <?php foreach ($jb_list as $jb) : 
                 $selected = in_array($jb['id_jenis_bayar'], $existing_jb_ids) ? 'selected' : '';
             ?>
@@ -72,17 +72,17 @@ if (isset($_POST['no_transaksi'])) {
         <?php foreach ($items as $item): 
             $id_jb = $item['id_jenis_bayar'];
         ?>
-            <div class="card mb-2 border" id="card-<?= $id_jb ?>">
-                <div class="card-body p-2" style="background: #f8f9fa;">
+            <div class="app-panel mb-2 border" id="card-<?= $id_jb ?>">
+                <div class="app-panel-body p-2" style="background: #f8f9fa;">
                     <h6 class="mb-2 text-primary"><?= $item['nama_pembayaran'] ?> (<?= $item['tipe_bayar'] ?>)</h6>
                     
                     <input type="hidden" name="payment[<?= $id_jb ?>][id_jenis_bayar]" value="<?= $id_jb ?>">
                     <input type="hidden" name="payment[<?= $id_jb ?>][id_pembayaran]" value="<?= $item['id_pembayaran'] ?>">
                     
                     <?php if ($item['tipe_bayar'] == 'Bulanan'): ?>
-                        <div class="form-group">
+                        <div class="app-field">
                             <label>Bulan Bayar</label>
-                            <select name="payment[<?= $id_jb ?>][bulan_bayar][]" class="form-control select2-edit-bulan" multiple="multiple" style="width: 100%;" required>
+                            <select name="payment[<?= $id_jb ?>][bulan_bayar][]" class="app-control select2-edit-bulan" multiple="multiple" style="width: 100%;" required>
                                 <?php 
                                 $months = ['Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni'];
                                 $selected_months = explode(', ', $item['bulan_bayar']);
@@ -92,20 +92,20 @@ if (isset($_POST['no_transaksi'])) {
                                 }
                                 ?>
                             </select>
-                            <small class="text-muted">* Nominal otomatis: Rp <?= number_format($item['nominal_asli'], 0, ',', '.') ?> / bulan</small>
+                            <small class="text-slate-500">* Nominal otomatis: Rp <?= number_format($item['nominal_asli'], 0, ',', '.') ?> / bulan</small>
                         </div>
                     <?php else: ?>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
+                        <div class="app-grid">
+                            <div class="app-col-half">
+                                <div class="app-field">
                                     <label>Cicilan Ke</label>
-                                    <input type="number" name="payment[<?= $id_jb ?>][cicilan_ke]" class="form-control" value="<?= $item['cicilan_ke'] ?>" required>
+                                    <input type="number" name="payment[<?= $id_jb ?>][cicilan_ke]" class="app-control" value="<?= $item['cicilan_ke'] ?>" required>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
+                            <div class="app-col-half">
+                                <div class="app-field">
                                     <label>Nominal (Rp)</label>
-                                    <input type="number" name="payment[<?= $id_jb ?>][nominal]" class="form-control" value="<?= $item['jumlah_bayar'] ?>" required>
+                                    <input type="text" name="payment[<?= $id_jb ?>][nominal]" class="app-control input-nominal-edit" value="<?= number_format((int)$item['jumlah_bayar'], 0, ',', '.') ?>" inputmode="numeric" autocomplete="off" required>
                                 </div>
                             </div>
                         </div>
@@ -121,7 +121,6 @@ if (isset($_POST['no_transaksi'])) {
             $('#jbEdit').select2({
                 placeholder: "Pilih Jenis Bayar",
                 allowClear: true,
-                theme: "bootstrap",
                 width: '100%',
                 dropdownParent: $('#modalEdit')
             });
@@ -130,7 +129,6 @@ if (isset($_POST['no_transaksi'])) {
             $('.select2-edit-bulan').select2({
                 placeholder: "Pilih Bulan",
                 allowClear: true,
-                theme: "bootstrap",
                 width: '100%',
                 dropdownParent: $('#modalEdit')
             });
@@ -147,7 +145,7 @@ if (isset($_POST['no_transaksi'])) {
                 });
 
                 // Remove unselected cards
-                container.children('.card').each(function() {
+                container.children('.app-panel').each(function() {
                     var cardId = $(this).attr('id').replace('card-', '');
                     if (!currentIds.includes(cardId)) {
                         $(this).remove();
@@ -192,16 +190,16 @@ if (isset($_POST['no_transaksi'])) {
                     }
 
                     // Build HTML (Similar to Tambah but without id_pembayaran input)
-                    var html = '<div class="card mb-2 border" id="card-' + id + '"><div class="card-body p-2" style="background: #f8f9fa;">';
+                    var html = '<div class="app-panel mb-2 border" id="card-' + id + '"><div class="app-panel-body p-2" style="background: #f8f9fa;">';
                     html += '<h6 class="mb-2 text-primary">' + nama + ' (' + tipe + ')</h6>';
                     
                     html += '<input type="hidden" name="payment[' + id + '][id_jenis_bayar]" value="' + id + '">';
                     // Note: No id_pembayaran input for new items
 
                     if (tipe === 'Bulanan') {
-                        html += '<div class="form-group">';
+                        html += '<div class="app-field">';
                         html += '<label>Bayar Bulan</label>';
-                        html += '<select name="payment[' + id + '][bulan_bayar][]" class="form-control select2-dynamic-bulan-edit" multiple="multiple" style="width: 100%;" required>';
+                        html += '<select name="payment[' + id + '][bulan_bayar][]" class="app-control select2-dynamic-bulan-edit" multiple="multiple" style="width: 100%;" required>';
                         var months = ['Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni'];
                         var currentMonthIndex = (new Date().getMonth() + 6) % 12;
                         months.forEach(function(m, i) {
@@ -210,10 +208,10 @@ if (isset($_POST['no_transaksi'])) {
                         });
                         html += '</select></div>';
                     } else {
-                         html += '<div class="form-group"><label>Cicilan Ke</label>';
-                         html += '<input type="number" name="payment[' + id + '][cicilan_ke]" class="form-control" value="1" required></div>';
-                         html += '<div class="form-group"><label>Nominal</label>';
-                         html += '<input type="number" name="payment[' + id + '][nominal]" class="form-control" placeholder="Nominal" required></div>';
+                         html += '<div class="app-field"><label>Cicilan Ke</label>';
+                         html += '<input type="number" name="payment[' + id + '][cicilan_ke]" class="app-control" value="1" required></div>';
+                         html += '<div class="app-field"><label>Nominal</label>';
+                         html += '<input type="text" name="payment[' + id + '][nominal]" class="app-control input-nominal-edit" placeholder="Nominal" inputmode="numeric" autocomplete="off" required></div>';
                     }
                     html += '</div></div>';
                     container.append(html);
@@ -223,7 +221,6 @@ if (isset($_POST['no_transaksi'])) {
                 $('.select2-dynamic-bulan-edit').select2({
                     placeholder: "Pilih Bulan",
                     allowClear: true,
-                    theme: "bootstrap",
                     width: '100%',
                     dropdownParent: $('#modalEdit')
                 });

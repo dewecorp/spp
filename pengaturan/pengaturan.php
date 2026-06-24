@@ -108,92 +108,91 @@ if (isset($_POST['reset_data'])) {
 }
 ?>
 
-<div class="row">
-    <div class="col-md-12 grid-margin stretch-card">
-        <div class="card">
-            <div class="card-body">
-                <h4 class="card-title">Pengaturan Sekolah</h4>
-                <p class="card-description">
+<div class="app-grid">
+    <div class="app-col-full app-section-gap app-stretch">
+        <div class="app-panel">
+            <div class="app-panel-body">
+                <h4 class="app-panel-title">Pengaturan Sekolah</h4>
+                <p class="app-description">
                     Ubah informasi sekolah
                 </p>
-                <form class="forms-sample" method="post" enctype="multipart/form-data">
-                    <div class="form-group">
-                        <label for="nama_sekolah">Nama Sekolah</label>
-                        <input type="text" class="form-control" id="nama_sekolah" name="nama_sekolah" value="<?= $data['nama_sekolah'] ?>" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="alamat_sekolah">Alamat Sekolah</label>
-                        <textarea class="form-control" id="alamat_sekolah" name="alamat_sekolah" rows="4" required><?= $data['alamat_sekolah'] ?></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="nama_bendahara">Nama Bendahara</label>
-                        <input type="text" class="form-control" id="nama_bendahara" name="nama_bendahara" value="<?= $data['nama_bendahara'] ?? '' ?>" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="tahun_ajaran">Tahun Ajaran Aktif</label>
-                        <input type="text" class="form-control" id="tahun_ajaran" name="tahun_ajaran" value="<?= $data['tahun_ajaran'] ?? '' ?>" placeholder="Contoh: 2024/2025" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Logo Sekolah</label>
-                        <?php if (!empty($data['logo'])) : ?>
-                            <div class="mb-2">
-                                <img src="../assets/images/<?= $data['logo'] ?>" alt="Logo Sekolah" style="max-width: 150px; border: 1px solid #eee; padding: 5px;">
-                            </div>
-                        <?php endif; ?>
-                        <input type="file" name="logo" class="file-upload-default" id="logoInput" accept=".jpg, .jpeg, .png" style="display:none">
-                        <div class="input-group col-xs-12">
-                            <input type="text" class="form-control file-upload-info" disabled placeholder="Upload Logo">
-                            <span class="input-group-append">
-                                <button class="file-upload-browse btn btn-primary" type="button" onclick="document.getElementById('logoInput').click()">Upload</button>
-                            </span>
+                <form method="post" enctype="multipart/form-data">
+                    <div class="grid gap-5 lg:grid-cols-2">
+                        <div class="app-field">
+                            <label for="nama_sekolah">Nama Sekolah</label>
+                            <input type="text" class="app-control" id="nama_sekolah" name="nama_sekolah" value="<?= $data['nama_sekolah'] ?>" required>
                         </div>
-                        <small class="text-muted">Format: JPG, JPEG, PNG.</small>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Background Login</label>
-                        <?php if (!empty($data['bg_login'])) : ?>
-                            <div class="mb-2">
-                                <img src="../assets/images/<?= $data['bg_login'] ?>" alt="Background Login" style="max-width: 150px; border: 1px solid #eee; padding: 5px;">
-                            </div>
-                        <?php endif; ?>
-                        <input type="file" name="bg_login" class="file-upload-default" id="bgInput" accept=".jpg, .jpeg, .png" style="display:none">
-                        <div class="input-group col-xs-12">
-                            <input type="text" class="form-control file-upload-info-bg" disabled placeholder="Upload Background Login">
-                            <span class="input-group-append">
-                                <button class="file-upload-browse btn btn-primary" type="button" onclick="document.getElementById('bgInput').click()">Upload</button>
-                            </span>
+                        <div class="app-field">
+                            <label for="nama_bendahara">Nama Bendahara</label>
+                            <input type="text" class="app-control" id="nama_bendahara" name="nama_bendahara" value="<?= $data['nama_bendahara'] ?? '' ?>" required>
                         </div>
-                        <small class="text-muted">Format: JPG, JPEG, PNG.</small>
+                        <div class="app-field">
+                            <label for="tahun_ajaran">Tahun Ajaran Aktif</label>
+                            <input type="text" class="app-control" id="tahun_ajaran" name="tahun_ajaran" value="<?= $data['tahun_ajaran'] ?? '' ?>" placeholder="Contoh: 2024/2025" required>
+                        </div>
+                        <div class="app-field lg:row-span-2">
+                            <label for="alamat_sekolah">Alamat Sekolah</label>
+                            <textarea class="app-control h-[128px] resize-none" id="alamat_sekolah" name="alamat_sekolah" rows="4" required><?= $data['alamat_sekolah'] ?></textarea>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 grid gap-5 lg:grid-cols-2">
+                        <div class="rounded-lg border border-slate-200 bg-slate-50/70 p-4">
+                            <label>Logo Sekolah</label>
+                            <?php if (!empty($data['logo'])) : ?>
+                                <div class="mt-2 mb-4 flex h-32 items-center justify-center rounded-lg border border-slate-200 bg-white p-3">
+                                    <img src="../assets/images/<?= $data['logo'] ?>" alt="Logo Sekolah" class="max-h-full max-w-full object-contain">
+                                </div>
+                            <?php endif; ?>
+                            <input type="file" name="logo" class="file-upload-default" id="logoInput" accept=".jpg, .jpeg, .png" style="display:none">
+                            <input type="text" class="app-control file-upload-info" disabled placeholder="Upload Logo">
+                            <button class="file-upload-browse app-button app-button-primary mt-3" type="button" onclick="document.getElementById('logoInput').click()">Upload</button>
+                            <small class="mt-3 block text-slate-500">Format: JPG, JPEG, PNG.</small>
+                        </div>
+
+                        <div class="rounded-lg border border-slate-200 bg-slate-50/70 p-4">
+                            <label>Background Login</label>
+                            <?php if (!empty($data['bg_login'])) : ?>
+                                <div class="mt-2 mb-4 flex h-32 items-center justify-center rounded-lg border border-slate-200 bg-white p-3">
+                                    <img src="../assets/images/<?= $data['bg_login'] ?>" alt="Background Login" class="max-h-full max-w-full object-contain">
+                                </div>
+                            <?php endif; ?>
+                            <input type="file" name="bg_login" class="file-upload-default" id="bgInput" accept=".jpg, .jpeg, .png" style="display:none">
+                            <input type="text" class="app-control file-upload-info-bg" disabled placeholder="Upload Background Login">
+                            <button class="file-upload-browse app-button app-button-primary mt-3" type="button" onclick="document.getElementById('bgInput').click()">Upload</button>
+                            <small class="mt-3 block text-slate-500">Format: JPG, JPEG, PNG.</small>
+                        </div>
                     </div>
 
                     <script>
                         document.getElementById('logoInput').addEventListener('change', function() {
-                            var fileName = this.files[0].name;
+                            var fileName = this.files[0] ? this.files[0].name : '';
                             document.querySelector('.file-upload-info').value = fileName;
                         });
                         document.getElementById('bgInput').addEventListener('change', function() {
-                            var fileName = this.files[0].name;
+                            var fileName = this.files[0] ? this.files[0].name : '';
                             document.querySelector('.file-upload-info-bg').value = fileName;
                         });
                     </script>
-                    <button type="submit" name="simpan" class="btn btn-primary mr-2">Simpan Perubahan</button>
-                    <button type="button" class="btn btn-light" onclick="window.history.back()">Batal</button>
+                    <div class="mt-6 flex flex-col gap-3 sm:flex-row">
+                        <button type="submit" name="simpan" class="app-button app-button-primary">Simpan Perubahan</button>
+                        <button type="button" class="app-button app-button-light" onclick="window.history.back()">Batal</button>
+                    </div>
                 </form>
             </div>
         </div>
     </div>
     
-    <div class="col-md-12 grid-margin stretch-card">
-        <div class="card card-danger">
-            <div class="card-body">
-                <h4 class="card-title text-danger">Reset Data Transaksi</h4>
-                <p class="card-description">
+    <div class="app-col-full app-section-gap app-stretch">
+        <div class="app-panel app-panel-danger">
+            <div class="app-panel-body">
+                <h4 class="app-panel-title text-red-600">Reset Data Transaksi</h4>
+                <p class="app-description">
                     Hapus semua data transaksi pembayaran. Fitur ini digunakan saat pergantian tahun ajaran baru.
-                    <br><strong class="text-danger">PERINGATAN: Data yang dihapus tidak dapat dikembalikan!</strong>
+                    <br><strong class="text-red-600">PERINGATAN: Data yang dihapus tidak dapat dikembalikan!</strong>
                 </p>
                 <form method="post" id="form-reset">
-                    <button type="button" class="btn btn-danger mr-2" onclick="confirmReset()">Reset Data Transaksi</button>
+                    <button type="button" class="app-button app-button-danger" onclick="confirmReset()">Reset Data Transaksi</button>
                 </form>
             </div>
         </div>

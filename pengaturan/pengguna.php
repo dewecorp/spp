@@ -52,7 +52,7 @@ if (isset($_POST['edit'])) {
     $nama = $_POST['nama_lengkap'];
     $username = $_POST['username'];
     $role = $_POST['role'];
-    
+
     $query = "UPDATE pengguna SET nama_lengkap='$nama', username='$username', role='$role'";
 
     // Upload Foto
@@ -71,7 +71,7 @@ if (isset($_POST['edit'])) {
             }
         }
     }
-    
+
     if (!empty($_POST['password'])) {
         $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
         $query .= ", password='$password'";
@@ -119,16 +119,16 @@ if (isset($_GET['hapus'])) {
 }
 ?>
 
-<div class="row">
-    <div class="col-lg-12 grid-margin stretch-card">
-        <div class="card">
-            <div class="card-body">
-                <h4 class="card-title">Data Pengguna</h4>
-                <button type="button" class="btn btn-primary mb-3" data-tailwind-modal-target="#modalTambah">
+<div class="app-grid">
+    <div class="app-col-full app-section-gap app-stretch">
+        <div class="app-panel">
+            <div class="app-panel-body">
+                <h4 class="app-panel-title">Data Pengguna</h4>
+                <button type="button" class="app-button app-button-primary mb-3" data-tailwind-modal-target="#modalTambah">
                     <i class="mdi mdi-plus"></i> Tambah Pengguna
                 </button>
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover" id="table-pengguna">
+                <div class="app-table-scroll">
+                    <table class="app-data-table app-table-striped app-table-hover" id="table-pengguna">
                         <thead>
                             <tr>
                                 <th>No</th>
@@ -155,26 +155,26 @@ if (isset($_GET['hapus'])) {
                                 <tr>
                                     <td><?= $no++ ?></td>
                                     <td>
-                                        <img src="<?= $foto_url ?>" alt="Foto Profil" class="img-lg rounded-circle" style="width: 50px; height: 50px; object-fit: cover;">
+                                        <img src="<?= $foto_url ?>" alt="Foto Profil" class="h-12 w-12 rounded-full object-cover ring-2 ring-slate-100">
                                     </td>
                                     <td><?= $row['nama_lengkap'] ?></td>
                                     <td><?= $row['username'] ?></td>
                                     <td>
                                         <?php if($row['role'] == 'admin'): ?>
-                                            <span class="badge badge-success">Admin</span>
+                                            <span class="app-badge app-badge-success">Admin</span>
                                         <?php else: ?>
-                                            <span class="badge badge-info">Petugas</span>
+                                            <span class="app-badge app-badge-info">Petugas</span>
                                         <?php endif; ?>
                                     </td>
                                     <td>
-                                        <button type="button" class="btn btn-warning btn-sm btn-edit" 
+                                        <button type="button" class="app-button app-button-warning app-button-sm btn-edit"
                                             data-id="<?= $row['id_pengguna'] ?>"
                                             data-nama="<?= $row['nama_lengkap'] ?>"
                                             data-username="<?= $row['username'] ?>"
                                             data-role="<?= $row['role'] ?>">
                                             <i class="mdi mdi-pencil"></i>
                                         </button>
-                                        <a href="pengguna.php?hapus=<?= $row['id_pengguna'] ?>" class="btn btn-danger btn-sm btn-hapus">
+                                        <a href="pengguna.php?hapus=<?= $row['id_pengguna'] ?>" class="app-button app-button-danger app-button-sm btn-hapus">
                                             <i class="mdi mdi-delete"></i>
                                         </a>
                                     </td>
@@ -200,34 +200,34 @@ if (isset($_GET['hapus'])) {
             </div>
             <form action="" method="post" enctype="multipart/form-data">
                 <div class="min-h-0 flex-1 overflow-y-auto px-6 py-5">
-                    <div class="form-group">
+                    <div class="app-field">
                         <label>Nama Lengkap</label>
-                        <input type="text" name="nama_lengkap" class="form-control" required>
+                        <input type="text" name="nama_lengkap" class="app-control" required>
                     </div>
-                    <div class="form-group">
+                    <div class="app-field">
                         <label>Username</label>
-                        <input type="text" name="username" class="form-control" required>
+                        <input type="text" name="username" class="app-control" required>
                     </div>
-                    <div class="form-group">
+                    <div class="app-field">
                         <label>Password</label>
-                        <input type="password" name="password" class="form-control" required>
+                        <input type="password" name="password" class="app-control" required>
                     </div>
-                    <div class="form-group">
+                    <div class="app-field">
                         <label>Role</label>
-                        <select name="role" class="form-control" required>
+                        <select name="role" class="app-control" required>
                             <option value="admin">Admin</option>
                             <option value="petugas">Petugas</option>
                         </select>
                     </div>
-                    <div class="form-group">
+                    <div class="app-field">
                         <label>Foto Profil (Opsional)</label>
-                        <input type="file" name="foto" class="form-control" accept=".jpg, .jpeg, .png">
-                        <small class="text-muted">Format: JPG, JPEG, PNG.</small>
+                        <input type="file" name="foto" class="app-control" accept=".jpg, .jpeg, .png">
+                        <small class="text-slate-500">Format: JPG, JPEG, PNG.</small>
                     </div>
                 </div>
                 <div class="flex shrink-0 items-center justify-end gap-3 border-t border-slate-200 px-6 py-4">
-                    <button type="button" class="btn btn-secondary" data-tailwind-modal-close>Batal</button>
-                    <button type="submit" name="tambah" class="btn btn-primary">Simpan</button>
+                    <button type="button" class="app-button app-button-secondary" data-tailwind-modal-close>Batal</button>
+                    <button type="submit" name="tambah" class="app-button app-button-primary">Simpan</button>
                 </div>
             </form>
         </div>
@@ -247,34 +247,34 @@ if (isset($_GET['hapus'])) {
             <form action="" method="post" enctype="multipart/form-data">
                 <div class="min-h-0 flex-1 overflow-y-auto px-6 py-5">
                     <input type="hidden" name="id_pengguna" id="edit_id">
-                    <div class="form-group">
+                    <div class="app-field">
                         <label>Nama Lengkap</label>
-                        <input type="text" name="nama_lengkap" id="edit_nama" class="form-control" required>
+                        <input type="text" name="nama_lengkap" id="edit_nama" class="app-control" required>
                     </div>
-                    <div class="form-group">
+                    <div class="app-field">
                         <label>Username</label>
-                        <input type="text" name="username" id="edit_username" class="form-control" required>
+                        <input type="text" name="username" id="edit_username" class="app-control" required>
                     </div>
-                    <div class="form-group">
+                    <div class="app-field">
                         <label>Password (Kosongkan jika tidak diubah)</label>
-                        <input type="password" name="password" class="form-control">
+                        <input type="password" name="password" class="app-control">
                     </div>
-                    <div class="form-group">
+                    <div class="app-field">
                         <label>Role</label>
-                        <select name="role" id="edit_role" class="form-control" required>
+                        <select name="role" id="edit_role" class="app-control" required>
                             <option value="admin">Admin</option>
                             <option value="petugas">Petugas</option>
                         </select>
                     </div>
-                    <div class="form-group">
+                    <div class="app-field">
                         <label>Ganti Foto (Opsional)</label>
-                        <input type="file" name="foto" class="form-control" accept=".jpg, .jpeg, .png">
-                        <small class="text-muted">Format: JPG, JPEG, PNG. Biarkan kosong jika tidak ingin mengganti foto.</small>
+                        <input type="file" name="foto" class="app-control" accept=".jpg, .jpeg, .png">
+                        <small class="text-slate-500">Format: JPG, JPEG, PNG. Biarkan kosong jika tidak ingin mengganti foto.</small>
                     </div>
                 </div>
                 <div class="flex shrink-0 items-center justify-end gap-3 border-t border-slate-200 px-6 py-4">
-                    <button type="button" class="btn btn-secondary" data-tailwind-modal-close>Batal</button>
-                    <button type="submit" name="edit" class="btn btn-primary">Simpan Perubahan</button>
+                    <button type="button" class="app-button app-button-secondary" data-tailwind-modal-close>Batal</button>
+                    <button type="submit" name="edit" class="app-button app-button-primary">Simpan Perubahan</button>
                 </div>
             </form>
         </div>
@@ -298,7 +298,7 @@ if (isset($_GET['hapus'])) {
             $('#edit_username').val(username);
             $('#edit_role').val(role);
 
-            $('#modalEdit').modal('show');
+            AppModal.open('#modalEdit');
         });
 
         $('.btn-hapus').on('click', function(e) {

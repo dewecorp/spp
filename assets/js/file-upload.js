@@ -2,11 +2,11 @@
   'use strict';
   $(function() {
     $('.file-upload-browse').on('click', function() {
-      var file = $(this).parent().parent().parent().find('.file-upload-default');
+      var file = $(this).closest('.app-field, .rounded-lg, form').find('.file-upload-default').first();
       file.trigger('click');
     });
     $('.file-upload-default').on('change', function() {
-      $(this).parent().find('.form-control').val($(this).val().replace(/C:\\fakepath\\/i, ''));
+      $(this).closest('.app-field, .rounded-lg, form').find('.app-control').first().val($(this).val().replace(/C:\\fakepath\\/i, ''));
     });
   });
 })(jQuery); 

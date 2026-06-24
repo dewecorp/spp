@@ -1,9 +1,9 @@
                 </div>
                 <!-- content-wrapper ends -->
-                <footer class="footer">
-                    <div class="container-fluid clearfix">
-                        <span class="text-gray-500 block text-center text-sm-left sm:inline-block">
-                            Copyright © <?= date('Y') ?> Sistem Pembayaran Siswa -
+                <footer class="app-footer">
+                    <div class="app-container flow-root">
+                        <span class="text-gray-500 block text-center sm:text-left sm:inline-block">
+                            Copyright &copy; <?= date('Y') ?> Sistem Pembayaran Siswa -
                             <a href="https://misultanfattah.sch.id/" target="_blank" style="text-decoration: none !important;">MI Sultan Fattah Sukosono</a>
                         </span>
                     </div>
@@ -12,7 +12,7 @@
             </div>
             <!-- main-panel ends -->
         </div>
-        <!-- page-body-wrapper ends -->
+        <!-- app body ends -->
     </div>
     <!-- container-scroller -->
     <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin') : ?>
@@ -60,14 +60,63 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        window.AppModal = {
+            open(target) {
+                const modal = typeof target === 'string' ? document.querySelector(target) : target;
+                if (!modal) return;
+                modal.classList.remove('hidden');
+                modal.setAttribute('aria-hidden', 'false');
+                document.body.classList.add('overflow-hidden');
+                modal.scrollTop = 0;
+                modal.dispatchEvent(new CustomEvent('app:modal-open'));
+            },
+            close(target) {
+                const modal = typeof target === 'string' ? document.querySelector(target) : target;
+                if (!modal) return;
+                modal.classList.add('hidden');
+                modal.setAttribute('aria-hidden', 'true');
+                modal.dispatchEvent(new CustomEvent('app:modal-close'));
+                if (!document.querySelector('[data-tailwind-modal]:not(.hidden)')) {
+                    document.body.classList.remove('overflow-hidden');
+                }
+            }
+        };
+
+        document.addEventListener('click', function(event) {
+            const trigger = event.target.closest('[data-tailwind-modal-target]');
+            if (trigger) {
+                event.preventDefault();
+                AppModal.open(trigger.getAttribute('data-tailwind-modal-target'));
+                return;
+            }
+
+            const closeButton = event.target.closest('[data-tailwind-modal-close]');
+            if (closeButton) {
+                event.preventDefault();
+                AppModal.close(closeButton.closest('[data-tailwind-modal]'));
+                return;
+            }
+
+            if (event.target.matches('[data-tailwind-modal]')) {
+                AppModal.close(event.target);
+            }
+        });
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key !== 'Escape') return;
+            const openModals = document.querySelectorAll('[data-tailwind-modal]:not(.hidden)');
+            AppModal.close(openModals[openModals.length - 1]);
+        });
+    </script>
     <!-- Chart.js -->
     <script src="<?= base_url('assets/vendors/chart.js/chart.umd.js') ?>"></script>
     <!-- DataTables -->
     <script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
     <script>
         $(document).ready(function() {
-            $('table.table').each(function() {
-                if ($(this).closest('.modal').length) {
+            $('table.app-data-table').each(function() {
+                if ($(this).closest('[data-tailwind-modal]').length) {
                     return;
                 }
                 if ($.fn.DataTable && $.fn.DataTable.isDataTable(this)) {
@@ -135,7 +184,7 @@
                 const modal = document.getElementById('updateSystemProcessModal');
                 if (!modal) return;
                 modal.style.display = visible ? 'block' : 'none';
-                document.body.classList.toggle('modal-open', visible);
+                document.body.classList.toggle('overflow-hidden', visible);
             }
 
             async function runUpdateSystem() {

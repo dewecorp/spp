@@ -154,15 +154,15 @@ if (isset($_POST['restore'])) {
             <h3 class="page-title"> Backup & Restore Database </h3>
         </div>
         
-        <div class="row">
+        <div class="app-grid">
             <!-- Backup Box -->
-            <div class="col-md-6 grid-margin stretch-card">
-                <div class="card">
-                    <div class="card-body">
-                        <h4 class="card-title">Backup Database</h4>
-                        <p class="card-description">Klik tombol di bawah untuk membackup seluruh database.</p>
+            <div class="app-col-half app-section-gap app-stretch">
+                <div class="app-panel">
+                    <div class="app-panel-body">
+                        <h4 class="app-panel-title">Backup Database</h4>
+                        <p class="app-description">Klik tombol di bawah untuk membackup seluruh database.</p>
                         <form method="post">
-                            <button type="submit" name="backup" class="btn btn-primary me-2">
+                            <button type="submit" name="backup" class="app-button app-button-primary mr-2">
                                 <i class="mdi mdi-cloud-download"></i> Proses Backup
                             </button>
                         </form>
@@ -171,16 +171,16 @@ if (isset($_POST['restore'])) {
             </div>
             
             <!-- Restore Box -->
-            <div class="col-md-6 grid-margin stretch-card">
-                <div class="card">
-                    <div class="card-body">
-                        <h4 class="card-title">Restore Database</h4>
-                        <p class="card-description">Upload file .sql untuk merestore database.</p>
+            <div class="app-col-half app-section-gap app-stretch">
+                <div class="app-panel">
+                    <div class="app-panel-body">
+                        <h4 class="app-panel-title">Restore Database</h4>
+                        <p class="app-description">Upload file .sql untuk merestore database.</p>
                         <form method="post" enctype="multipart/form-data">
-                            <div class="form-group">
-                                <input type="file" name="file_sql" class="form-control" accept=".sql" required>
+                            <div class="app-field">
+                                <input type="file" name="file_sql" class="app-control" accept=".sql" required>
                             </div>
-                            <button type="submit" name="restore" class="btn btn-danger">
+                            <button type="submit" name="restore" class="app-button app-button-danger">
                                 <i class="mdi mdi-cloud-upload"></i> Restore Database
                             </button>
                         </form>
@@ -190,13 +190,13 @@ if (isset($_POST['restore'])) {
         </div>
 
         <!-- File List Table -->
-        <div class="row">
-            <div class="col-lg-12 grid-margin stretch-card">
-                <div class="card">
-                    <div class="card-body">
-                        <h4 class="card-title">Daftar File Backup</h4>
-                        <div class="table-responsive">
-                            <table class="table table-hover">
+        <div class="app-grid">
+            <div class="app-col-full app-section-gap app-stretch">
+                <div class="app-panel">
+                    <div class="app-panel-body">
+                        <h4 class="app-panel-title">Daftar File Backup</h4>
+                        <div class="app-table-scroll">
+                            <table class="app-data-table app-table-hover">
                                 <thead>
                                     <tr>
                                         <th>No</th>
@@ -224,10 +224,10 @@ if (isset($_POST['restore'])) {
                                                     <td><?= $size_formatted ?></td>
                                                     <td><?= $filetime ?></td>
                                                     <td>
-                                                        <a href="?aksi=download&file=<?= $file ?>" class="btn btn-success btn-sm">
+                                                        <a href="?aksi=download&file=<?= $file ?>" class="app-button app-button-success app-button-sm">
                                                             <i class="mdi mdi-download"></i> Unduh
                                                         </a>
-                                                        <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete('<?= $file ?>')">
+                                                        <button type="button" class="app-button app-button-danger app-button-sm" onclick="confirmDelete('<?= $file ?>')">
                                                             <i class="mdi mdi-delete"></i> Hapus
                                                         </button>
                                                     </td>

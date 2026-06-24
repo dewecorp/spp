@@ -6,7 +6,6 @@ include '../template/sidebar.php';
 $id_kelas = isset($_GET['id_kelas']) ? $_GET['id_kelas'] : '';
 ?>
 <link rel="stylesheet" href="<?= base_url('assets/vendors/select2/select2.min.css') ?>">
-<link rel="stylesheet" href="<?= base_url('assets/vendors/select2-bootstrap-theme/select2-bootstrap.min.css') ?>">
 <style><?php include __DIR__ . '/../assets/css/select2-kelas-filter.css'; ?></style>
 
 <div class="space-y-6">
@@ -16,7 +15,7 @@ $id_kelas = isset($_GET['id_kelas']) ? $_GET['id_kelas'] : '';
             <div class="grid items-end gap-4 md:grid-cols-[minmax(240px,320px)_auto]">
                 <div class="min-w-0">
                     <label class="mb-2 block text-sm font-bold text-slate-700" for="id_kelas_laporan">Pilih Kelas</label>
-                    <select id="id_kelas_laporan" name="id_kelas" class="form-control select2 select2-filter-laporan filter-kelas" style="width: 100%;" required onchange="this.form.submit()" data-placeholder="-- Pilih Kelas --">
+                    <select id="id_kelas_laporan" name="id_kelas" class="app-control select2 select2-filter-laporan filter-kelas" style="width: 100%;" required onchange="this.form.submit()" data-placeholder="-- Pilih Kelas --">
                         <option value="">-- Pilih Kelas --</option>
                         <?php
                         $q_kelas = mysqli_query($koneksi, "SELECT * FROM kelas ORDER BY nama_kelas ASC");
@@ -29,8 +28,8 @@ $id_kelas = isset($_GET['id_kelas']) ? $_GET['id_kelas'] : '';
                 </div>
                 <?php if (!empty($id_kelas)): ?>
                     <div class="flex md:pb-0">
-                        <a href="cetak_semua.php?id_kelas=<?= $id_kelas ?>" target="_blank" class="btn btn-primary btn-icon-text h-[46px] w-full md:w-auto md:px-5">
-                            <i class="mdi mdi-printer btn-icon-prepend"></i>
+                        <a href="cetak_semua.php?id_kelas=<?= $id_kelas ?>" target="_blank" class="app-button app-button-primary app-button-with-text h-[46px] w-full md:w-auto md:px-5">
+                            <i class="mdi mdi-printer app-button-icon"></i>
                             <span>Cetak Semua Laporan</span>
                         </a>
                     </div>
@@ -42,8 +41,8 @@ $id_kelas = isset($_GET['id_kelas']) ? $_GET['id_kelas'] : '';
     <?php if (!empty($id_kelas)): ?>
         <div class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
             <h4 class="mb-5 text-base font-extrabold tracking-normal text-slate-950">Data Siswa</h4>
-            <div class="table-responsive">
-                <table class="table table-striped" id="table-laporan">
+            <div class="app-table-scroll">
+                <table class="app-data-table app-table-striped" id="table-laporan">
                     <thead>
                         <tr>
                             <th>No</th>
@@ -67,11 +66,11 @@ $id_kelas = isset($_GET['id_kelas']) ? $_GET['id_kelas'] : '';
                                     <td><?= $d_siswa['nama_kelas'] ?></td>
                                     <td>
                                         <div class="flex flex-wrap gap-2">
-                                            <a href="detail_laporan.php?nisn=<?= $d_siswa['nisn'] ?>" class="btn btn-info btn-sm btn-icon-text">
-                                                <i class="mdi mdi-eye btn-icon-prepend"></i> Detail
+                                            <a href="detail_laporan.php?nisn=<?= $d_siswa['nisn'] ?>" class="app-button app-button-info app-button-sm app-button-with-text">
+                                                <i class="mdi mdi-eye app-button-icon"></i> Detail
                                             </a>
-                                            <a href="cetak_laporan.php?nisn=<?= $d_siswa['nisn'] ?>" target="_blank" class="btn btn-warning btn-sm btn-icon-text">
-                                                <i class="mdi mdi-printer btn-icon-prepend"></i> Cetak
+                                            <a href="cetak_laporan.php?nisn=<?= $d_siswa['nisn'] ?>" target="_blank" class="app-button app-button-warning app-button-sm app-button-with-text">
+                                                <i class="mdi mdi-printer app-button-icon"></i> Cetak
                                             </a>
                                         </div>
                                     </td>
@@ -95,7 +94,6 @@ $id_kelas = isset($_GET['id_kelas']) ? $_GET['id_kelas'] : '';
     $(document).ready(function() {
         if ($('.select2-filter-laporan').length) {
             $('.select2-filter-laporan').select2({
-                theme: 'bootstrap',
                 width: '100%',
                 placeholder: $('.select2-filter-laporan').data('placeholder') || '-- Pilih Kelas --',
                 allowClear: false

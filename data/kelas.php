@@ -71,16 +71,16 @@ if (isset($_GET['hapus'])) {
 }
 ?>
 
-<div class="row">
-    <div class="col-lg-12 grid-margin stretch-card">
-        <div class="card">
-            <div class="card-body">
-                <h4 class="card-title">Data Kelas</h4>
-                <button type="button" class="btn btn-primary mb-3" data-tailwind-modal-target="#modalTambah">
+<div class="app-grid">
+    <div class="app-col-full app-section-gap app-stretch">
+        <div class="app-panel">
+            <div class="app-panel-body">
+                <h4 class="app-panel-title">Data Kelas</h4>
+                <button type="button" class="app-button app-button-primary mb-3" data-tailwind-modal-target="#modalTambah">
                     <i class="mdi mdi-plus"></i> Tambah Kelas
                 </button>
-                <div class="table-responsive">
-                    <table class="table table-striped">
+                <div class="app-table-scroll">
+                    <table class="app-data-table app-table-striped">
                         <thead>
                             <tr>
                                 <th>No</th>
@@ -98,17 +98,17 @@ if (isset($_GET['hapus'])) {
                                     <td><?= $no++ ?></td>
                                     <td><?= $row['nama_kelas'] ?></td>
                                     <td>
-                                        <button type="button" class="btn btn-warning btn-sm" data-tailwind-modal-target="#modalEdit<?= $row['id_kelas'] ?>">
+                                        <button type="button" class="app-button app-button-warning app-button-sm" data-tailwind-modal-target="#modalEdit<?= $row['id_kelas'] ?>">
                                             <i class="mdi mdi-pencil"></i>
                                         </button>
-                                        <a href="kelas.php?hapus=<?= $row['id_kelas'] ?>" class="btn btn-danger btn-sm btn-hapus">
+                                        <a href="kelas.php?hapus=<?= $row['id_kelas'] ?>" class="app-button app-button-danger app-button-sm btn-hapus">
                                             <i class="mdi mdi-delete"></i>
                                         </a>
                                     </td>
                                 </tr>
 
                                 <!-- Modal Edit -->
-                                <div class="fixed inset-0 z-[1055] hidden overflow-y-auto bg-slate-950/60 px-4 py-6 backdrop-blur-sm" id="modalEdit<?= $row['id_kelas'] ? data-tailwind-modal>" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                <div class="fixed inset-0 z-[1055] hidden overflow-y-auto bg-slate-950/60 px-4 py-6 backdrop-blur-sm" id="modalEdit<?= $row['id_kelas'] ?>" data-tailwind-modal tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
                                     <div class="mx-auto flex min-h-full w-full max-w-2xl items-start">
                                         <div class="flex max-h-[calc(100vh-3rem)] w-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl">
                                             <div class="flex shrink-0 items-center justify-between border-b border-slate-200 px-6 py-4">
@@ -120,14 +120,14 @@ if (isset($_GET['hapus'])) {
                                             <form action="" method="post">
                                                 <div class="min-h-0 flex-1 overflow-y-auto px-6 py-5">
                                                     <input type="hidden" name="id_kelas" value="<?= $row['id_kelas'] ?>">
-                                                    <div class="form-group">
+                                                    <div class="app-field">
                                                         <label>Nama Kelas</label>
-                                                        <input type="text" name="nama_kelas" class="form-control" value="<?= $row['nama_kelas'] ?>" required>
+                                                        <input type="text" name="nama_kelas" class="app-control" value="<?= $row['nama_kelas'] ?>" required>
                                                     </div>
                                                 </div>
                                                 <div class="flex shrink-0 items-center justify-end gap-3 border-t border-slate-200 px-6 py-4">
-                                                    <button type="button" class="btn btn-secondary" data-tailwind-modal-close>Batal</button>
-                                                    <button type="submit" name="edit" class="btn btn-primary">Simpan</button>
+                                                    <button type="button" class="app-button app-button-secondary" data-tailwind-modal-close>Batal</button>
+                                                    <button type="submit" name="edit" class="app-button app-button-primary">Simpan</button>
                                                 </div>
                                             </form>
                                         </div>
@@ -154,14 +154,14 @@ if (isset($_GET['hapus'])) {
             </div>
             <form action="" method="post">
                 <div class="min-h-0 flex-1 overflow-y-auto px-6 py-5">
-                    <div class="form-group">
+                    <div class="app-field">
                         <label>Nama Kelas</label>
-                        <input type="text" name="nama_kelas" class="form-control" placeholder="Contoh: 1 A" required>
+                        <input type="text" name="nama_kelas" class="app-control" placeholder="Contoh: 1 A" required>
                     </div>
                 </div>
                 <div class="flex shrink-0 items-center justify-end gap-3 border-t border-slate-200 px-6 py-4">
-                    <button type="button" class="btn btn-secondary" data-tailwind-modal-close>Batal</button>
-                    <button type="submit" name="tambah" class="btn btn-primary">Simpan</button>
+                    <button type="button" class="app-button app-button-secondary" data-tailwind-modal-close>Batal</button>
+                    <button type="submit" name="tambah" class="app-button app-button-primary">Simpan</button>
                 </div>
             </form>
         </div>

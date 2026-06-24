@@ -6,7 +6,6 @@ include '../template/sidebar.php';
 // Include Select2 CSS
 ?>
 <link rel="stylesheet" href="<?= base_url('assets/vendors/select2/select2.min.css') ?>">
-<link rel="stylesheet" href="<?= base_url('assets/vendors/select2-bootstrap-theme/select2-bootstrap.min.css') ?>">
 <style><?php include __DIR__ . '/../assets/css/select2-kelas-filter.css'; ?></style>
 
 <div class="mb-6 rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
@@ -15,7 +14,7 @@ include '../template/sidebar.php';
         <div class="grid items-end gap-4 md:grid-cols-[minmax(240px,320px)_auto]">
             <div class="min-w-0">
                 <label for="id_kelas" class="mb-2 block text-sm font-bold text-slate-700">Pilih Kelas</label>
-                <select name="id_kelas" id="id_kelas" class="form-control select2 filter-kelas" style="width: 100%;" required onchange="this.form.submit()">
+                <select name="id_kelas" id="id_kelas" class="app-control select2 filter-kelas" style="width: 100%;" required onchange="this.form.submit()">
                     <option value="">-- Pilih Kelas --</option>
                     <?php
                     $q_kelas = mysqli_query($koneksi, "SELECT * FROM kelas ORDER BY nama_kelas ASC");
@@ -28,8 +27,8 @@ include '../template/sidebar.php';
             </div>
             <?php if (isset($_GET['id_kelas']) && $_GET['id_kelas'] !== ''): ?>
                 <div class="flex md:pb-0">
-                    <a href="cetak_semua.php?id_kelas=<?= $_GET['id_kelas'] ?>" class="btn btn-primary btn-icon-text h-[46px] w-full md:w-auto md:px-5" target="_blank">
-                        <i class="mdi mdi-printer btn-icon-prepend"></i>
+                    <a href="cetak_semua.php?id_kelas=<?= $_GET['id_kelas'] ?>" class="app-button app-button-primary app-button-with-text h-[46px] w-full md:w-auto md:px-5" target="_blank">
+                        <i class="mdi mdi-printer app-button-icon"></i>
                         <span>Cetak Tagihan Semua Siswa</span>
                     </a>
                 </div>
@@ -45,13 +44,13 @@ if (isset($_GET['id_kelas'])) {
     $d_kelas = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT nama_kelas FROM kelas WHERE id_kelas = '$id_kelas'"));
 ?>
 
-<div class="row">
-    <div class="col-lg-12 grid-margin stretch-card">
-        <div class="card">
-            <div class="card-body">
-                <h4 class="card-title mb-3">Data Siswa Kelas: <?= $d_kelas['nama_kelas'] ?></h4>
-                <div class="table-responsive">
-                    <table class="table table-bordered table-striped">
+<div class="app-grid">
+    <div class="app-col-full app-section-gap app-stretch">
+        <div class="app-panel">
+            <div class="app-panel-body">
+                <h4 class="app-panel-title mb-3">Data Siswa Kelas: <?= $d_kelas['nama_kelas'] ?></h4>
+                <div class="app-table-scroll">
+                    <table class="app-data-table app-table-bordered app-table-striped">
                         <thead>
                             <tr>
                                 <th width="5%">No</th>
@@ -70,7 +69,7 @@ if (isset($_GET['id_kelas'])) {
                                     <td><?= $s['nisn'] ?></td>
                                     <td><?= $s['nama'] ?></td>
                                     <td>
-                                        <a href="tagihan_detail.php?nisn=<?= $s['nisn'] ?>&id_kelas=<?= $id_kelas ?>" class="btn btn-info btn-sm">
+                                        <a href="tagihan_detail.php?nisn=<?= $s['nisn'] ?>&id_kelas=<?= $id_kelas ?>" class="app-button app-button-info app-button-sm">
                                             <i class="mdi mdi-eye"></i> Lihat Tagihan
                                         </a>
                                     </td>
@@ -94,7 +93,6 @@ if (isset($_GET['id_kelas'])) {
 <script>
     $(document).ready(function() {
         $('#id_kelas').select2({
-            theme: 'bootstrap',
             width: '100%',
             placeholder: '-- Pilih Kelas --',
             allowClear: false

@@ -41,7 +41,7 @@ $q_jb = mysqli_query($koneksi, "SELECT * FROM jenis_bayar WHERE status = 'Aktif'
                 </div>
             </div>
 
-            <div class="table-responsive">
+            <div class="app-table-scroll">
                 <table class="app-table min-w-full">
                     <thead>
                         <tr>

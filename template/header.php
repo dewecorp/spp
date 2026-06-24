@@ -28,7 +28,7 @@ if (!isset($_SESSION['login']) || !isset($_SESSION['nama_lengkap']) || !isset($_
     <title><?= isset($title) ? $title . ' - ' : '' ?>SiBayar</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,400;6..12,500;6..12,600;6..12,700;6..12,800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?= base_url('assets/vendors/mdi/css/materialdesignicons.min.css') ?>">
     <link rel="shortcut icon" href="<?= base_url('assets/images/favicon_pembayaran.svg') ?>" type="image/svg+xml" />
     <!-- Tailwind CSS -->
@@ -39,7 +39,7 @@ if (!isset($_SESSION['login']) || !isset($_SESSION['nama_lengkap']) || !isset($_
                     colors: {
                         primary: { DEFAULT: '#10b981', dark: '#059669', light: '#34d399', soft: '#d1fae5' },
                     },
-                    fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'] }
+                    fontFamily: { sans: ['Nunito Sans', 'ui-sans-serif', 'system-ui', 'sans-serif'] }
                 }
             }
         }
@@ -81,7 +81,7 @@ if (!isset($_SESSION['login']) || !isset($_SESSION['nama_lengkap']) || !isset($_
     <script>
         // Tailwind-only sidebar toggle for mobile.
         document.addEventListener('click', function(event) {
-            const offcanvasToggle = event.target.closest('[data-toggle="offcanvas"]');
+            const offcanvasToggle = event.target.closest('[data-sidebar-toggle]');
             if (!offcanvasToggle) return;
             event.preventDefault();
             const sidebar = document.getElementById('sidebar');
@@ -90,21 +90,21 @@ if (!isset($_SESSION['login']) || !isset($_SESSION['nama_lengkap']) || !isset($_
     </script>
     <style>
         .swal2-popup {
-            font-family: 'Inter', ui-sans-serif, system-ui, sans-serif !important;
+            font-family: 'Nunito Sans', ui-sans-serif, system-ui, sans-serif !important;
         }
     </style>
 </head>
 <body>
-    <div class="container-scroller">
-        <nav class="navbar default-layout w-full p-0 fixed top-0 z-50 flex flex-row">
-            <div class="navbar-brand-wrapper flex items-center justify-start">
-                <a class="navbar-brand brand-logo flex items-center justify-start" href="<?= base_url() ?>" style="padding-left: 15px;">
+    <div class="app-shell">
+        <nav class="app-navbar app-navbar-theme w-full p-0 fixed top-0 z-50 flex flex-row">
+            <div class="app-brand-area flex items-center justify-start">
+                <a class="app-brand app-brand-full flex items-center justify-start" href="<?= base_url() ?>" style="padding-left: 15px;">
                     <?php if (!empty($logo_sekolah)) : ?>
                         <img src="<?= base_url('assets/images/' . $logo_sekolah) ?>" alt="logo" style="width: 40px; height: 40px; margin: 0 10px 0 0 !important; filter: drop-shadow(0px 0px 5px white);" />
                     <?php endif; ?>
                     <h3 class="mb-0 font-bold text-white">SIBAYAR</h3>
                 </a>
-                <a class="navbar-brand brand-logo-mini" href="<?= base_url() ?>">
+                <a class="app-brand app-brand-mini" href="<?= base_url() ?>">
                     <?php if (!empty($logo_sekolah)) : ?>
                         <img src="<?= base_url('assets/images/' . $logo_sekolah) ?>" alt="logo" style="width: 40px; height: 40px; margin: 0 !important; filter: drop-shadow(0px 0px 5px white);" />
                     <?php else: ?>
@@ -112,13 +112,13 @@ if (!isset($_SESSION['login']) || !isset($_SESSION['nama_lengkap']) || !isset($_
                     <?php endif; ?>
                 </a>
             </div>
-            <div class="navbar-menu-wrapper flex items-center">
-                <div class="hidden lg:block me-auto">
+            <div class="app-navbar-menu flex items-center">
+                <div class="hidden lg:block mr-auto">
                     <span class="text-white font-bold" id="current-datetime" style="font-size: 0.9rem;"></span>
                 </div>
-                <ul class="navbar-nav navbar-nav-right">
-                    <li class="nav-item dropdown hidden xl:inline-block" x-data="{ dropdownOpen: false }">
-                        <a class="nav-link dropdown-toggle" id="UserDropdown" href="#" @click.prevent="dropdownOpen = !dropdownOpen">
+                <ul class="app-nav-actions app-nav-actions-right">
+                    <li class="app-nav-item app-dropdown hidden xl:inline-block" x-data="{ dropdownOpen: false }">
+                        <a class="app-nav-link app-dropdown-toggle" id="UserDropdown" href="#" @click.prevent="dropdownOpen = !dropdownOpen">
                             <?php
                             // Ambil nama, role, foto terbaru dari DB agar sesuai setelah edit di Data Pengguna
                             $nav_nama = $_SESSION['nama_lengkap'] ?? '';
@@ -145,13 +145,13 @@ if (!isset($_SESSION['login']) || !isset($_SESSION['nama_lengkap']) || !isset($_
                                 $foto_url = 'https://ui-avatars.com/api/?name=' . urlencode($nav_nama) . '&background=random&color=fff';
                             }
                             ?>
-                            <div class="hidden md:block me-3 text-end">
+                            <div class="hidden md:block mr-3 text-right">
                                 <p class="mb-0 font-bold text-white"><?= htmlspecialchars($nav_nama, ENT_QUOTES, 'UTF-8') ?></p>
                                 <p class="mb-0 text-white text-sm"><?= htmlspecialchars($nav_role, ENT_QUOTES, 'UTF-8') ?></p>
                             </div>
-                            <img class="w-8 h-8 rounded-full navbar-profile-img" src="<?= htmlspecialchars($foto_url, ENT_QUOTES, 'UTF-8') ?>" alt="Profile image" style="object-fit: cover;">
+                            <img class="w-8 h-8 rounded-full app-profile-image" src="<?= htmlspecialchars($foto_url, ENT_QUOTES, 'UTF-8') ?>" alt="Profile image" style="object-fit: cover;">
                         </a>
-                        <div x-show="dropdownOpen" @click.away="dropdownOpen = false" x-cloak class="dropdown-menu dropdown-menu-right navbar-dropdown absolute right-0 mt-2 bg-white rounded-lg shadow-lg border border-gray-200 py-2" style="min-width: 180px;">
+                        <div x-show="dropdownOpen" @click.away="dropdownOpen = false" x-cloak class="app-dropdown-menu app-dropdown-menu-right app-user-menu absolute right-0 mt-2 bg-white rounded-lg shadow-lg border border-gray-200 py-2" style="min-width: 180px;">
                             <?php if (($nav_role ?? '') === 'admin') : ?>
                                 <?php
                                 if (!isset($_SESSION['update_token']) || !is_string($_SESSION['update_token']) || $_SESSION['update_token'] === '') {
@@ -159,21 +159,21 @@ if (!isset($_SESSION['login']) || !isset($_SESSION['nama_lengkap']) || !isset($_
                                 }
                                 $update_token = $_SESSION['update_token'];
                                 ?>
-                                <a class="dropdown-item flex items-center gap-3 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100" href="#" data-update-system-trigger>
+                                <a class="app-dropdown-item flex items-center gap-3 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100" href="#" data-update-system-trigger>
                                     <i class="mdi mdi-update text-lg text-emerald-600"></i>
                                     <span>Update Sistem</span>
                                 </a>
                             <?php endif; ?>
-                            <a class="dropdown-item mt-1 flex items-center gap-3 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100" href="<?= base_url('auth/logout.php') ?>" onclick="confirmLogout(event)">
+                            <a class="app-dropdown-item mt-1 flex items-center gap-3 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100" href="<?= base_url('auth/logout.php') ?>" onclick="confirmLogout(event)">
                                 <i class="mdi mdi-logout text-lg text-red-500"></i>
                                 <span>Sign Out</span>
                             </a>
                         </div>
                     </li>
                 </ul>
-                <button class="navbar-toggler navbar-toggler-right lg:hidden self-center" type="button" data-toggle="offcanvas">
+                <button class="app-nav-toggle app-nav-toggle-right lg:hidden self-center" type="button" data-sidebar-toggle>
                     <span class="mdi mdi-menu"></span>
                 </button>
             </div>
         </nav>
-        <div class="container-fluid page-body-wrapper">
+        <div class="app-container app-body">

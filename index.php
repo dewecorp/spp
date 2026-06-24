@@ -287,7 +287,7 @@ $q_aktivitas = mysqli_query($koneksi, "
                     legend: {
                         labels: {
                             color: '#475569',
-                            font: { family: 'Inter', weight: '600' }
+                            font: { family: 'Nunito Sans', weight: '600' }
                         }
                     }
                 },

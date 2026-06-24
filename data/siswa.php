@@ -34,47 +34,47 @@ foreach ($columns_to_add as $col => $type) {
 if (isset($_POST['import'])) {
     $file = $_FILES['file_excel']['tmp_name'];
     $ext = pathinfo($_FILES['file_excel']['name'], PATHINFO_EXTENSION);
-    
+
     if (in_array(strtolower($ext), ['xls', 'xlsx'])) {
         try {
             $spreadsheet = IOFactory::load($file);
             $sheet = $spreadsheet->getActiveSheet();
             $rows = $sheet->toArray();
-            
+
             $success_count = 0;
             $duplicate_count = 0;
             $missing_class_count = 0;
             $invalid_count = 0;
             $failed_insert_count = 0;
-            
+
             foreach ($rows as $key => $row) {
                 // Skip header
                 if ($key == 0) continue;
-                
+
                 $nisn = mysqli_real_escape_string($koneksi, trim($row[0] ?? ''));
                 $nama = mysqli_real_escape_string($koneksi, trim($row[1] ?? ''));
                 $nama_kelas = mysqli_real_escape_string($koneksi, trim($row[2] ?? ''));
                 $alamat = mysqli_real_escape_string($koneksi, trim($row[3] ?? ''));
-                
+
                 // Validate essential data
                 if (empty($nisn) || empty($nama)) {
                     $invalid_count++;
                     continue;
                 }
-                
+
                 // Defaults
                 $no_telp = '';
-                
+
                 // Cari ID Kelas
                 $q_kelas = mysqli_query($koneksi, "SELECT id_kelas FROM kelas WHERE nama_kelas = '$nama_kelas'");
                 if (mysqli_num_rows($q_kelas) > 0) {
                     $d_kelas = mysqli_fetch_assoc($q_kelas);
                     $id_kelas = $d_kelas['id_kelas'];
-                    
+
                     // Cek Duplicate NISN
                     $cek = mysqli_query($koneksi, "SELECT nisn FROM siswa WHERE nisn = '$nisn'");
                     if (mysqli_num_rows($cek) == 0) {
-                        $insert = mysqli_query($koneksi, "INSERT INTO siswa (nisn, nis, nama, id_kelas, alamat, no_telp, jenis_kelamin, tempat_lahir, tgl_lahir, nama_wali) 
+                        $insert = mysqli_query($koneksi, "INSERT INTO siswa (nisn, nis, nama, id_kelas, alamat, no_telp, jenis_kelamin, tempat_lahir, tgl_lahir, nama_wali)
                             VALUES ('$nisn', '-', '$nama', '$id_kelas', '$alamat', '$no_telp', '-', '-', '1900-01-01', '-')");
                         if ($insert) {
                             $success_count++;
@@ -88,9 +88,9 @@ if (isset($_POST['import'])) {
                     $missing_class_count++;
                 }
             }
-            
+
             $failed_count = $failed_insert_count;
-            
+
             echo "<script>
                 Swal.fire({
                     title: 'Selesai',
@@ -104,9 +104,9 @@ if (isset($_POST['import'])) {
                     window.location='siswa.php';
                 });
             </script>";
-            
+
             logActivity($koneksi, 'Create', "Import $success_count siswa (gagal insert: $failed_count) via Excel");
-            
+
         } catch (Exception $e) {
             echo "<script>Swal.fire('Gagal', 'Terjadi kesalahan saat membaca file: " . $e->getMessage() . "', 'error');</script>";
         }
@@ -126,13 +126,13 @@ if (isset($_POST['tambah'])) {
     $wali = $_POST['nama_wali'];
     $alamat = '-'; // Default
     $no_telp = ''; // Default
-    
+
     // Cek duplikasi NISN
     $cek = mysqli_query($koneksi, "SELECT * FROM siswa WHERE nisn='$nisn'");
     if (mysqli_num_rows($cek) > 0) {
          echo "<script>Swal.fire('Gagal', 'NISN sudah ada!', 'error');</script>";
     } else {
-        $query = mysqli_query($koneksi, "INSERT INTO siswa (nisn, nis, nama, id_kelas, alamat, no_telp, jenis_kelamin, tempat_lahir, tgl_lahir, nama_wali) 
+        $query = mysqli_query($koneksi, "INSERT INTO siswa (nisn, nis, nama, id_kelas, alamat, no_telp, jenis_kelamin, tempat_lahir, tgl_lahir, nama_wali)
             VALUES ('$nisn', '-', '$nama', '$id_kelas', '$alamat', '$no_telp', '$gender', '$tempat', '$tgl', '$wali')");
         if ($query) {
             logActivity($koneksi, 'Create', "Menambah data siswa baru: $nama ($nisn)");
@@ -164,9 +164,9 @@ if (isset($_POST['edit'])) {
     $tgl = $_POST['tgl_lahir'];
     $wali = $_POST['nama_wali'];
 
-    $query = mysqli_query($koneksi, "UPDATE siswa SET 
-        nisn='$nisn', 
-        nama='$nama', 
+    $query = mysqli_query($koneksi, "UPDATE siswa SET
+        nisn='$nisn',
+        nama='$nama',
         id_kelas='$id_kelas',
         jenis_kelamin='$gender',
         tempat_lahir='$tempat',
@@ -197,15 +197,15 @@ if (isset($_POST['multi_edit_save'])) {
     $nisn = $_POST['nisn'];
     $nama = $_POST['nama'];
     $id_kelas = $_POST['id_kelas'];
-    
+
     $success_count = 0;
     $error_count = 0;
-    
+
     foreach ($nisn_lama as $key => $old_nisn) {
         $new_nisn = $nisn[$key];
         $new_nama = $nama[$key];
         $new_kelas = $id_kelas[$key];
-        
+
         $query = mysqli_query($koneksi, "UPDATE siswa SET nisn='$new_nisn', nama='$new_nama', id_kelas='$new_kelas' WHERE nisn='$old_nisn'");
         if ($query) {
             $success_count++;
@@ -213,7 +213,7 @@ if (isset($_POST['multi_edit_save'])) {
             $error_count++;
         }
     }
-    
+
     if ($success_count > 0) {
         logActivity($koneksi, 'Update', "Multi update $success_count data siswa");
         echo "<script>
@@ -238,7 +238,7 @@ if (isset($_POST['multi_hapus'])) {
         $ids = $_POST['cek_nisn'];
         $jumlah = count($ids);
         $ids_string = implode("','", $ids);
-        
+
         $query = mysqli_query($koneksi, "DELETE FROM siswa WHERE nisn IN ('$ids_string')");
         if ($query) {
             logActivity($koneksi, 'Delete', "Menghapus $jumlah data siswa");
@@ -301,29 +301,29 @@ $query_siswa = mysqli_query($koneksi, "SELECT siswa.*, kelas.nama_kelas FROM sis
 $jumlah_siswa = mysqli_num_rows($query_siswa);
 ?>
 
-<div class="row">
-    <div class="col-lg-12 grid-margin stretch-card">
-        <div class="card">
-            <div class="card-body">
-                <h4 class="card-title">Data Siswa</h4>
-                
-                <div class="toolbar d-flex justify-content-between mb-3 align-items-center">
+<div class="app-grid">
+    <div class="app-col-full app-section-gap app-stretch">
+        <div class="app-panel">
+            <div class="app-panel-body">
+                <h4 class="app-panel-title">Data Siswa</h4>
+
+                <div class="toolbar flex justify-between mb-3 items-center">
                     <div>
-                        <button type="button" class="btn btn-primary" data-tailwind-modal-target="#modalTambah">
+                        <button type="button" class="app-button app-button-primary" data-tailwind-modal-target="#modalTambah">
                             <i class="mdi mdi-plus"></i> Tambah Siswa
                         </button>
-                        <button type="button" class="btn btn-success" data-tailwind-modal-target="#modalImport">
+                        <button type="button" class="app-button app-button-success" data-tailwind-modal-target="#modalImport">
                             <i class="mdi mdi-file-excel"></i> Import Data
                         </button>
                         <form action="" method="post" style="display: inline;" id="formSinkronSimad">
-                            <button type="submit" name="sinkron_simad" class="btn btn-info" id="btnSinkronSimad">
+                            <button type="submit" name="sinkron_simad" class="app-button app-button-info" id="btnSinkronSimad">
                                 <i class="mdi mdi-sync"></i> Sinkron Simad
                             </button>
                         </form>
                     </div>
-                    
-                    <form action="" method="get" class="d-flex align-items-center">
-                        <select name="kelas" class="form-control filter-kelas" onchange="this.form.submit()" style="width: 250px;">
+
+                    <form action="" method="get" class="flex items-center">
+                        <select name="kelas" class="app-control filter-kelas" onchange="this.form.submit()" style="width: 250px;">
                             <option value="">-- Semua Kelas --</option>
                             <?php foreach($data_kelas as $kls) : ?>
                                 <option value="<?= $kls['id_kelas'] ?>" <?= (isset($_GET['kelas']) && $_GET['kelas'] == $kls['id_kelas']) ? 'selected' : '' ?>>
@@ -333,28 +333,28 @@ $jumlah_siswa = mysqli_num_rows($query_siswa);
                         </select>
                     </form>
                 </div>
-                
+
                 <form action="" method="post" id="formMultiHapus">
-                    <div class="toolbar-secondary mb-2 d-flex justify-content-between align-items-center">
+                    <div class="toolbar-secondary mb-2 flex justify-between items-center">
                         <div>
-                            <button type="button" id="btnMultiHapus" class="btn btn-danger btn-sm">
+                            <button type="button" id="btnMultiHapus" class="app-button app-button-danger app-button-sm">
                                 <i class="mdi mdi-delete"></i> Hapus Terpilih
                             </button>
-                            <button type="button" id="btnMultiEdit" class="btn btn-warning btn-sm">
+                            <button type="button" id="btnMultiEdit" class="app-button app-button-warning app-button-sm">
                                 <i class="mdi mdi-pencil"></i> Edit Terpilih
                             </button>
                         </div>
-                        <span class="badge badge-info" style="font-size: 14px;">Total Siswa: <b><?= number_format($jumlah_siswa) ?></b></span>
+                        <span class="app-badge app-badge-info" style="font-size: 14px;">Total Siswa: <b><?= number_format($jumlah_siswa) ?></b></span>
                     </div>
 
-                    <div class="table-responsive dt-wrap-siswa">
-                        <table class="table table-striped w-100" id="table-siswa" data-dt-scroll-x="1">
+                    <div class="app-table-scroll dt-wrap-siswa">
+                        <table class="app-data-table app-table-striped w-full" id="table-siswa" data-dt-scroll-x="1">
                             <thead>
                                 <tr>
                                     <th width="5%">
                                         <div class="form-check m-0">
                                             <label class="form-check-label">
-                                                <input type="checkbox" class="form-check-input" id="checkAll">
+                                                <input type="checkbox" class="app-checkbox" id="checkAll">
                                                 <i class="input-helper"></i>
                                             </label>
                                         </div>
@@ -365,7 +365,7 @@ $jumlah_siswa = mysqli_num_rows($query_siswa);
                                 <th>L/P</th>
                                 <th>Kelas</th>
                                 <th>Wali</th>
-                                <th class="aksi-col dt-nowrap text-end" style="min-width:110px;">Aksi</th>
+                                <th class="aksi-col dt-nowrap text-right" style="min-width:110px;">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -377,7 +377,7 @@ $jumlah_siswa = mysqli_num_rows($query_siswa);
                                     <td>
                                         <div class="form-check m-0">
                                             <label class="form-check-label">
-                                                <input type="checkbox" class="form-check-input check-item" name="cek_nisn[]" value="<?= $row['nisn'] ?>" data-nama="<?= htmlspecialchars($row['nama']) ?>" data-kelas="<?= $row['id_kelas'] ?>">
+                                                <input type="checkbox" class="app-checkbox check-item" name="cek_nisn[]" value="<?= $row['nisn'] ?>" data-nama="<?= htmlspecialchars($row['nama']) ?>" data-kelas="<?= $row['id_kelas'] ?>">
                                                 <i class="input-helper"></i>
                                             </label>
                                         </div>
@@ -388,18 +388,18 @@ $jumlah_siswa = mysqli_num_rows($query_siswa);
                                     <td><?= $row['jenis_kelamin'] ?></td>
                                     <td><?= $row['nama_kelas'] ?></td>
                                     <td><?= $row['nama_wali'] ?></td>
-                                    <td class="aksi-col dt-nowrap text-end">
-                                        <button type="button" class="btn btn-warning btn-sm" data-tailwind-modal-target="#modalEdit<?= $row['nisn'] ?>">
+                                    <td class="aksi-col dt-nowrap text-right">
+                                        <button type="button" class="app-button app-button-warning app-button-sm" data-tailwind-modal-target="#modalEdit<?= $row['nisn'] ?>">
                                             <i class="mdi mdi-pencil"></i>
                                         </button>
-                                        <a href="siswa.php?hapus=<?= $row['nisn'] ?>" class="btn btn-danger btn-sm btn-hapus">
+                                        <a href="siswa.php?hapus=<?= $row['nisn'] ?>" class="app-button app-button-danger app-button-sm btn-hapus">
                                             <i class="mdi mdi-delete"></i>
                                         </a>
                                     </td>
                                 </tr>
 
                                 <!-- Modal Edit -->
-                                <div class="fixed inset-0 z-[1055] hidden overflow-y-auto bg-slate-950/60 px-4 py-6 backdrop-blur-sm" id="modalEdit<?= $row['nisn'] ? data-tailwind-modal>" tabindex="-1" role="dialog" aria-hidden="true">
+                                <div class="fixed inset-0 z-[1055] hidden overflow-y-auto bg-slate-950/60 px-4 py-6 backdrop-blur-sm" id="modalEdit<?= $row['nisn'] ?>" data-tailwind-modal tabindex="-1" role="dialog" aria-hidden="true">
                                     <div class="mx-auto flex min-h-full w-full max-w-2xl items-start">
                                         <div class="flex max-h-[calc(100vh-3rem)] w-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl">
                                             <div class="flex shrink-0 items-center justify-between border-b border-slate-200 px-6 py-4">
@@ -411,28 +411,28 @@ $jumlah_siswa = mysqli_num_rows($query_siswa);
                                             <form action="" method="post">
                                                 <div class="min-h-0 flex-1 overflow-y-auto px-6 py-5">
                                                     <input type="hidden" name="nisn_lama" value="<?= $row['nisn'] ?>">
-                                                    <div class="form-group">
+                                                    <div class="app-field">
                                                         <label>NISN</label>
-                                                        <input type="text" name="nisn" class="form-control" value="<?= $row['nisn'] ?>" required>
+                                                        <input type="text" name="nisn" class="app-control" value="<?= $row['nisn'] ?>" required>
                                                     </div>
-                                                    <div class="form-group">
+                                                    <div class="app-field">
                                                         <label>Nama Siswa</label>
-                                                        <input type="text" name="nama" class="form-control" value="<?= $row['nama'] ?>" required>
+                                                        <input type="text" name="nama" class="app-control" value="<?= $row['nama'] ?>" required>
                                                     </div>
-                                                    <div class="row">
-                                                        <div class="col-md-6">
-                                                            <div class="form-group">
+                                                    <div class="app-grid">
+                                                        <div class="app-col-half">
+                                                            <div class="app-field">
                                                                 <label>L/P</label>
-                                                                <select name="jenis_kelamin" class="form-control">
+                                                                <select name="jenis_kelamin" class="app-control">
                                                                     <option value="L" <?= ($row['jenis_kelamin'] == 'L') ? 'selected' : '' ?>>Laki-laki</option>
                                                                     <option value="P" <?= ($row['jenis_kelamin'] == 'P') ? 'selected' : '' ?>>Perempuan</option>
                                                                 </select>
                                                             </div>
                                                         </div>
-                                                        <div class="col-md-6">
-                                                            <div class="form-group">
+                                                        <div class="app-col-half">
+                                                            <div class="app-field">
                                                                 <label>Kelas</label>
-                                                                <select name="id_kelas" class="form-control" required>
+                                                                <select name="id_kelas" class="app-control" required>
                                                                     <?php foreach($data_kelas as $kls) : ?>
                                                                         <option value="<?= $kls['id_kelas'] ?>" <?= ($kls['id_kelas'] == $row['id_kelas']) ? 'selected' : '' ?>>
                                                                             <?= $kls['nama_kelas'] ?>
@@ -442,28 +442,28 @@ $jumlah_siswa = mysqli_num_rows($query_siswa);
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <div class="row">
-                                                        <div class="col-md-6">
-                                                            <div class="form-group">
+                                                    <div class="app-grid">
+                                                        <div class="app-col-half">
+                                                            <div class="app-field">
                                                                 <label>Tempat Lahir</label>
-                                                                <input type="text" name="tempat_lahir" class="form-control" value="<?= $row['tempat_lahir'] ?>">
+                                                                <input type="text" name="tempat_lahir" class="app-control" value="<?= $row['tempat_lahir'] ?>">
                                                             </div>
                                                         </div>
-                                                        <div class="col-md-6">
-                                                            <div class="form-group">
+                                                        <div class="app-col-half">
+                                                            <div class="app-field">
                                                                 <label>Tgl Lahir</label>
-                                                                <input type="date" name="tgl_lahir" class="form-control" value="<?= $row['tgl_lahir'] ?>">
+                                                                <input type="date" name="tgl_lahir" class="app-control" value="<?= $row['tgl_lahir'] ?>">
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <div class="form-group">
+                                                    <div class="app-field">
                                                         <label>Nama Wali</label>
-                                                        <input type="text" name="nama_wali" class="form-control" value="<?= $row['nama_wali'] ?>">
+                                                        <input type="text" name="nama_wali" class="app-control" value="<?= $row['nama_wali'] ?>">
                                                     </div>
                                                 </div>
                                                 <div class="flex shrink-0 items-center justify-end gap-3 border-t border-slate-200 px-6 py-4">
-                                                    <button type="button" class="btn btn-secondary" data-tailwind-modal-close>Batal</button>
-                                                    <button type="submit" name="edit" class="btn btn-primary">Simpan</button>
+                                                    <button type="button" class="app-button app-button-secondary" data-tailwind-modal-close>Batal</button>
+                                                    <button type="submit" name="edit" class="app-button app-button-primary">Simpan</button>
                                                 </div>
                                             </form>
                                         </div>
@@ -491,8 +491,8 @@ $jumlah_siswa = mysqli_num_rows($query_siswa);
             </div>
             <form action="" method="post">
                 <div class="min-h-0 flex-1 overflow-y-auto px-6 py-5">
-                    <div class="table-responsive">
-                        <table class="table table-bordered">
+                    <div class="app-table-scroll">
+                        <table class="app-data-table app-table-bordered">
                             <thead>
                                 <tr>
                                     <th>No</th>
@@ -508,8 +508,8 @@ $jumlah_siswa = mysqli_num_rows($query_siswa);
                     </div>
                 </div>
                 <div class="flex shrink-0 items-center justify-end gap-3 border-t border-slate-200 px-6 py-4">
-                    <button type="button" class="btn btn-secondary" data-tailwind-modal-close>Batal</button>
-                    <button type="submit" name="multi_edit_save" class="btn btn-primary">Simpan Perubahan</button>
+                    <button type="button" class="app-button app-button-secondary" data-tailwind-modal-close>Batal</button>
+                    <button type="submit" name="multi_edit_save" class="app-button app-button-primary">Simpan Perubahan</button>
                 </div>
             </form>
         </div>
@@ -535,7 +535,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Handle Multi Edit Button
     const btnMultiEdit = document.getElementById('btnMultiEdit');
-    const modalMultiEdit = new bootstrap.Modal(document.getElementById('modalMultiEdit'));
     const multiEditTableBody = document.getElementById('multiEditTableBody');
 
     if (btnMultiEdit) {
@@ -560,22 +559,22 @@ document.addEventListener('DOMContentLoaded', function() {
                         <td>${no++}</td>
                         <td>
                             <input type="hidden" name="nisn_lama[]" value="${nisn}">
-                            <input type="text" name="nisn[]" class="form-control" value="${nisn}" required>
+                            <input type="text" name="nisn[]" class="app-control" value="${nisn}" required>
                         </td>
                         <td>
-                            <input type="text" name="nama[]" class="form-control" value="${nama}" required>
+                            <input type="text" name="nama[]" class="app-control" value="${nama}" required>
                         </td>
                         <td>
-                            <select name="id_kelas[]" class="form-control" required>
+                            <select name="id_kelas[]" class="app-control" required>
                                 ${optionsKelas}
                             </select>
                         </td>
                     </tr>
                 `;
-                
+
                 // Insert row
                 multiEditTableBody.insertAdjacentHTML('beforeend', row);
-                
+
                 // Set selected value for dropdown
                 const lastRow = multiEditTableBody.lastElementChild;
                 const select = lastRow.querySelector('select');
@@ -583,7 +582,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             // Show Modal
-            modalMultiEdit.show();
+            AppModal.open('#modalMultiEdit');
         });
     }
 
@@ -612,7 +611,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             Swal.showLoading()
                         }
                     });
-                    
+
                     // AJAX Request
                     const formData = new FormData();
                     formData.append('sinkron_simad', '1');
@@ -633,11 +632,11 @@ document.addEventListener('DOMContentLoaded', function() {
                             if (data.status === 'success') {
                                 Swal.fire({
                                     title: 'Sinkronisasi Selesai',
-                                    html: `<div class="text-center"><i class="mdi mdi-check-circle-outline text-success" style="font-size: 50px;"></i><br>
+                                    html: `<div class="text-center"><i class="mdi mdi-check-circle-outline text-emerald-600" style="font-size: 50px;"></i><br>
                                           Proses sinkronisasi telah selesai.<br>
-                                          <span class="badge badge-success">Total Data Simad: ${data.total_api}</span><br>
-                                           <span class="badge badge-primary">Berhasil (Baru/Update): ${data.new + data.update}</span> 
-                                           <span class="badge badge-danger">Gagal: ${data.failed}</span></div>`,
+                                          <span class="app-badge app-badge-success">Total Data Simad: ${data.total_api}</span><br>
+                                           <span class="app-badge app-badge-primary">Berhasil (Baru/Update): ${data.new + data.update}</span>
+                                           <span class="app-badge app-badge-danger">Gagal: ${data.failed}</span></div>`,
                                     icon: 'success',
                                     confirmButtonText: 'Mantap!',
                                     confirmButtonColor: '#3085d6'
@@ -728,28 +727,28 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <form action="" method="post">
                 <div class="min-h-0 flex-1 overflow-y-auto px-6 py-5">
-                    <div class="form-group">
+                    <div class="app-field">
                         <label>NISN</label>
-                        <input type="text" name="nisn" class="form-control" required>
+                        <input type="text" name="nisn" class="app-control" required>
                     </div>
-                    <div class="form-group">
+                    <div class="app-field">
                         <label>Nama Siswa</label>
-                        <input type="text" name="nama" class="form-control" required>
+                        <input type="text" name="nama" class="app-control" required>
                     </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
+                    <div class="app-grid">
+                        <div class="app-col-half">
+                            <div class="app-field">
                                 <label>L/P</label>
-                                <select name="jenis_kelamin" class="form-control">
+                                <select name="jenis_kelamin" class="app-control">
                                     <option value="L">Laki-laki</option>
                                     <option value="P">Perempuan</option>
                                 </select>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
+                        <div class="app-col-half">
+                            <div class="app-field">
                                 <label>Kelas</label>
-                                <select name="id_kelas" class="form-control" required>
+                                <select name="id_kelas" class="app-control" required>
                                     <option value="">-- Pilih Kelas --</option>
                                     <?php foreach($data_kelas as $kls) : ?>
                                         <option value="<?= $kls['id_kelas'] ?>"><?= $kls['nama_kelas'] ?></option>
@@ -758,28 +757,28 @@ document.addEventListener('DOMContentLoaded', function() {
                             </div>
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
+                    <div class="app-grid">
+                        <div class="app-col-half">
+                            <div class="app-field">
                                 <label>Tempat Lahir</label>
-                                <input type="text" name="tempat_lahir" class="form-control">
+                                <input type="text" name="tempat_lahir" class="app-control">
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
+                        <div class="app-col-half">
+                            <div class="app-field">
                                 <label>Tgl Lahir</label>
-                                <input type="date" name="tgl_lahir" class="form-control">
+                                <input type="date" name="tgl_lahir" class="app-control">
                             </div>
                         </div>
                     </div>
-                    <div class="form-group">
+                    <div class="app-field">
                         <label>Nama Wali</label>
-                        <input type="text" name="nama_wali" class="form-control">
+                        <input type="text" name="nama_wali" class="app-control">
                     </div>
                 </div>
                 <div class="flex shrink-0 items-center justify-end gap-3 border-t border-slate-200 px-6 py-4">
-                    <button type="button" class="btn btn-secondary" data-tailwind-modal-close>Batal</button>
-                    <button type="submit" name="tambah" class="btn btn-primary">Simpan</button>
+                    <button type="button" class="app-button app-button-secondary" data-tailwind-modal-close>Batal</button>
+                    <button type="submit" name="tambah" class="app-button app-button-primary">Simpan</button>
                 </div>
             </form>
         </div>
@@ -798,25 +797,25 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <form id="formImport" action="" method="post" enctype="multipart/form-data" onsubmit="startProgress()">
                 <div class="min-h-0 flex-1 overflow-y-auto px-6 py-5">
-                    <div class="alert alert-info">
+                    <div class="app-alert app-alert-info">
                         Gunakan file template Excel berikut untuk mengimport data: <br>
-                        <a href="template_siswa.xlsx" class="btn btn-sm btn-success mt-2">
+                        <a href="template_siswa.xlsx" class="app-button app-button-sm app-button-success mt-2">
                             <i class="mdi mdi-download"></i> Download Template
                         </a>
                     </div>
-                    <div class="form-group">
+                    <div class="app-field">
                         <label>File Excel</label>
-                        <input type="file" name="file_excel" id="file_excel" class="form-control" accept=".xls, .xlsx" required>
+                        <input type="file" name="file_excel" id="file_excel" class="app-control" accept=".xls, .xlsx" required>
                     </div>
                     <!-- Progress Bar -->
-                    <div class="progress d-none" id="progressContainer" style="height: 20px;">
-                        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" 
+                    <div class="app-progress hidden" id="progressContainer" style="height: 20px;">
+                        <div class="app-progress-bar app-progress-striped app-progress-animated" role="progressbar"
                              style="width: 0%;" id="progressBar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
                     </div>
                 </div>
                 <div class="flex shrink-0 items-center justify-end gap-3 border-t border-slate-200 px-6 py-4">
-                    <button type="button" class="btn btn-secondary" data-tailwind-modal-close>Batal</button>
-                    <button type="submit" name="import" class="btn btn-primary">Import</button>
+                    <button type="button" class="app-button app-button-secondary" data-tailwind-modal-close>Batal</button>
+                    <button type="submit" name="import" class="app-button app-button-primary">Import</button>
                 </div>
             </form>
         </div>
@@ -831,7 +830,7 @@ function startProgress(event) {
     var fileInput = document.getElementById('file_excel');
     if (fileInput && fileInput.files.length > 0) {
         var container = document.getElementById('progressContainer');
-        container.classList.remove('d-none');
+        container.classList.remove('hidden');
         var bar = document.getElementById('progressBar');
         var width = 0;
         var interval = setInterval(function() {

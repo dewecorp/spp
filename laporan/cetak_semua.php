@@ -165,7 +165,7 @@ $tgl_cetak = date('d') . ' ' . $bulan_indo[date('m')] . ' ' . date('Y');
                     <h4><?= $d_jenis['nama_pembayaran'] ?> (Rp. <?= number_format($d_jenis['nominal'], 0, ',', '.') ?>)</h4>
                     
                     <?php if ($d_jenis['tipe_bayar'] == 'Bulanan') { ?>
-                        <table class="table">
+                        <table class="app-data-table">
                             <thead>
                                 <tr>
                                     <th>Bln</th>
@@ -200,7 +200,7 @@ $tgl_cetak = date('d') . ' ' . $bulan_indo[date('m')] . ' ' . date('Y');
                         $sisa = $d_jenis['nominal'] - $total_bayar;
                         $status_lunas = ($sisa <= 0) ? 'Lunas' : 'Belum Lunas';
                     ?>
-                        <table class="table">
+                        <table class="app-data-table">
                             <tr>
                                 <td class="text-left">Dibayar</td>
                                 <td class="text-right">Rp. <?= number_format($total_bayar, 0, ',', '.') ?></td>

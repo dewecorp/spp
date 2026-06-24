@@ -430,29 +430,29 @@ if (isset($_GET['hapus_transaksi'])) {
 }
 ?>
 
-<div class="row">
-    <div class="col-lg-12 grid-margin stretch-card">
-        <div class="card">
-            <div class="card-body">
-                <h4 class="card-title">Data Transaksi Pembayaran</h4>
-                <div class="toolbar d-flex justify-content-between mb-3 align-items-center" style="gap: .5rem;">
-                    <div class="d-flex align-items-center" style="gap: .5rem;">
-                        <button type="button" class="btn btn-primary" data-tailwind-modal-target="#modalTambah">
+<div class="app-grid">
+    <div class="app-col-full app-section-gap app-stretch">
+        <div class="app-panel">
+            <div class="app-panel-body">
+                <h4 class="app-panel-title">Data Transaksi Pembayaran</h4>
+                <div class="toolbar flex justify-between mb-3 items-center" style="gap: .5rem;">
+                    <div class="flex items-center" style="gap: .5rem;">
+                        <button type="button" class="app-button app-button-primary" data-tailwind-modal-target="#modalTambah">
                             <i class="mdi mdi-plus"></i> Tambah Transaksi
                         </button>
                     </div>
-                    <div class="d-flex align-items-center" style="gap: .5rem;">
-                        <a href="export_excel.php" class="btn btn-success" target="_blank">
+                    <div class="flex items-center" style="gap: .5rem;">
+                        <a href="export_excel.php" class="app-button app-button-success" target="_blank">
                             <i class="mdi mdi-file-excel"></i> Export Excel
                         </a>
-                        <a href="export_pdf.php" class="btn btn-danger" target="_blank">
+                        <a href="export_pdf.php" class="app-button app-button-danger" target="_blank">
                             <i class="mdi mdi-file-pdf"></i> Export PDF
                         </a>
                     </div>
                 </div>
 
-                <div class="table-responsive">
-                    <table class="table table-striped" id="table-transaksi">
+                <div class="app-table-scroll">
+                    <table class="app-data-table app-table-striped" id="table-transaksi">
                         <thead>
                             <tr>
                                 <th>No</th>
@@ -490,7 +490,7 @@ if (isset($_GET['hapus_transaksi'])) {
                             ?>
                                 <tr>
                                     <td><?= $no++ ?></td>
-                                    <td><?= $row['no_transaksi'] ? $row['no_transaksi'] : '<span class="badge badge-warning">Old/Null</span>' ?></td>
+                                    <td><?= $row['no_transaksi'] ? $row['no_transaksi'] : '<span class="app-badge app-badge-warning">Old/Null</span>' ?></td>
                                     <td><?= $row['nama_siswa'] ?></td>
                                     <td><?= $row['nama_kelas'] ?></td>
                                     <td><?= $row['nama_pembayaran'] ?></td>
@@ -499,13 +499,13 @@ if (isset($_GET['hapus_transaksi'])) {
                                     <td>Rp <?= number_format($row['jumlah_bayar'], 0, ',', '.') ?></td>
                                     <td><?= date('d/m/Y', strtotime($row['tgl_bayar'])) ?></td>
                                     <td>
-                                        <a href="cetak_transaksi.php?no_transaksi=<?= $row['no_transaksi'] ?>" class="btn btn-info btn-sm" target="_blank">
+                                        <a href="cetak_transaksi.php?no_transaksi=<?= $row['no_transaksi'] ?>" class="app-button app-button-info app-button-sm" target="_blank">
                                             <i class="mdi mdi-printer"></i>
                                         </a>
-                                        <button type="button" class="btn btn-warning btn-sm btn-edit-transaksi" data-id="<?= $row['no_transaksi'] ?>" data-tailwind-modal-target="#modalEdit">
+                                        <button type="button" class="app-button app-button-warning app-button-sm btn-edit-transaksi" data-id="<?= $row['no_transaksi'] ?>" data-tailwind-modal-target="#modalEdit">
                                             <i class="mdi mdi-pencil"></i>
                                         </button>
-                                        <a href="<?= base_url('transaksi/transaksi?hapus_transaksi=' . $row['no_transaksi']) ?>" class="btn btn-danger btn-sm btn-hapus">
+                                        <a href="<?= base_url('transaksi/transaksi?hapus_transaksi=' . $row['no_transaksi']) ?>" class="app-button app-button-danger app-button-sm btn-hapus">
                                             <i class="mdi mdi-delete"></i>
                                         </a>
                                     </td>
@@ -530,13 +530,13 @@ if (isset($_GET['hapus_transaksi'])) {
                 </button>
             </div>
             <div class="min-h-0 flex-1 overflow-y-auto px-6 py-5">
-                    <div class="form-group">
+                    <div class="app-field">
                         <label>Tanggal Bayar</label>
-                        <input type="date" name="tgl_bayar" class="form-control" value="<?= date('Y-m-d') ?>" required>
+                        <input type="date" name="tgl_bayar" class="app-control" value="<?= date('Y-m-d') ?>" required>
                     </div>
-                    <div class="form-group">
+                    <div class="app-field">
                         <label>Nama Siswa</label>
-                        <select name="nisn" id="nisnTambah" class="form-control select2-modal" style="width: 100%;" required>
+                        <select name="nisn" id="nisnTambah" class="app-control select2-modal" style="width: 100%;" required>
                             <option value="">-- Pilih Siswa --</option>
                             <?php foreach ($siswa_list as $s) : ?>
                                 <option value="<?= $s['nisn'] ?>" data-kelas="<?= $s['nama_kelas'] ?>">
@@ -545,9 +545,9 @@ if (isset($_GET['hapus_transaksi'])) {
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    <div class="form-group">
+                    <div class="app-field">
                         <label>Jenis Bayar</label>
-                        <select name="id_jenis_bayar[]" class="form-control select2-multiple" id="jbTambah" multiple="multiple" style="width: 100%;" required data-placeholder="Pilih Jenis Bayar">
+                        <select name="id_jenis_bayar[]" class="app-control select2-multiple" id="jbTambah" multiple="multiple" style="width: 100%;" required data-placeholder="Pilih Jenis Bayar">
                             <?php foreach ($jb_list as $jb) : ?>
                                 <option value="<?= $jb['id_jenis_bayar'] ?>" 
                                     data-tipe="<?= $jb['tipe_bayar'] ?>" 
@@ -565,8 +565,8 @@ if (isset($_GET['hapus_transaksi'])) {
                     </div>
                 </div>
                 <div class="flex shrink-0 items-center justify-end gap-3 border-t border-slate-200 px-6 py-4">
-                    <button type="button" class="btn btn-secondary" data-tailwind-modal-close>Batal</button>
-                    <button type="submit" name="tambah" class="btn btn-primary">Simpan</button>
+                    <button type="button" class="app-button app-button-secondary" data-tailwind-modal-close>Batal</button>
+                    <button type="submit" name="tambah" class="app-button app-button-primary">Simpan</button>
                 </div>
         </form>
     </div>
@@ -583,15 +583,13 @@ if (isset($_GET['hapus_transaksi'])) {
                 </button>
             </div>
             <div class="min-h-0 flex-1 overflow-y-auto px-6 py-5" id="modalEditBody">
-                    <div class="text-center py-5">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="sr-only">Loading...</span>
-                        </div>
+                    <div class="flex justify-center py-5">
+                        <div class="h-8 w-8 animate-spin rounded-full border-2 border-emerald-100 border-t-emerald-600" role="status" aria-label="Loading"></div>
                     </div>
                 </div>
                 <div class="flex shrink-0 items-center justify-end gap-3 border-t border-slate-200 px-6 py-4">
-                    <button type="button" class="btn btn-secondary" data-tailwind-modal-close>Batal</button>
-                    <button type="submit" name="update_transaksi" class="btn btn-primary">Simpan Perubahan</button>
+                    <button type="button" class="app-button app-button-secondary" data-tailwind-modal-close>Batal</button>
+                    <button type="submit" name="update_transaksi" class="app-button app-button-primary">Simpan Perubahan</button>
                 </div>
         </form>
     </div>
@@ -603,32 +601,8 @@ if (isset($_GET['hapus_transaksi'])) {
 
 <script>
     $(document).ready(function() {
-        function openTailwindModal(selector) {
-            var $modal = $(selector);
-            if (!$modal.length) return;
-            $modal.removeClass('hidden').attr('aria-hidden', 'false');
-            $('body').addClass('overflow-hidden');
-            $modal.scrollTop(0);
-            $modal.find('.overflow-y-auto').first().scrollTop(0);
-            window.requestAnimationFrame(function() {
-                $modal.trigger('shown.bs.modal');
-            });
-        }
-
-        function closeTailwindModal($modal) {
-            if (!$modal || !$modal.length) return;
-            $modal.addClass('hidden').attr('aria-hidden', 'true');
-            if (!$('[data-tailwind-modal]:not(.hidden)').length) {
-                $('body').removeClass('overflow-hidden');
-            }
-            $modal.trigger('hidden.bs.modal');
-        }
-
         function getSelect2Parent($element) {
             var $parent = $element.closest('[data-tailwind-modal]');
-            if (!$parent.length) {
-                $parent = $element.closest('.modal');
-            }
             return $parent.length ? $parent : $(document.body);
         }
 
@@ -644,28 +618,6 @@ if (isset($_GET['hapus_transaksi'])) {
                 allowClear: true
             }, extraOptions || {}));
         }
-
-        $(document).on('click', '[data-tailwind-modal-target]', function(e) {
-            e.preventDefault();
-            openTailwindModal($(this).attr('data-tailwind-modal-target'));
-        });
-
-        $(document).on('click', '[data-tailwind-modal-close]', function(e) {
-            e.preventDefault();
-            closeTailwindModal($(this).closest('[data-tailwind-modal]'));
-        });
-
-        $(document).on('click', '[data-tailwind-modal]', function(e) {
-            if (e.target === this) {
-                closeTailwindModal($(this));
-            }
-        });
-
-        $(document).on('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeTailwindModal($('[data-tailwind-modal]:not(.hidden)').last());
-            }
-        });
 
         function formatRibuan(value) {
             var onlyDigits = String(value || '').replace(/\D/g, '');
@@ -744,7 +696,7 @@ if (isset($_GET['hapus_transaksi'])) {
         });
 
         // Re-adjust Select2 when modal is shown (Crucial for width calculation)
-        $('#modalTambah').on('shown.bs.modal', function () {
+        $('#modalTambah').on('app:modal-open', function () {
             $(this).find('.overflow-y-auto').first().scrollTop(0);
             $(this).find('.select2-modal, .select2-multiple').each(function() {
                 initSelect2Field($(this), {
@@ -754,7 +706,7 @@ if (isset($_GET['hapus_transaksi'])) {
             syncJenisBayarByKelas();
         });
 
-        $('#modalEdit').on('shown.bs.modal', function () {
+        $('#modalEdit').on('app:modal-open', function () {
             $(this).find('.overflow-y-auto').first().scrollTop(0);
             $(this).find('.select2-modal, .select2-multiple, .select-jenis-bayar').each(function() {
                 initSelect2Field($(this), {
@@ -774,7 +726,7 @@ if (isset($_GET['hapus_transaksi'])) {
             var modalBody = $('#modalEditBody');
             
             // Show loading
-            modalBody.html('<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div></div>');
+            modalBody.html('<div class="flex justify-center py-5"><div class="h-8 w-8 animate-spin rounded-full border-2 border-emerald-100 border-t-emerald-600" role="status" aria-label="Loading"></div></div>');
             
             // Fetch Data
             $.ajax({
@@ -785,7 +737,7 @@ if (isset($_GET['hapus_transaksi'])) {
                     modalBody.html(response);
                 },
                 error: function() {
-                    modalBody.html('<div class="text-center text-danger">Gagal memuat data.</div>');
+                    modalBody.html('<div class="py-5 text-center font-semibold text-red-600">Gagal memuat data.</div>');
                 }
             });
         });
@@ -812,16 +764,16 @@ if (isset($_GET['hapus_transaksi'])) {
                 var tipe = opt.data('tipe');
                 var nominal = opt.data('nominal');
                 // Build HTML (opsi tidak valid sudah dicegah oleh syncJenisBayarByKelas)
-                var html = '<div class="card mb-2 border"><div class="card-body p-2" style="background: #f8f9fa;">';
+                var html = '<div class="app-panel mb-2 border"><div class="app-panel-body p-2" style="background: #f8f9fa;">';
                 html += '<h6 class="mb-2 text-primary">' + nama + ' (' + tipe + ')</h6>';
                 
                 html += '<input type="hidden" name="id_jenis_bayar[]" value="' + id + '">';
                 html += '<input type="hidden" name="payment[' + id + '][id_jenis_bayar]" value="' + id + '">';
 
                 if (tipe === 'Bulanan') {
-                    html += '<div class="form-group">';
+                    html += '<div class="app-field">';
                     html += '<label>Bayar Bulan</label>';
-                    html += '<select name="payment[' + id + '][bulan_bayar][]" id="bulan_bayar_' + id + '" class="form-control select2-dynamic-bulan" multiple="multiple" style="width: 100%;" required>';
+                    html += '<select name="payment[' + id + '][bulan_bayar][]" id="bulan_bayar_' + id + '" class="app-control select2-dynamic-bulan" multiple="multiple" style="width: 100%;" required>';
                     var months = ['Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni'];
                     var currentMonthIndex = (new Date().getMonth() + 6) % 12;
                     months.forEach(function(m, i) {
@@ -830,10 +782,10 @@ if (isset($_GET['hapus_transaksi'])) {
                     });
                     html += '</select></div>';
                 } else {
-                     html += '<div class="form-group"><label>Cicilan Ke</label>';
-                     html += '<input type="number" name="payment[' + id + '][cicilan_ke]" class="form-control" value="1" required></div>';
-                     html += '<div class="form-group"><label>Nominal</label>';
-                     html += '<input type="text" name="payment[' + id + '][nominal]" class="form-control input-nominal-tambah" placeholder="Nominal" inputmode="numeric" autocomplete="off" required></div>';
+                     html += '<div class="app-field"><label>Cicilan Ke</label>';
+                     html += '<input type="number" name="payment[' + id + '][cicilan_ke]" class="app-control" value="1" required></div>';
+                     html += '<div class="app-field"><label>Nominal</label>';
+                     html += '<input type="text" name="payment[' + id + '][nominal]" class="app-control input-nominal-tambah" placeholder="Nominal" inputmode="numeric" autocomplete="off" required></div>';
                 }
                 html += '</div></div>';
                 container.append(html);
@@ -858,6 +810,15 @@ if (isset($_GET['hapus_transaksi'])) {
             this.value = formatRibuan(this.value);
         });
 
+        // Format nominal dengan pemisah ribuan pada modal edit.
+        $(document).on('input', '.input-nominal-edit', function() {
+            this.value = formatRibuan(this.value);
+        });
+
+        $(document).on('blur', '.input-nominal-edit', function() {
+            this.value = formatRibuan(this.value);
+        });
+
         // Logic for Jenis Bayar Change (Edit Modal only)
         $(document).on('change', '.select-jenis-bayar:not(#jbTambah)', function() {
             var selectedOption = $(this).find('option:selected');
@@ -867,8 +828,8 @@ if (isset($_GET['hapus_transaksi'])) {
             var targetId = $(this).data('target');
             
             // Validation Logic
-            var modalId = $(this).closest('[data-tailwind-modal], .modal').attr('id');
-            var siswaSelect = $(this).closest('[data-tailwind-modal], .modal').find('select[name="nisn"]');
+            var modalId = $(this).closest('[data-tailwind-modal]').attr('id');
+            var siswaSelect = $(this).closest('[data-tailwind-modal]').find('select[name="nisn"]');
             var selectedSiswa = siswaSelect.find('option:selected');
             var kelasSiswa = selectedSiswa.attr('data-kelas');
             var kelasSiswaNormalized = normalizeKelas(kelasSiswa);
