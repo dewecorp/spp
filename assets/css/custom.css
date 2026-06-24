@@ -1098,6 +1098,62 @@ table.dataTable thead th::after {
     overflow: hidden;
 }
 
+/* Keep long transaction modals usable on small screens. */
+.modal.show {
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    padding: 24px 12px !important;
+}
+
+.modal.show .modal-dialog {
+    margin: 0 auto !important;
+    min-height: calc(100vh - 48px);
+    display: flex;
+    align-items: flex-start;
+}
+
+.modal.show .modal-dialog-scrollable .modal-content,
+.modal.show .modal-content {
+    width: 100%;
+    max-height: calc(100vh - 48px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden !important;
+}
+
+.modal.show .modal-dialog-scrollable .modal-body,
+.modal.show .modal-body {
+    overflow-y: auto !important;
+    max-height: none;
+    min-height: 0;
+    flex: 1 1 auto;
+    overscroll-behavior: contain;
+}
+
+.modal.show .modal-header,
+.modal.show .modal-footer {
+    flex: 0 0 auto;
+}
+
+#modalTambah .modal-dialog,
+#modalEdit .modal-dialog {
+    width: min(96vw, 680px);
+}
+
+@media (max-width: 640px) {
+    .modal.show {
+        padding: 12px 8px !important;
+    }
+
+    .modal.show .modal-dialog {
+        min-height: calc(100vh - 24px);
+    }
+
+    .modal.show .modal-content {
+        max-height: calc(100vh - 24px);
+    }
+}
+
 @media (max-width: 991px) {
     .page-body-wrapper {
         padding-top: 68px;

@@ -419,7 +419,7 @@ if (isset($_GET['hapus_transaksi'])) {
                 <h4 class="card-title">Data Transaksi Pembayaran</h4>
                 <div class="toolbar d-flex justify-content-between mb-3 align-items-center" style="gap: .5rem;">
                     <div class="d-flex align-items-center" style="gap: .5rem;">
-                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalTambah">
+                        <button type="button" class="btn btn-primary" data-tailwind-modal-target="#modalTambah">
                             <i class="mdi mdi-plus"></i> Tambah Transaksi
                         </button>
                     </div>
@@ -484,7 +484,7 @@ if (isset($_GET['hapus_transaksi'])) {
                                         <a href="cetak_transaksi.php?no_transaksi=<?= $row['no_transaksi'] ?>" class="btn btn-info btn-sm" target="_blank">
                                             <i class="mdi mdi-printer"></i>
                                         </a>
-                                        <button type="button" class="btn btn-warning btn-sm btn-edit-transaksi" data-id="<?= $row['no_transaksi'] ?>" data-bs-toggle="modal" data-bs-target="#modalEdit">
+                                        <button type="button" class="btn btn-warning btn-sm btn-edit-transaksi" data-id="<?= $row['no_transaksi'] ?>" data-tailwind-modal-target="#modalEdit">
                                             <i class="mdi mdi-pencil"></i>
                                         </button>
                                         <a href="<?= base_url('transaksi/transaksi?hapus_transaksi=' . $row['no_transaksi']) ?>" class="btn btn-danger btn-sm btn-hapus">
@@ -502,16 +502,16 @@ if (isset($_GET['hapus_transaksi'])) {
 </div>
 
 <!-- Modal Tambah -->
-<div class="modal fade" id="modalTambah" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-scrollable" role="document">
-        <form class="modal-content" action="<?= base_url('transaksi/transaksi') ?>" method="post">
-            <div class="modal-header">
-                <h5 class="modal-title">Tambah Transaksi</h5>
-                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close" style="background: transparent; border: none;">
+<div class="fixed inset-0 z-[1055] hidden overflow-y-auto bg-slate-950/60 px-4 py-6 backdrop-blur-sm" id="modalTambah" tabindex="-1" role="dialog" aria-hidden="true" data-tailwind-modal>
+    <div class="mx-auto flex min-h-full w-full max-w-2xl items-start">
+        <form class="flex max-h-[calc(100vh-3rem)] w-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl" action="<?= base_url('transaksi/transaksi') ?>" method="post">
+            <div class="flex shrink-0 items-center justify-between border-b border-slate-200 px-6 py-4">
+                <h5 class="text-base font-extrabold text-slate-900">Tambah Transaksi</h5>
+                <button type="button" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-100 hover:text-slate-900" data-tailwind-modal-close aria-label="Close">
                     <i class="mdi mdi-close"></i>
                 </button>
             </div>
-            <div class="modal-body">
+            <div class="min-h-0 flex-1 overflow-y-auto px-6 py-5">
                     <div class="form-group">
                         <label>Tanggal Bayar</label>
                         <input type="date" name="tgl_bayar" class="form-control" value="<?= date('Y-m-d') ?>" required>
@@ -546,8 +546,8 @@ if (isset($_GET['hapus_transaksi'])) {
                         <!-- Dynamic Content -->
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <div class="flex shrink-0 items-center justify-end gap-3 border-t border-slate-200 px-6 py-4">
+                    <button type="button" class="btn btn-secondary" data-tailwind-modal-close>Batal</button>
                     <button type="submit" name="tambah" class="btn btn-primary">Simpan</button>
                 </div>
         </form>
@@ -555,24 +555,24 @@ if (isset($_GET['hapus_transaksi'])) {
 </div>
 
 <!-- Modal Edit -->
-<div class="modal fade" id="modalEdit" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-scrollable" role="document">
-        <form class="modal-content" action="<?= base_url('transaksi/transaksi') ?>" method="post">
-            <div class="modal-header">
-                <h5 class="modal-title">Edit Transaksi</h5>
-                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close" style="background: transparent; border: none;">
+<div class="fixed inset-0 z-[1055] hidden overflow-y-auto bg-slate-950/60 px-4 py-6 backdrop-blur-sm" id="modalEdit" tabindex="-1" role="dialog" aria-hidden="true" data-tailwind-modal>
+    <div class="mx-auto flex min-h-full w-full max-w-2xl items-start">
+        <form class="flex max-h-[calc(100vh-3rem)] w-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl" action="<?= base_url('transaksi/transaksi') ?>" method="post">
+            <div class="flex shrink-0 items-center justify-between border-b border-slate-200 px-6 py-4">
+                <h5 class="text-base font-extrabold text-slate-900">Edit Transaksi</h5>
+                <button type="button" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-100 hover:text-slate-900" data-tailwind-modal-close aria-label="Close">
                     <i class="mdi mdi-close"></i>
                 </button>
             </div>
-            <div class="modal-body" id="modalEditBody">
+            <div class="min-h-0 flex-1 overflow-y-auto px-6 py-5" id="modalEditBody">
                     <div class="text-center py-5">
                         <div class="spinner-border text-primary" role="status">
                             <span class="sr-only">Loading...</span>
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <div class="flex shrink-0 items-center justify-end gap-3 border-t border-slate-200 px-6 py-4">
+                    <button type="button" class="btn btn-secondary" data-tailwind-modal-close>Batal</button>
                     <button type="submit" name="update_transaksi" class="btn btn-primary">Simpan Perubahan</button>
                 </div>
         </form>
@@ -585,6 +585,47 @@ if (isset($_GET['hapus_transaksi'])) {
 
 <script>
     $(document).ready(function() {
+        function openTailwindModal(selector) {
+            var $modal = $(selector);
+            if (!$modal.length) return;
+            $modal.removeClass('hidden').attr('aria-hidden', 'false');
+            $('body').addClass('overflow-hidden');
+            $modal.scrollTop(0);
+            $modal.find('.overflow-y-auto').first().scrollTop(0);
+            $modal.trigger('shown.bs.modal');
+        }
+
+        function closeTailwindModal($modal) {
+            if (!$modal || !$modal.length) return;
+            $modal.addClass('hidden').attr('aria-hidden', 'true');
+            if (!$('[data-tailwind-modal]:not(.hidden)').length) {
+                $('body').removeClass('overflow-hidden');
+            }
+            $modal.trigger('hidden.bs.modal');
+        }
+
+        $(document).on('click', '[data-tailwind-modal-target]', function(e) {
+            e.preventDefault();
+            openTailwindModal($(this).attr('data-tailwind-modal-target'));
+        });
+
+        $(document).on('click', '[data-tailwind-modal-close]', function(e) {
+            e.preventDefault();
+            closeTailwindModal($(this).closest('[data-tailwind-modal]'));
+        });
+
+        $(document).on('click', '[data-tailwind-modal]', function(e) {
+            if (e.target === this) {
+                closeTailwindModal($(this));
+            }
+        });
+
+        $(document).on('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeTailwindModal($('[data-tailwind-modal]:not(.hidden)').last());
+            }
+        });
+
         function formatRibuan(value) {
             var onlyDigits = String(value || '').replace(/\D/g, '');
             if (!onlyDigits) return '';
@@ -667,6 +708,7 @@ if (isset($_GET['hapus_transaksi'])) {
 
         // Re-adjust Select2 when modal is shown (Crucial for width calculation)
         $('#modalTambah').on('shown.bs.modal', function () {
+            $(this).find('.modal-body').scrollTop(0);
             $('.select2-modal, .select2-multiple').each(function() {
                 $(this).select2({
                     theme: "bootstrap",
@@ -677,6 +719,10 @@ if (isset($_GET['hapus_transaksi'])) {
                 });
             });
             syncJenisBayarByKelas();
+        });
+
+        $('#modalEdit').on('shown.bs.modal', function () {
+            $(this).find('.modal-body').scrollTop(0);
         });
 
         // Saat siswa berubah, sesuaikan opsi jenis bayar dengan kelas (Biaya Ujian & Rekreasi hanya kelas 6 sesuai tagihan_kelas)

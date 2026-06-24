@@ -91,6 +91,12 @@ if (!isset($_SESSION['login']) || !isset($_SESSION['nama_lengkap']) || !isset($_
                     this.element.removeAttribute('aria-hidden');
                     this.element.classList.add('show');
                     document.body.classList.add('modal-open');
+                    this.element.scrollTop = 0;
+                    const modalBody = this.element.querySelector('.modal-body');
+                    if (modalBody) {
+                        modalBody.scrollTop = 0;
+                    }
+                    this.element.dispatchEvent(new Event('shown.bs.modal'));
                 }
                 hide() {
                     if (!this.element) return;
@@ -100,6 +106,7 @@ if (!isset($_SESSION['login']) || !isset($_SESSION['nama_lengkap']) || !isset($_
                     if (!document.querySelector('.modal.show')) {
                         document.body.classList.remove('modal-open');
                     }
+                    this.element.dispatchEvent(new Event('hidden.bs.modal'));
                 }
                 static getOrCreateInstance(element) {
                     if (!element) return new Modal(null);
