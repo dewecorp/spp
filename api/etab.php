@@ -449,7 +449,7 @@ if ($action === 'simpan_pembayaran' || $action === 'bayar' || $action === 'poton
 
     $q_siswa = etab_exec_select(
         $koneksi,
-        'SELECT s.nisn, s.nama, s.nis, s.id_kelas, k.nama_kelas FROM siswa s JOIN kelas k ON s.id_kelas = k.id_kelas WHERE s.nisn = ? LIMIT 1',
+        'SELECT s.nisn, s.nama, s.id_kelas, k.nama_kelas FROM siswa s JOIN kelas k ON s.id_kelas = k.id_kelas WHERE s.nisn = ? LIMIT 1',
         's',
         [$nisn]
     );
@@ -628,7 +628,7 @@ if ($action === 'simpan_pembayaran' || $action === 'bayar' || $action === 'poton
 }
 
 if ($action === 'transaksi' || $action === 'query_transaksi') {
-    $sql = "SELECT p.id_pembayaran, p.no_transaksi, p.id_petugas, p.nisn, s.nama, s.nis, k.id_kelas, k.nama_kelas,
+    $sql = "SELECT p.id_pembayaran, p.no_transaksi, p.id_petugas, p.nisn, s.nama, k.id_kelas, k.nama_kelas,
                    p.tgl_bayar, p.bulan_bayar, p.tahun_bayar, p.id_jenis_bayar, jb.nama_pembayaran,
                    jb.tipe_bayar, p.jumlah_bayar, p.cicilan_ke, p.ket, p.created_at,
                    pg.nama_lengkap AS nama_petugas
@@ -709,7 +709,6 @@ if ($action === 'transaksi' || $action === 'query_transaksi') {
             'id_pembayaran' => (int) $row['id_pembayaran'],
             'no_transaksi' => $row['no_transaksi'],
             'nisn' => $row['nisn'],
-            'nis' => $row['nis'],
             'nama_siswa' => $row['nama'],
             'id_kelas' => (int) $row['id_kelas'],
             'kelas' => $row['nama_kelas'],
