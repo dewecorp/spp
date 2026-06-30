@@ -657,6 +657,7 @@ if (isset($_GET['hapus_transaksi'])) {
                                 <th>Bulan Bayar</th>
                                 <th>Cicilan Ke</th>
                                 <th>Nominal</th>
+                                <th>Keterangan</th>
                                 <th>Tanggal</th>
                                 <th>Aksi</th>
                             </tr>
@@ -673,6 +674,7 @@ if (isset($_GET['hapus_transaksi'])) {
                                                                 GROUP_CONCAT(DISTINCT jb.nama_pembayaran SEPARATOR '<br>') as nama_pembayaran,
                                                                 GROUP_CONCAT(DISTINCT p.bulan_bayar SEPARATOR '<br>') as bulan_bayar,
                                                                 GROUP_CONCAT(DISTINCT p.cicilan_ke SEPARATOR ', ') as cicilan_ke,
+                                                                GROUP_CONCAT(DISTINCT p.ket SEPARATOR '<br>') as ket,
                                                                 SUM(p.jumlah_bayar) as jumlah_bayar
                                                              FROM pembayaran p
                                                              JOIN siswa s ON p.nisn = s.nisn 
@@ -691,6 +693,7 @@ if (isset($_GET['hapus_transaksi'])) {
                                     <td><?= $row['bulan_bayar'] ?></td>
                                     <td><?= $row['cicilan_ke'] == '0' ? '-' : $row['cicilan_ke'] ?></td>
                                     <td>Rp <?= number_format($row['jumlah_bayar'], 0, ',', '.') ?></td>
+                                    <td><?= $row['ket'] ? $row['ket'] : '-' ?></td>
                                     <td><?= date('d/m/Y', strtotime($row['tgl_bayar'])) ?></td>
                                     <td>
                                         <a href="cetak_transaksi.php?no_transaksi=<?= $row['no_transaksi'] ?>" class="app-button app-button-info app-button-sm" target="_blank">
