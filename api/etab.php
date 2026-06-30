@@ -770,7 +770,6 @@ if ($action === 'tagihan' || $action === 'query_tagihan') {
         'api_url' => rtrim($hosted_app_url, '/') . '/api/etab',
         'student' => [
             'nisn' => $siswa['nisn'],
-            'nis' => $siswa['nis'],
             'nama' => $siswa['nama'],
             'id_kelas' => (int) $siswa['id_kelas'],
             'kelas' => $siswa['nama_kelas'],
