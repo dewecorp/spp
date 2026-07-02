@@ -75,13 +75,17 @@ if (isset($_GET['id_kelas'])) {
                                     <td><?= $s['nisn'] ?></td>
                                     <td><?= $s['nama'] ?></td>
                                     <td class="flex gap-2 items-center">
-                                        <a href="tagihan_detail.php?nisn=<?= $s['nisn'] ?>&id_kelas=<?= $id_kelas ?>" class="app-button app-button-info app-button-sm">
-                                            <i class="mdi mdi-eye"></i> Lihat Tagihan
-                                        </a>
                                         <?php if ($tagihan_tunggakan): ?>
+                                            <a href="tagihan_detail.php?nisn=<?= $s['nisn'] ?>&id_kelas=<?= $id_kelas ?>" class="app-button app-button-info app-button-sm">
+                                                <i class="mdi mdi-eye"></i> Lihat Tagihan
+                                            </a>
                                             <a href="bayar_tagihan.php?nisn=<?= $s['nisn'] ?>&id_kelas=<?= $id_kelas ?>" class="app-button app-button-success app-button-sm">
                                                 <i class="mdi mdi-cash"></i> Bayar
                                             </a>
+                                        <?php else: ?>
+                                            <span class="app-badge app-badge-success">
+                                                <i class="mdi mdi-check-circle mr-1"></i> Lunas
+                                            </span>
                                         <?php endif; ?>
                                     </td>
                                 </tr>
