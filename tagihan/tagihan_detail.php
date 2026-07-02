@@ -30,6 +30,9 @@ $q_jb = mysqli_query($koneksi, "SELECT * FROM jenis_bayar WHERE status = 'Aktif'
                     <h4 class="truncate text-xl font-extrabold tracking-normal text-slate-950">Detail Tagihan: <?= $d_siswa['nama'] ?> (<?= $nama_kelas ?>)</h4>
                 </div>
                 <div class="flex items-center gap-2">
+                    <a href="bayar_tagihan.php?nisn=<?= $nisn ?>&id_kelas=<?= $id_kelas ?>" class="inline-flex h-10 w-auto px-4 items-center justify-center rounded-lg bg-success text-white shadow-sm transition hover:bg-success-600">
+                        <i class="mdi mdi-cash mr-2"></i> Bayar Tagihan
+                    </a>
                     <a href="export_excel.php?nisn=<?= $nisn ?>&id_kelas=<?= $id_kelas ?>" 
                        class="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500 text-white shadow-sm transition hover:bg-emerald-600" target="_blank" title="Export Excel">
                         <i class="mdi mdi-file-excel"></i>

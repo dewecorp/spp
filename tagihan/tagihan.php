@@ -31,6 +31,10 @@ include '../template/sidebar.php';
                         <i class="mdi mdi-printer app-button-icon"></i>
                         <span>Cetak Tagihan Semua Siswa</span>
                     </a>
+                    <a href="bayar_tagihan.php?id_kelas=<?= $_GET['id_kelas'] ?>" class="app-button app-button-success app-button-with-text h-[46px] w-full md:w-auto md:px-5 ml-2">
+                        <i class="mdi mdi-cash app-button-icon"></i>
+                        <span>Bayar Tagihan</span>
+                    </a>
                 </div>
             <?php endif; ?>
         </div>
@@ -62,7 +66,9 @@ if (isset($_GET['id_kelas'])) {
                         <tbody>
                             <?php
                             $no = 1;
-                            while ($s = mysqli_fetch_assoc($q_siswa)) {
+                            while ($s = mysqli_fetch_assoc($q_siswa)) :
+                                // Cek apakah siswa memiliki tagihan tunggakan
+                                $tagihan_tunggakan = cek_tagihan_tunggakan($koneksi, $s['nisn']);
                             ?>
                                 <tr>
                                     <td><?= $no++ ?></td>
@@ -72,9 +78,14 @@ if (isset($_GET['id_kelas'])) {
                                         <a href="tagihan_detail.php?nisn=<?= $s['nisn'] ?>&id_kelas=<?= $id_kelas ?>" class="app-button app-button-info app-button-sm">
                                             <i class="mdi mdi-eye"></i> Lihat Tagihan
                                         </a>
+                                        <?php if ($tagihan_tunggakan): ?>
+                                            <a href="bayar_tagihan.php?nisn=<?= $s['nisn'] ?>&id_kelas=<?= $id_kelas ?>" class="app-button app-button-success app-button-sm ml-1">
+                                                <i class="mdi mdi-cash"></i> Bayar
+                                            </a>
+                                        <?php endif; ?>
                                     </td>
                                 </tr>
-                            <?php } ?>
+                            <?php endwhile; ?>
                         </tbody>
                     </table>
                 </div>

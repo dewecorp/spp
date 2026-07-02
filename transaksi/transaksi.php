@@ -367,55 +367,61 @@ if (isset($_POST['tambah'])) {
     if ($id_petugas <= 0 || $nisn === '' || $tgl_bayar === '' || (empty($id_jenis_bayar_input) && empty($payment_data))) {
         $error_tambah = 'Input transaksi belum lengkap.';
     } else {
-        mysqli_begin_transaction($koneksi);
-        try {
-            // Generate no transaksi yang konsisten per bulan (TRX-YYYYMM-NNN).
-            $prefix_trx = 'TRX-' . date('Ym', strtotime($tgl_bayar)) . '-';
-            $prefix_len = strlen($prefix_trx) + 1;
-            $safe_prefix = mysqli_real_escape_string($koneksi, $prefix_trx);
-            $q_last_trx = mysqli_query($koneksi, "SELECT COALESCE(MAX(CAST(SUBSTRING(no_transaksi, $prefix_len) AS UNSIGNED)), 0) AS last_urut FROM pembayaran WHERE no_transaksi LIKE '$safe_prefix%'");
+        // Cek apakah siswa memiliki tagihan tunggakan
+        $tagihan_tunggakan = cek_tagihan_tunggakan($koneksi, $nisn);
+        if ($tagihan_tunggakan) {
+            $total_tagihan = array_sum(array_column($tagihan_tunggakan, 'sisa'));
+            $error_tambah = 'Siswa masih memiliki tagihan tunggakan sebesar Rp ' . number_format($total_tagihan, 0, ',', '.') . '. Silakan bayar tagihan terlebih dahulu melalui menu Tagihan!';
+        } else {
+            mysqli_begin_transaction($koneksi);
+            try {
+                // Generate no transaksi yang konsisten per bulan (TRX-YYYYMM-NNN).
+                $prefix_trx = 'TRX-' . date('Ym', strtotime($tgl_bayar)) . '-';
+                $prefix_len = strlen($prefix_trx) + 1;
+                $safe_prefix = mysqli_real_escape_string($koneksi, $prefix_trx);
+                $q_last_trx = mysqli_query($koneksi, "SELECT COALESCE(MAX(CAST(SUBSTRING(no_transaksi, $prefix_len) AS UNSIGNED)), 0) AS last_urut FROM pembayaran WHERE no_transaksi LIKE '$safe_prefix%'");
 
-            if (!$q_last_trx) {
-                throw new Exception('Gagal membaca nomor transaksi terakhir: ' . mysqli_error($koneksi));
-            }
-
-            $d_last_trx = mysqli_fetch_assoc($q_last_trx);
-            $next_urut = ((int)$d_last_trx['last_urut']) + 1;
-            $no_transaksi = $prefix_trx . sprintf("%03d", $next_urut);
-
-            $stmt_kelas_siswa = mysqli_prepare($koneksi, "SELECT k.nama_kelas FROM siswa s INNER JOIN kelas k ON s.id_kelas = k.id_kelas WHERE s.nisn = ? LIMIT 1");
-            if (!$stmt_kelas_siswa) {
-                throw new Exception('Gagal menyiapkan query data siswa: ' . mysqli_error($koneksi));
-            }
-            mysqli_stmt_bind_param($stmt_kelas_siswa, 's', $nisn);
-            mysqli_stmt_execute($stmt_kelas_siswa);
-            $res_ks = mysqli_stmt_get_result($stmt_kelas_siswa);
-            $row_ks = $res_ks ? mysqli_fetch_assoc($res_ks) : null;
-            $kelas_siswa_nama = $row_ks ? trim((string)$row_ks['nama_kelas']) : '';
-            $kelas_siswa_normalized = $normalize_kelas($kelas_siswa_nama);
-
-            $stmt_cek_jb = mysqli_prepare($koneksi, "SELECT id_jenis_bayar, tipe_bayar, nominal, IFNULL(tagihan_kelas,'') AS tagihan_kelas FROM jenis_bayar WHERE id_jenis_bayar = ? LIMIT 1");
-            $stmt_insert = mysqli_prepare($koneksi, "INSERT INTO pembayaran (id_petugas, nisn, tgl_bayar, id_jenis_bayar, jumlah_bayar, cicilan_ke, ket, bulan_bayar, tahun_bayar, no_transaksi) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-
-            if (!$stmt_cek_jb || !$stmt_insert) {
-                throw new Exception('Gagal menyiapkan query simpan transaksi: ' . mysqli_error($koneksi));
-            }
-
-            foreach ($id_jenis_bayar_input as $id_jb_raw) {
-                $id_jb = (int)$id_jb_raw;
-                if ($id_jb < 0) {
-                    continue;
+                if (!$q_last_trx) {
+                    throw new Exception('Gagal membaca nomor transaksi terakhir: ' . mysqli_error($koneksi));
                 }
 
-                $detail = isset($payment_items_by_id[$id_jb]) ? $payment_items_by_id[$id_jb] : [];
-                if (!is_array($detail)) {
-                    $detail = [];
+                $d_last_trx = mysqli_fetch_assoc($q_last_trx);
+                $next_urut = ((int)$d_last_trx['last_urut']) + 1;
+                $no_transaksi = $prefix_trx . sprintf("%03d", $next_urut);
+
+                $stmt_kelas_siswa = mysqli_prepare($koneksi, "SELECT k.nama_kelas FROM siswa s INNER JOIN kelas k ON s.id_kelas = k.id_kelas WHERE s.nisn = ? LIMIT 1");
+                if (!$stmt_kelas_siswa) {
+                    throw new Exception('Gagal menyiapkan query data siswa: ' . mysqli_error($koneksi));
+                }
+                mysqli_stmt_bind_param($stmt_kelas_siswa, 's', $nisn);
+                mysqli_stmt_execute($stmt_kelas_siswa);
+                $res_ks = mysqli_stmt_get_result($stmt_kelas_siswa);
+                $row_ks = $res_ks ? mysqli_fetch_assoc($res_ks) : null;
+                $kelas_siswa_nama = $row_ks ? trim((string)$row_ks['nama_kelas']) : '';
+                $kelas_siswa_normalized = $normalize_kelas($kelas_siswa_nama);
+
+                $stmt_cek_jb = mysqli_prepare($koneksi, "SELECT id_jenis_bayar, tipe_bayar, nominal, IFNULL(tagihan_kelas,'') AS tagihan_kelas FROM jenis_bayar WHERE id_jenis_bayar = ? LIMIT 1");
+                $stmt_insert = mysqli_prepare($koneksi, "INSERT INTO pembayaran (id_petugas, nisn, tgl_bayar, id_jenis_bayar, jumlah_bayar, cicilan_ke, ket, bulan_bayar, tahun_bayar, no_transaksi) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+
+                if (!$stmt_cek_jb || !$stmt_insert) {
+                    throw new Exception('Gagal menyiapkan query simpan transaksi: ' . mysqli_error($koneksi));
                 }
 
-                mysqli_stmt_bind_param($stmt_cek_jb, 'i', $id_jb);
-                mysqli_stmt_execute($stmt_cek_jb);
-                $res_jb = mysqli_stmt_get_result($stmt_cek_jb);
-                $d_jb = $res_jb ? mysqli_fetch_assoc($res_jb) : null;
+                foreach ($id_jenis_bayar_input as $id_jb_raw) {
+                    $id_jb = (int)$id_jb_raw;
+                    if ($id_jb < 0) {
+                        continue;
+                    }
+
+                    $detail = isset($payment_items_by_id[$id_jb]) ? $payment_items_by_id[$id_jb] : [];
+                    if (!is_array($detail)) {
+                        $detail = [];
+                    }
+
+                    mysqli_stmt_bind_param($stmt_cek_jb, 'i', $id_jb);
+                    mysqli_stmt_execute($stmt_cek_jb);
+                    $res_jb = mysqli_stmt_get_result($stmt_cek_jb);
+                    $d_jb = $res_jb ? mysqli_fetch_assoc($res_jb) : null;
 
                 if (!$d_jb) {
                     if ($id_jb === 0) {
@@ -481,6 +487,7 @@ if (isset($_POST['tambah'])) {
         } catch (Exception $e) {
             mysqli_rollback($koneksi);
             $error_tambah = $e->getMessage();
+        }
         }
     }
 

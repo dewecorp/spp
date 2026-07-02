@@ -562,7 +562,7 @@ if ($action === 'simpan_pembayaran' || $action === 'bayar' || $action === 'poton
     }
 
     $id_petugas = etab_default_petugas_id($koneksi, etab_array_value($request, ['id_petugas'], 0));
-    $no_transaksi = $no_transaksi_etab !== '' ? $no_transaksi_etab : etab_next_transaction_number($koneksi, $tgl_bayar, 'ETAB');
+    $no_transaksi = etab_next_transaction_number($koneksi, $tgl_bayar, 'ETAB');
 
     mysqli_begin_transaction($koneksi);
     try {
