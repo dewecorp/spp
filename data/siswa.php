@@ -155,24 +155,32 @@ if (isset($_POST['tambah'])) {
 
 // Proses Edit
 if (isset($_POST['edit'])) {
-    $nisn_lama = $_POST['nisn_lama'];
-    $nisn = $_POST['nisn'];
-    $nama = $_POST['nama'];
-    $id_kelas = $_POST['id_kelas'];
-    $gender = $_POST['jenis_kelamin'];
-    $tempat = $_POST['tempat_lahir'];
-    $tgl = $_POST['tgl_lahir'];
-    $wali = $_POST['nama_wali'];
+    $nisn_lama = trim((string)$_POST['nisn_lama']);
+    $nisn = trim((string)$_POST['nisn']);
+    $nama = trim((string)$_POST['nama']);
+    $id_kelas = (int)$_POST['id_kelas'];
+    $gender = trim((string)$_POST['jenis_kelamin']);
+    $tempat = trim((string)$_POST['tempat_lahir']);
+    $tgl = trim((string)$_POST['tgl_lahir']);
+    $wali = trim((string)$_POST['nama_wali']);
 
-    $query = mysqli_query($koneksi, "UPDATE siswa SET
-        nisn='$nisn',
-        nama='$nama',
-        id_kelas='$id_kelas',
-        jenis_kelamin='$gender',
-        tempat_lahir='$tempat',
-        tgl_lahir='$tgl',
-        nama_wali='$wali'
-        WHERE nisn='$nisn_lama'");
+    $stmt = mysqli_prepare($koneksi, "UPDATE siswa SET
+        nisn = ?,
+        nama = ?,
+        id_kelas = ?,
+        jenis_kelamin = ?,
+        tempat_lahir = ?,
+        tgl_lahir = ?,
+        nama_wali = ?
+        WHERE nisn = ?");
+
+    $query = false;
+    if ($stmt) {
+        mysqli_stmt_bind_param($stmt, 'ssisssss', $nisn, $nama, $id_kelas, $gender, $tempat, $tgl, $wali, $nisn_lama);
+        $query = mysqli_stmt_execute($stmt);
+        mysqli_stmt_close($stmt);
+    }
+
     if ($query) {
         logActivity($koneksi, 'Update', "Mengubah data siswa: $nama ($nisn)");
         echo "<script>
@@ -187,7 +195,8 @@ if (isset($_POST['edit'])) {
             });
         </script>";
     } else {
-        echo "<script>Swal.fire('Gagal', 'Data gagal diupdate', 'error');</script>";
+        $error_update = htmlspecialchars(mysqli_error($koneksi) ?: 'Data gagal diupdate', ENT_QUOTES);
+        echo "<script>Swal.fire('Gagal', '$error_update', 'error');</script>";
     }
 }
 
@@ -201,25 +210,38 @@ if (isset($_POST['multi_edit_save'])) {
     $success_count = 0;
     $error_count = 0;
 
-    foreach ($nisn_lama as $key => $old_nisn) {
-        $new_nisn = $nisn[$key];
-        $new_nama = $nama[$key];
-        $new_kelas = $id_kelas[$key];
+    $stmt_multi_edit = mysqli_prepare($koneksi, "UPDATE siswa SET nisn = ?, nama = ?, id_kelas = ? WHERE nisn = ?");
 
-        $query = mysqli_query($koneksi, "UPDATE siswa SET nisn='$new_nisn', nama='$new_nama', id_kelas='$new_kelas' WHERE nisn='$old_nisn'");
-        if ($query) {
+    foreach ($nisn_lama as $key => $old_nisn) {
+        $old_nisn = trim((string)$old_nisn);
+        $new_nisn = trim((string)($nisn[$key] ?? ''));
+        $new_nama = trim((string)($nama[$key] ?? ''));
+        $new_kelas = (int)($id_kelas[$key] ?? 0);
+
+        if (!$stmt_multi_edit || $old_nisn === '' || $new_nisn === '' || $new_nama === '' || $new_kelas <= 0) {
+            $error_count++;
+            continue;
+        }
+
+        mysqli_stmt_bind_param($stmt_multi_edit, 'ssis', $new_nisn, $new_nama, $new_kelas, $old_nisn);
+        if (mysqli_stmt_execute($stmt_multi_edit)) {
             $success_count++;
         } else {
             $error_count++;
         }
     }
 
+    if ($stmt_multi_edit) {
+        mysqli_stmt_close($stmt_multi_edit);
+    }
+
     if ($success_count > 0) {
         logActivity($koneksi, 'Update', "Multi update $success_count data siswa");
+        $message_multi_edit = $error_count > 0 ? "$success_count data berhasil diupdate, $error_count data gagal." : "$success_count Data berhasil diupdate";
         echo "<script>
             Swal.fire({
                 title: 'Berhasil',
-                text: '$success_count Data berhasil diupdate',
+                text: '$message_multi_edit',
                 icon: 'success',
                 timer: 1500,
                 showConfirmButton: false
@@ -536,6 +558,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle Multi Edit Button
     const btnMultiEdit = document.getElementById('btnMultiEdit');
     const multiEditTableBody = document.getElementById('multiEditTableBody');
+    const escapeAttribute = function(value) {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/"/g, '&quot;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+    };
 
     if (btnMultiEdit) {
         btnMultiEdit.addEventListener('click', function() {
@@ -553,16 +582,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 const nisn = item.value;
                 const nama = item.getAttribute('data-nama');
                 const idKelas = item.getAttribute('data-kelas');
+                const safeNisn = escapeAttribute(nisn);
+                const safeNama = escapeAttribute(nama);
 
                 const row = `
                     <tr>
                         <td>${no++}</td>
                         <td>
-                            <input type="hidden" name="nisn_lama[]" value="${nisn}">
-                            <input type="text" name="nisn[]" class="app-control" value="${nisn}" required>
+                            <input type="hidden" name="nisn_lama[]" value="${safeNisn}">
+                            <input type="text" name="nisn[]" class="app-control" value="${safeNisn}" required>
                         </td>
                         <td>
-                            <input type="text" name="nama[]" class="app-control" value="${nama}" required>
+                            <input type="text" name="nama[]" class="app-control" value="${safeNama}" required>
                         </td>
                         <td>
                             <select name="id_kelas[]" class="app-control" required>
