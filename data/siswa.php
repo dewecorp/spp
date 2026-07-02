@@ -481,7 +481,7 @@ $jumlah_siswa = mysqli_num_rows($query_siswa);
 
 <!-- Modal Multi Edit -->
 <div class="fixed inset-0 z-[1055] hidden overflow-y-auto bg-slate-950/60 px-4 py-6 backdrop-blur-sm" id="modalMultiEdit" tabindex="-1" role="dialog" aria-hidden="true" data-tailwind-modal>
-    <div class="mx-auto flex min-h-full w-full max-w-2xl items-start">
+    <div class="mx-auto flex min-h-full w-full max-w-4xl items-start">
         <div class="flex max-h-[calc(100vh-3rem)] w-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl">
             <div class="flex shrink-0 items-center justify-between border-b border-slate-200 px-6 py-4">
                 <h5 class="text-base font-extrabold text-slate-900">Edit Data Siswa Terpilih</h5>
@@ -489,7 +489,7 @@ $jumlah_siswa = mysqli_num_rows($query_siswa);
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form action="" method="post">
+            <form action="" method="post" class="flex min-h-0 flex-1 flex-col">
                 <div class="min-h-0 flex-1 overflow-y-auto px-6 py-5">
                     <div class="app-table-scroll">
                         <table class="app-data-table app-table-bordered">
@@ -507,7 +507,7 @@ $jumlah_siswa = mysqli_num_rows($query_siswa);
                         </table>
                     </div>
                 </div>
-                <div class="flex shrink-0 items-center justify-end gap-3 border-t border-slate-200 px-6 py-4">
+                <div class="flex shrink-0 items-center justify-end gap-3 border-t border-slate-200 bg-white px-6 py-4">
                     <button type="button" class="app-button app-button-secondary" data-tailwind-modal-close>Batal</button>
                     <button type="submit" name="multi_edit_save" class="app-button app-button-primary">Simpan Perubahan</button>
                 </div>
