@@ -636,13 +636,13 @@ if (isset($_GET['hapus_transaksi'])) {
         <div class="app-panel">
             <div class="app-panel-body">
                 <h4 class="app-panel-title">Data Transaksi Pembayaran</h4>
-                <div class="toolbar flex justify-between mb-3 items-center" style="gap: .5rem;">
-                    <div class="flex items-center" style="gap: .5rem;">
+                <div class="toolbar flex justify-between mb-3 items-center gap-3">
+                    <div class="flex items-center gap-3">
                         <button type="button" class="app-button app-button-primary" data-tailwind-modal-target="#modalTambah">
                             <i class="mdi mdi-plus"></i> Tambah Transaksi
                         </button>
                     </div>
-                    <div class="flex items-center" style="gap: .5rem;">
+                    <div class="flex items-center gap-3">
                         <a href="export_excel.php" class="app-button app-button-success" target="_blank">
                             <i class="mdi mdi-file-excel"></i> Export Excel
                         </a>
@@ -702,7 +702,7 @@ if (isset($_GET['hapus_transaksi'])) {
                                     <td>Rp <?= number_format($row['jumlah_bayar'], 0, ',', '.') ?></td>
                                     <td><?= $row['ket'] ? $row['ket'] : '-' ?></td>
                                     <td><?= date('d/m/Y', strtotime($row['tgl_bayar'])) ?></td>
-                                    <td>
+                                    <td class="flex gap-2 items-center">
                                         <a href="cetak_transaksi.php?no_transaksi=<?= $row['no_transaksi'] ?>" class="app-button app-button-info app-button-sm" target="_blank">
                                             <i class="mdi mdi-printer"></i>
                                         </a>

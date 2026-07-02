@@ -26,12 +26,12 @@ include '../template/sidebar.php';
                 </select>
             </div>
             <?php if (isset($_GET['id_kelas']) && $_GET['id_kelas'] !== ''): ?>
-                <div class="flex md:pb-0">
+                <div class="flex gap-3 md:pb-0">
                     <a href="cetak_semua.php?id_kelas=<?= $_GET['id_kelas'] ?>" class="app-button app-button-primary app-button-with-text h-[46px] w-full md:w-auto md:px-5" target="_blank">
                         <i class="mdi mdi-printer app-button-icon"></i>
                         <span>Cetak Tagihan Semua Siswa</span>
                     </a>
-                    <a href="bayar_tagihan.php?id_kelas=<?= $_GET['id_kelas'] ?>" class="app-button app-button-success app-button-with-text h-[46px] w-full md:w-auto md:px-5 ml-2">
+                    <a href="bayar_tagihan.php?id_kelas=<?= $_GET['id_kelas'] ?>" class="app-button app-button-success app-button-with-text h-[46px] w-full md:w-auto md:px-5">
                         <i class="mdi mdi-cash app-button-icon"></i>
                         <span>Bayar Tagihan</span>
                     </a>
@@ -74,12 +74,12 @@ if (isset($_GET['id_kelas'])) {
                                     <td><?= $no++ ?></td>
                                     <td><?= $s['nisn'] ?></td>
                                     <td><?= $s['nama'] ?></td>
-                                    <td>
+                                    <td class="flex gap-2 items-center">
                                         <a href="tagihan_detail.php?nisn=<?= $s['nisn'] ?>&id_kelas=<?= $id_kelas ?>" class="app-button app-button-info app-button-sm">
                                             <i class="mdi mdi-eye"></i> Lihat Tagihan
                                         </a>
                                         <?php if ($tagihan_tunggakan): ?>
-                                            <a href="bayar_tagihan.php?nisn=<?= $s['nisn'] ?>&id_kelas=<?= $id_kelas ?>" class="app-button app-button-success app-button-sm ml-1">
+                                            <a href="bayar_tagihan.php?nisn=<?= $s['nisn'] ?>&id_kelas=<?= $id_kelas ?>" class="app-button app-button-success app-button-sm">
                                                 <i class="mdi mdi-cash"></i> Bayar
                                             </a>
                                         <?php endif; ?>
