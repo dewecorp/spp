@@ -8,6 +8,12 @@ if (!isset($_SESSION['logo_sekolah_cache'])) {
 }
 $logo_sekolah = (string)$_SESSION['logo_sekolah_cache'];
 
+$tahun_ajaran_navbar = '';
+$q_tahun_ajaran_navbar = mysqli_query($koneksi, "SELECT tahun_ajaran FROM pengaturan WHERE id_pengaturan = 1 LIMIT 1");
+if ($q_tahun_ajaran_navbar && $d_tahun_ajaran_navbar = mysqli_fetch_assoc($q_tahun_ajaran_navbar)) {
+    $tahun_ajaran_navbar = (string)($d_tahun_ajaran_navbar['tahun_ajaran'] ?? '');
+}
+
 $style_path = __DIR__ . '/../assets/css/custom.css';
 $style_ver = @filemtime($style_path);
 if ($style_ver === false) {
@@ -113,8 +119,13 @@ if (!isset($_SESSION['login']) || !isset($_SESSION['nama_lengkap']) || !isset($_
                 </a>
             </div>
             <div class="app-navbar-menu flex items-center">
-                <div class="hidden lg:block mr-auto">
+                <div class="hidden lg:flex mr-auto items-center gap-2">
                     <span class="text-white font-bold" id="current-datetime" style="font-size: 0.9rem;"></span>
+                    <?php if ($tahun_ajaran_navbar !== '') : ?>
+                        <span class="inline-flex items-center rounded-full bg-white/15 px-3 py-1 text-sm font-bold text-white" style="min-height: 34px;">
+                            Tahun Ajaran <?= htmlspecialchars($tahun_ajaran_navbar, ENT_QUOTES, 'UTF-8') ?>
+                        </span>
+                    <?php endif; ?>
                 </div>
                 <ul class="app-nav-actions app-nav-actions-right">
                     <li class="app-nav-item app-dropdown hidden xl:inline-block" x-data="{ dropdownOpen: false }">
