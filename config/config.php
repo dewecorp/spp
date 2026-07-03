@@ -5,10 +5,13 @@ date_default_timezone_set('Asia/Jakarta');
 // Deteksi Environment
 $is_local = ($_SERVER['HTTP_HOST'] == 'localhost' || $_SERVER['HTTP_HOST'] == '127.0.0.1' || strpos($_SERVER['HTTP_HOST'], '.test') !== false || strpos($_SERVER['HTTP_HOST'], '.local') !== false);
 
-// KONFIGURASI SESI (24 JAM)
+// KONFIGURASI SESI
 // Harus diset sebelum session_start()
 ini_set('session.gc_maxlifetime', 86400);
 session_set_cookie_params(86400);
+if (!defined('SESSION_IDLE_TIMEOUT')) {
+    define('SESSION_IDLE_TIMEOUT', 7200); // 2 jam idle
+}
 
 if (session_status() == PHP_SESSION_NONE) {
     session_name("SPP_SESSION_NEW"); 
@@ -92,6 +95,29 @@ function base_url($path = "") {
     }
     
     return $base_url . "/" . ltrim($path, "/");
+}
+
+// Logout otomatis hanya jika user benar-benar idle lebih dari 2 jam.
+if (!empty($_SESSION['login'])) {
+    $now = time();
+    $last_activity = isset($_SESSION['last_activity']) ? (int) $_SESSION['last_activity'] : $now;
+
+    if (($now - $last_activity) > SESSION_IDLE_TIMEOUT) {
+        $_SESSION = [];
+        if (ini_get('session.use_cookies')) {
+            $params = session_get_cookie_params();
+            setcookie(session_name(), '', time() - 42000, $params['path'], $params['domain'], $params['secure'], $params['httponly']);
+        }
+        session_destroy();
+
+        $current_script = str_replace('\\', '/', $_SERVER['SCRIPT_NAME'] ?? '');
+        if (strpos($current_script, '/auth/login.php') === false) {
+            header('Location: ' . base_url('auth/login.php?timeout=1'));
+            exit;
+        }
+    } else {
+        $_SESSION['last_activity'] = $now;
+    }
 }
 
 $vendorAutoload = __DIR__ . '/../vendor/autoload.php';

@@ -26,12 +26,14 @@ if (isset($_POST['login'])) {
     if (mysqli_num_rows($query) > 0) {
         $data = mysqli_fetch_assoc($query);
         if (password_verify($password, $data['password'])) {
+            session_regenerate_id(true);
             $_SESSION['login'] = true;
             $_SESSION['id_pengguna'] = $data['id_pengguna'];
             $_SESSION['username'] = $username;
             $_SESSION['nama_lengkap'] = $data['nama_lengkap'];
             $_SESSION['role'] = $data['role'];
             $_SESSION['foto'] = $data['foto'];
+            $_SESSION['last_activity'] = time();
 
             // Log Aktivitas
             logActivity($koneksi, 'Login', 'Login berhasil');
