@@ -309,13 +309,10 @@ function cek_tagihan_tunggakan($koneksi, $nisn, $tahun_ajaran = null) {
                     }
                 }
                 
-                // Periksa bulan yang belum dibayar
-                $is_extracurricular = stripos($jb['nama_pembayaran'], 'ekstrakurikuler') !== false;
-
+                // Periksa bulan yang sudah jatuh tempo pada tahun ajaran ini.
                 foreach ($months as $index => $m) {
                     if ($limit_index < 0) continue;
-                    // Jika bukan ekstrakurikuler, hanya periksa bulan yang sudah lewat
-                    if (!$is_extracurricular && $index > $limit_index) continue;
+                    if ($index > $limit_index) continue;
                     
                     if (!in_array($m, $paid_months)) {
                         $unpaid_details[] = $m;

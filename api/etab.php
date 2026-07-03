@@ -193,7 +193,8 @@ function etab_due_month_index() {
 
 function etab_billing_for_student($koneksi, $siswa, $only_unpaid = true) {
     $months = ['Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni'];
-    $current_index = etab_due_month_index();
+    $tahun_ajaran_aktif = get_tahun_ajaran_aktif($koneksi);
+    $current_index = limit_index_bulan_tahun_ajaran($koneksi, $tahun_ajaran_aktif);
     $items = [];
 
     $q_jenis = etab_exec_select(
@@ -216,9 +217,9 @@ function etab_billing_for_student($koneksi, $siswa, $only_unpaid = true) {
             $paid_months = [];
             $q_bayar = etab_exec_select(
                 $koneksi,
-                'SELECT bulan_bayar FROM pembayaran WHERE nisn = ? AND id_jenis_bayar = ?',
-                'si',
-                [$siswa['nisn'], $id_jb]
+                'SELECT bulan_bayar FROM pembayaran WHERE nisn = ? AND id_jenis_bayar = ? AND tahun_ajaran = ?',
+                'sis',
+                [$siswa['nisn'], $id_jb, $tahun_ajaran_aktif]
             );
 
             while ($row = mysqli_fetch_assoc($q_bayar)) {
@@ -233,25 +234,26 @@ function etab_billing_for_student($koneksi, $siswa, $only_unpaid = true) {
                 return $month !== '';
             })));
             $detail_sudah_bayar = $paid_months;
-            $is_extracurricular = stripos($jb['nama_pembayaran'], 'ekstrakurikuler') !== false;
 
             foreach ($months as $index => $month) {
+                if ($current_index < 0 || $index > $current_index) {
+                    continue;
+                }
+
                 if (in_array($month, $paid_months)) {
                     $total_bayar += (int) $jb['nominal'];
                     continue;
                 }
 
                 $detail_belum_bayar[] = $month;
-                if ($is_extracurricular || $index <= $current_index) {
-                    $sisa_tagihan += (int) $jb['nominal'];
-                }
+                $sisa_tagihan += (int) $jb['nominal'];
             }
         } else {
             $q_total = etab_exec_select(
                 $koneksi,
-                'SELECT COALESCE(SUM(jumlah_bayar), 0) AS total FROM pembayaran WHERE nisn = ? AND id_jenis_bayar = ?',
-                'si',
-                [$siswa['nisn'], $id_jb]
+                'SELECT COALESCE(SUM(jumlah_bayar), 0) AS total FROM pembayaran WHERE nisn = ? AND id_jenis_bayar = ? AND tahun_ajaran = ?',
+                'sis',
+                [$siswa['nisn'], $id_jb, $tahun_ajaran_aktif]
             );
             $d_total = mysqli_fetch_assoc($q_total);
             $total_bayar = (int) ($d_total['total'] ?? 0);

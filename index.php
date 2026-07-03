@@ -111,14 +111,18 @@ while ($siswa_tagihan = mysqli_fetch_assoc($q_siswa_tagihan)) {
     }
 
     $kelas_tunggakan[$id_kelas_dashboard]['total_siswa']++;
-    $tagihan_siswa = cek_tagihan_tunggakan($koneksi, $siswa_tagihan['nisn'], $tahun_ajaran_aktif_dashboard);
-    if (!$tagihan_siswa) {
+    $tagihan_siswa_per_tahun = cek_tunggakan_tahun_ajaran_lama($koneksi, $siswa_tagihan['nisn'], $tahun_ajaran_aktif_dashboard);
+    if (!$tagihan_siswa_per_tahun) {
         continue;
     }
 
     $total_tagihan_siswa = 0;
-    foreach ($tagihan_siswa as $item_tagihan) {
-        $total_tagihan_siswa += (int) ($item_tagihan['sisa'] ?? 0);
+    $tahun_tunggakan_siswa = [];
+    foreach ($tagihan_siswa_per_tahun as $tahun_tunggakan => $tagihan_siswa) {
+        $tahun_tunggakan_siswa[] = $tahun_tunggakan;
+        foreach ($tagihan_siswa as $item_tagihan) {
+            $total_tagihan_siswa += (int) ($item_tagihan['sisa'] ?? 0);
+        }
     }
 
     if ($total_tagihan_siswa <= 0) {
@@ -132,6 +136,7 @@ while ($siswa_tagihan = mysqli_fetch_assoc($q_siswa_tagihan)) {
         'nisn' => $siswa_tagihan['nisn'],
         'nama' => $siswa_tagihan['nama'],
         'total_tagihan' => $total_tagihan_siswa,
+        'tahun_ajaran' => implode(', ', array_unique($tahun_tunggakan_siswa)),
     ];
 }
 
@@ -146,10 +151,6 @@ usort($kelas_tunggakan, static function ($a, $b) {
     }
     return $sort_a <=> $sort_b;
 });
-$max_tagihan_kelas = 0;
-foreach ($kelas_tunggakan as $kelas_item) {
-    $max_tagihan_kelas = max($max_tagihan_kelas, (int) $kelas_item['total_tagihan']);
-}
 
 // Data Grafik Pembayaran per Bulan (Tahun Ini)
 $chart_labels = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
@@ -261,11 +262,11 @@ $q_aktivitas = mysqli_query($koneksi, "
     <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
             <p class="text-sm font-bold text-emerald-700">Tunggakan per kelas</p>
-            <h2 class="mt-1 text-xl font-extrabold tracking-normal text-slate-950">Siswa Menunggak Tahun Ajaran <?= htmlspecialchars($tahun_ajaran_aktif_dashboard) ?></h2>
+            <h2 class="mt-1 text-xl font-extrabold tracking-normal text-slate-950">Siswa Menunggak Tahun Ajaran Lama</h2>
         </div>
         <div class="inline-flex w-fit items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-bold text-amber-700">
             <i class="mdi mdi-file-document-alert"></i>
-            Rp <?= number_format($total_tagihan, 0, ',', '.') ?>
+            Tunggakan: Rp <?= number_format($total_tagihan, 0, ',', '.') ?>
         </div>
     </div>
 
@@ -275,7 +276,6 @@ $q_aktivitas = mysqli_query($koneksi, "
                 $total_siswa_kelas = max(1, (int) $kelas_item['total_siswa']);
                 $jumlah_tunggakan_kelas = (int) $kelas_item['siswa_tunggakan'];
                 $persen_siswa_tunggakan = min(100, round(($jumlah_tunggakan_kelas / $total_siswa_kelas) * 100));
-                $persen_nominal_kelas = $max_tagihan_kelas > 0 ? min(100, round(((int) $kelas_item['total_tagihan'] / $max_tagihan_kelas) * 100)) : 0;
             ?>
                 <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
                     <div class="flex items-start justify-between gap-4">
@@ -303,11 +303,11 @@ $q_aktivitas = mysqli_query($koneksi, "
 
                     <div class="mt-5">
                         <div class="mb-2 flex items-center justify-between text-xs font-bold text-slate-500">
-                            <span>Porsi tunggakan kelas</span>
-                            <span><?= $persen_nominal_kelas ?>%</span>
+                            <span>Persentase siswa menunggak</span>
+                            <span><?= $persen_siswa_tunggakan ?>%</span>
                         </div>
                         <div class="h-2.5 overflow-hidden rounded-full bg-slate-100">
-                            <div class="h-full rounded-full bg-amber-500" style="width: <?= $persen_nominal_kelas ?>%"></div>
+                            <div class="h-full rounded-full bg-amber-500" style="width: <?= $persen_siswa_tunggakan ?>%"></div>
                         </div>
                         <div class="mt-2 flex items-center justify-between text-xs font-semibold text-slate-400">
                             <span><?= $persen_siswa_tunggakan ?>% siswa kelas ini menunggak</span>
@@ -332,7 +332,7 @@ $q_aktivitas = mysqli_query($koneksi, "
                                         <p class="truncate text-sm font-extrabold text-slate-700" title="<?= htmlspecialchars($siswa_preview['nama']) ?>">
                                             <?= htmlspecialchars($siswa_preview['nama']) ?>
                                         </p>
-                                        <p class="mt-0.5 text-xs font-semibold text-slate-400">NISN <?= htmlspecialchars($siswa_preview['nisn']) ?></p>
+                                        <p class="mt-0.5 text-xs font-semibold text-slate-400">NISN <?= htmlspecialchars($siswa_preview['nisn']) ?><?= $siswa_preview['tahun_ajaran'] !== '' ? ' - ' . htmlspecialchars($siswa_preview['tahun_ajaran']) : '' ?></p>
                                     </div>
                                     <span class="shrink-0 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-extrabold text-amber-700 ring-1 ring-amber-100">
                                         Rp <?= number_format($siswa_preview['total_tagihan'], 0, ',', '.') ?>
@@ -346,7 +346,7 @@ $q_aktivitas = mysqli_query($koneksi, "
         </div>
     <?php else : ?>
         <div class="rounded-lg border border-emerald-200 bg-emerald-50 p-5 text-sm font-bold text-emerald-700">
-            <i class="mdi mdi-check-circle mr-1"></i> Belum ada tunggakan pada tahun ajaran aktif.
+            <i class="mdi mdi-check-circle mr-1"></i> Belum ada tunggakan tahun ajaran lama.
         </div>
     <?php endif; ?>
 </div>
