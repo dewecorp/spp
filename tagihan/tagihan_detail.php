@@ -16,7 +16,6 @@ $tahun_ajaran = isset($_GET['tahun_ajaran']) && trim((string)$_GET['tahun_ajaran
     : get_tahun_ajaran_aktif($koneksi);
 $tahun_ajaran_aktif = get_tahun_ajaran_aktif($koneksi);
 $is_tahun_ajaran_aktif = $tahun_ajaran === $tahun_ajaran_aktif;
-$tahun_ajaran_esc = mysqli_real_escape_string($koneksi, $tahun_ajaran);
 
 // Get Data Siswa & Kelas
 $q_siswa_detail = mysqli_query($koneksi, "SELECT siswa.*, kelas.nama_kelas FROM siswa JOIN kelas ON siswa.id_kelas = kelas.id_kelas WHERE siswa.nisn = '$nisn'");
@@ -93,14 +92,7 @@ $q_jb = mysqli_query($koneksi, "SELECT * FROM jenis_bayar WHERE status = 'Aktif'
                                 $sisa = 0; // For Cicilan/Bebas
 
                                 if ($jb['tipe_bayar'] == 'Bulanan') {
-                                    // Get payments for this student and this payment type
-                                    $q_bayar = mysqli_query($koneksi, "SELECT bulan_bayar FROM pembayaran WHERE nisn='$nisn' AND id_jenis_bayar='" . $jb['id_jenis_bayar'] . "' AND tahun_ajaran='$tahun_ajaran_esc'");
-                                    while ($row = mysqli_fetch_assoc($q_bayar)) {
-                                        if (!empty($row['bulan_bayar'])) {
-                                            $ms = array_map('trim', explode(',', $row['bulan_bayar']));
-                                            $paid_months = array_merge($paid_months, $ms);
-                                        }
-                                    }
+                                    $paid_months = ambil_bulan_bayar_tersimpan($koneksi, $nisn, $jb['id_jenis_bayar'], $tahun_ajaran);
 
                                     // Check if there are any due unpaid months to display
                                     $has_unpaid = false;
@@ -118,9 +110,7 @@ $q_jb = mysqli_query($koneksi, "SELECT * FROM jenis_bayar WHERE status = 'Aktif'
                                     }
                                 } else {
                                     // Cicilan / Bebas
-                                    $q_total = mysqli_query($koneksi, "SELECT SUM(jumlah_bayar) as total FROM pembayaran WHERE nisn='$nisn' AND id_jenis_bayar='" . $jb['id_jenis_bayar'] . "' AND tahun_ajaran='$tahun_ajaran_esc'");
-                                    $d_total = mysqli_fetch_assoc($q_total);
-                                    $total_bayar = $d_total['total'] ?? 0;
+                                    $total_bayar = ambil_total_bayar_tersimpan($koneksi, $nisn, $jb['id_jenis_bayar'], $tahun_ajaran);
                                     $sisa = $jb['nominal'] - $total_bayar;
 
                                     if ($sisa <= 0) {

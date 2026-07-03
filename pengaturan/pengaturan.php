@@ -87,26 +87,27 @@ if (isset($_POST['simpan'])) {
 // Logic Reset Data Transaksi
 if (isset($_POST['reset_data'])) {
     if ($_SESSION['role'] == 'admin') {
-        // Disable foreign key checks to allow truncate/delete
-        mysqli_query($koneksi, "SET FOREIGN_KEY_CHECKS = 0");
-        $q_reset = mysqli_query($koneksi, "TRUNCATE TABLE pembayaran");
-        mysqli_query($koneksi, "SET FOREIGN_KEY_CHECKS = 1");
-        
-        if ($q_reset) {
-            logActivity($koneksi, 'Reset', "Mereset (menghapus) semua data transaksi pembayaran untuk tahun ajaran baru");
+        $tahun_ajaran_aktif = get_tahun_ajaran_aktif($koneksi);
+        $hasil_reset = arsipkan_dan_hapus_transaksi_tahun_ajaran_lama($koneksi, $tahun_ajaran_aktif);
+
+        if (!empty($hasil_reset['ok'])) {
+            $jumlah_hapus = (int)($hasil_reset['deleted'] ?? 0);
+            $tahun_dihapus = !empty($hasil_reset['years']) ? implode(', ', $hasil_reset['years']) : 'tidak ada';
+            logActivity($koneksi, 'Reset', "Mengarsipkan dan menghapus $jumlah_hapus transaksi lama. Tahun ajaran: $tahun_dihapus");
              echo "<script>
                 Swal.fire({
                     title: 'Berhasil',
-                    text: 'Semua data transaksi pembayaran berhasil dihapus!',
+                    text: 'Transaksi lama berhasil diarsipkan. $jumlah_hapus data transaksi detail dihapus. Tahun ajaran: $tahun_dihapus',
                     icon: 'success',
-                    timer: 2000,
+                    timer: 3000,
                     showConfirmButton: false
                 }).then(() => {
                     window.location.href = 'pengaturan.php?v=1';
                 });
             </script>";
         } else {
-             echo "<script>Swal.fire('Gagal', 'Gagal mereset data: " . mysqli_error($koneksi) . "', 'error');</script>";
+            $pesan_error = htmlspecialchars($hasil_reset['message'] ?? mysqli_error($koneksi), ENT_QUOTES);
+             echo "<script>Swal.fire('Gagal', 'Gagal mereset data: $pesan_error', 'error');</script>";
         }
     } else {
          echo "<script>Swal.fire('Akses Ditolak', 'Hanya Admin yang dapat melakukan reset data!', 'warning');</script>";
@@ -196,13 +197,13 @@ if (isset($_POST['reset_data'])) {
     <div class="app-col-full app-section-gap app-stretch">
         <div class="app-panel app-panel-danger">
             <div class="app-panel-body">
-                <h4 class="app-panel-title text-red-600">Reset Data Transaksi</h4>
+                <h4 class="app-panel-title text-red-600">Arsip & Hapus Transaksi Lama</h4>
                 <p class="app-description">
-                    Hapus semua data transaksi pembayaran. Fitur ini digunakan saat pergantian tahun ajaran baru.
-                    <br><strong class="text-red-600">PERINGATAN: Data yang dihapus tidak dapat dikembalikan!</strong>
+                    Transaksi pembayaran tahun ajaran lama akan diringkas ke arsip tagihan, lalu data transaksi detailnya dihapus agar database tidak penuh. Tagihan dan status bulan yang sudah dibayar tetap dipertahankan.
+                    <br><strong class="text-red-600">PERINGATAN: Riwayat detail transaksi lama akan hilang dari menu transaksi setelah dihapus.</strong>
                 </p>
                 <form method="post" id="form-reset">
-                    <button type="button" class="app-button app-button-danger" onclick="confirmReset()">Reset Data Transaksi</button>
+                    <button type="button" class="app-button app-button-danger" onclick="confirmReset()">Arsip & Hapus Transaksi Lama</button>
                 </form>
             </div>
         </div>
@@ -213,10 +214,10 @@ if (isset($_POST['reset_data'])) {
 function confirmReset() {
     Swal.fire({
         title: 'Apakah Anda Yakin?',
-        text: "Semua data transaksi pembayaran akan dihapus permanen! Pastikan Anda sudah melakukan backup/export data terlebih dahulu.",
+        text: "Transaksi tahun ajaran lama akan diarsipkan ringkas lalu dihapus dari data transaksi. Tagihan tetap bisa dihitung, tetapi riwayat detail transaksi lama tidak tampil lagi. Pastikan Anda sudah backup/export data terlebih dahulu.",
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonText: 'Ya, Hapus Semuanya!'
+        confirmButtonText: 'Ya, Arsipkan & Hapus!'
     }).then((result) => {
         if (result.isConfirmed) {
             // Create a hidden input to simulate the button click

@@ -159,6 +159,217 @@ function tahun_ajaran_awal($tahun_ajaran) {
     return null;
 }
 
+function bulan_akademik_list() {
+    return ['Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni'];
+}
+
+function normalisasi_bulan_bayar_list($raw) {
+    $months = bulan_akademik_list();
+    $allowed = array_flip($months);
+    $items = is_array($raw) ? $raw : explode(',', (string) $raw);
+    $result = [];
+
+    foreach ($items as $item) {
+        $bulan = trim((string) $item);
+        if ($bulan !== '' && isset($allowed[$bulan])) {
+            $result[$bulan] = true;
+        }
+    }
+
+    return array_values(array_filter($months, static function ($bulan) use ($result) {
+        return isset($result[$bulan]);
+    }));
+}
+
+function ensure_pembayaran_arsip_table($koneksi) {
+    static $checked = false;
+    if ($checked) {
+        return;
+    }
+    $checked = true;
+
+    mysqli_query(
+        $koneksi,
+        "CREATE TABLE IF NOT EXISTS pembayaran_arsip (
+            id_arsip INT AUTO_INCREMENT PRIMARY KEY,
+            nisn VARCHAR(50) NOT NULL,
+            id_jenis_bayar INT NOT NULL,
+            tahun_ajaran VARCHAR(20) NOT NULL,
+            bulan_bayar TEXT NULL,
+            jumlah_bayar INT NOT NULL DEFAULT 0,
+            cicilan_ke INT NOT NULL DEFAULT 0,
+            updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            UNIQUE KEY uniq_pembayaran_arsip (nisn, id_jenis_bayar, tahun_ajaran),
+            KEY idx_tahun_ajaran (tahun_ajaran)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
+    );
+}
+
+function daftar_tahun_ajaran_pembayaran_tersimpan($koneksi, $nisn) {
+    ensure_pembayaran_tahun_ajaran_column($koneksi);
+    ensure_pembayaran_arsip_table($koneksi);
+
+    $nisn_esc = mysqli_real_escape_string($koneksi, (string) $nisn);
+    $tahun_list = [];
+    $queries = [
+        "SELECT DISTINCT tahun_ajaran FROM pembayaran WHERE nisn = '$nisn_esc' AND tahun_ajaran IS NOT NULL AND tahun_ajaran <> ''",
+        "SELECT DISTINCT tahun_ajaran FROM pembayaran_arsip WHERE nisn = '$nisn_esc' AND tahun_ajaran IS NOT NULL AND tahun_ajaran <> ''",
+    ];
+
+    foreach ($queries as $sql) {
+        $q = mysqli_query($koneksi, $sql);
+        if (!$q) {
+            continue;
+        }
+        while ($row = mysqli_fetch_assoc($q)) {
+            $tahun = trim((string) ($row['tahun_ajaran'] ?? ''));
+            if ($tahun !== '') {
+                $tahun_list[] = $tahun;
+            }
+        }
+    }
+
+    return array_values(array_unique($tahun_list));
+}
+
+function ambil_bulan_bayar_tersimpan($koneksi, $nisn, $id_jenis_bayar, $tahun_ajaran) {
+    ensure_pembayaran_tahun_ajaran_column($koneksi);
+    ensure_pembayaran_arsip_table($koneksi);
+
+    $nisn_esc = mysqli_real_escape_string($koneksi, (string) $nisn);
+    $id_esc = mysqli_real_escape_string($koneksi, (string) $id_jenis_bayar);
+    $tahun_esc = mysqli_real_escape_string($koneksi, (string) $tahun_ajaran);
+    $paid_months = [];
+    $queries = [
+        "SELECT bulan_bayar FROM pembayaran WHERE nisn='$nisn_esc' AND id_jenis_bayar='$id_esc' AND tahun_ajaran='$tahun_esc'",
+        "SELECT bulan_bayar FROM pembayaran_arsip WHERE nisn='$nisn_esc' AND id_jenis_bayar='$id_esc' AND tahun_ajaran='$tahun_esc'",
+    ];
+
+    foreach ($queries as $sql) {
+        $q = mysqli_query($koneksi, $sql);
+        if (!$q) {
+            continue;
+        }
+        while ($row = mysqli_fetch_assoc($q)) {
+            $paid_months = array_merge($paid_months, normalisasi_bulan_bayar_list($row['bulan_bayar'] ?? ''));
+        }
+    }
+
+    return array_values(array_unique($paid_months));
+}
+
+function ambil_total_bayar_tersimpan($koneksi, $nisn, $id_jenis_bayar, $tahun_ajaran) {
+    ensure_pembayaran_tahun_ajaran_column($koneksi);
+    ensure_pembayaran_arsip_table($koneksi);
+
+    $nisn_esc = mysqli_real_escape_string($koneksi, (string) $nisn);
+    $id_esc = mysqli_real_escape_string($koneksi, (string) $id_jenis_bayar);
+    $tahun_esc = mysqli_real_escape_string($koneksi, (string) $tahun_ajaran);
+    $total = 0;
+    $queries = [
+        "SELECT COALESCE(SUM(jumlah_bayar), 0) AS total FROM pembayaran WHERE nisn='$nisn_esc' AND id_jenis_bayar='$id_esc' AND tahun_ajaran='$tahun_esc'",
+        "SELECT COALESCE(SUM(jumlah_bayar), 0) AS total FROM pembayaran_arsip WHERE nisn='$nisn_esc' AND id_jenis_bayar='$id_esc' AND tahun_ajaran='$tahun_esc'",
+    ];
+
+    foreach ($queries as $sql) {
+        $q = mysqli_query($koneksi, $sql);
+        if ($q && $row = mysqli_fetch_assoc($q)) {
+            $total += (int) ($row['total'] ?? 0);
+        }
+    }
+
+    return $total;
+}
+
+function arsipkan_dan_hapus_transaksi_tahun_ajaran_lama($koneksi, $tahun_ajaran_aktif) {
+    ensure_pembayaran_tahun_ajaran_column($koneksi);
+    ensure_pembayaran_arsip_table($koneksi);
+
+    $tahun_aktif_awal = tahun_ajaran_awal($tahun_ajaran_aktif);
+    if ($tahun_aktif_awal === null) {
+        return ['ok' => false, 'message' => 'Format tahun ajaran aktif tidak valid.'];
+    }
+
+    $q_tahun = mysqli_query($koneksi, "SELECT DISTINCT tahun_ajaran FROM pembayaran WHERE tahun_ajaran IS NOT NULL AND tahun_ajaran <> ''");
+    if (!$q_tahun) {
+        return ['ok' => false, 'message' => mysqli_error($koneksi)];
+    }
+
+    $tahun_lama = [];
+    while ($row = mysqli_fetch_assoc($q_tahun)) {
+        $tahun = trim((string) ($row['tahun_ajaran'] ?? ''));
+        $awal = tahun_ajaran_awal($tahun);
+        if ($tahun !== '' && ($awal === null || $awal < $tahun_aktif_awal)) {
+            $tahun_lama[] = $tahun;
+        }
+    }
+    $tahun_lama = array_values(array_unique($tahun_lama));
+
+    if (empty($tahun_lama)) {
+        return ['ok' => true, 'archived' => 0, 'deleted' => 0, 'years' => []];
+    }
+
+    $archived = 0;
+    $deleted = 0;
+    mysqli_begin_transaction($koneksi);
+    try {
+        foreach ($tahun_lama as $tahun) {
+            $tahun_esc = mysqli_real_escape_string($koneksi, $tahun);
+            $q_group = mysqli_query(
+                $koneksi,
+                "SELECT nisn, id_jenis_bayar, tahun_ajaran, GROUP_CONCAT(bulan_bayar SEPARATOR ',') AS bulan_bayar, SUM(jumlah_bayar) AS jumlah_bayar, MAX(cicilan_ke) AS cicilan_ke
+                 FROM pembayaran
+                 WHERE tahun_ajaran = '$tahun_esc'
+                 GROUP BY nisn, id_jenis_bayar, tahun_ajaran"
+            );
+            if (!$q_group) {
+                throw new Exception(mysqli_error($koneksi));
+            }
+
+            while ($row = mysqli_fetch_assoc($q_group)) {
+                $nisn = (string) $row['nisn'];
+                $id_jenis = (int) $row['id_jenis_bayar'];
+                $bulan_bayar = implode(', ', normalisasi_bulan_bayar_list($row['bulan_bayar'] ?? ''));
+                $jumlah_bayar = (int) ($row['jumlah_bayar'] ?? 0);
+                $cicilan_ke = (int) ($row['cicilan_ke'] ?? 0);
+
+                $existing_months = ambil_bulan_bayar_tersimpan($koneksi, $nisn, $id_jenis, $tahun);
+                $merged_months = implode(', ', normalisasi_bulan_bayar_list(array_merge($existing_months, normalisasi_bulan_bayar_list($bulan_bayar))));
+
+                $nisn_esc = mysqli_real_escape_string($koneksi, $nisn);
+                $bulan_esc = mysqli_real_escape_string($koneksi, $merged_months);
+                mysqli_query(
+                    $koneksi,
+                    "INSERT INTO pembayaran_arsip (nisn, id_jenis_bayar, tahun_ajaran, bulan_bayar, jumlah_bayar, cicilan_ke)
+                     VALUES ('$nisn_esc', '$id_jenis', '$tahun_esc', '$bulan_esc', '$jumlah_bayar', '$cicilan_ke')
+                     ON DUPLICATE KEY UPDATE
+                        bulan_bayar = VALUES(bulan_bayar),
+                        jumlah_bayar = jumlah_bayar + VALUES(jumlah_bayar),
+                        cicilan_ke = GREATEST(cicilan_ke, VALUES(cicilan_ke))"
+                );
+                if (mysqli_error($koneksi)) {
+                    throw new Exception(mysqli_error($koneksi));
+                }
+                $archived++;
+            }
+
+            $q_count = mysqli_query($koneksi, "SELECT COUNT(*) AS total FROM pembayaran WHERE tahun_ajaran = '$tahun_esc'");
+            $row_count = $q_count ? mysqli_fetch_assoc($q_count) : ['total' => 0];
+            $deleted += (int) ($row_count['total'] ?? 0);
+
+            if (!mysqli_query($koneksi, "DELETE FROM pembayaran WHERE tahun_ajaran = '$tahun_esc'")) {
+                throw new Exception(mysqli_error($koneksi));
+            }
+        }
+
+        mysqli_commit($koneksi);
+        return ['ok' => true, 'archived' => $archived, 'deleted' => $deleted, 'years' => $tahun_lama];
+    } catch (Exception $e) {
+        mysqli_rollback($koneksi);
+        return ['ok' => false, 'message' => $e->getMessage()];
+    }
+}
+
 function daftar_tahun_ajaran_lama_untuk_tunggakan($koneksi, $nisn, $tahun_ajaran_aktif = null) {
     ensure_pembayaran_tahun_ajaran_column($koneksi);
 
@@ -171,15 +382,8 @@ function daftar_tahun_ajaran_lama_untuk_tunggakan($koneksi, $nisn, $tahun_ajaran
         $tahun_ajaran_opsi[] = $tahun_sebelumnya;
     }
 
-    $nisn_esc = mysqli_real_escape_string($koneksi, (string) $nisn);
-    $q_tahun = mysqli_query($koneksi, "SELECT DISTINCT tahun_ajaran FROM pembayaran WHERE nisn = '$nisn_esc' AND tahun_ajaran IS NOT NULL AND tahun_ajaran <> ''");
-    if ($q_tahun) {
-        while ($row = mysqli_fetch_assoc($q_tahun)) {
-            $tahun = trim((string) ($row['tahun_ajaran'] ?? ''));
-            if ($tahun !== '') {
-                $tahun_ajaran_opsi[] = $tahun;
-            }
-        }
+    foreach (daftar_tahun_ajaran_pembayaran_tersimpan($koneksi, $nisn) as $tahun) {
+        $tahun_ajaran_opsi[] = $tahun;
     }
 
     $tahun_ajaran_opsi = array_values(array_unique(array_filter($tahun_ajaran_opsi)));
@@ -271,8 +475,6 @@ function cek_tagihan_tunggakan($koneksi, $nisn, $tahun_ajaran = null) {
     if ($tahun_ajaran === '') {
         $tahun_ajaran = get_tahun_ajaran_aktif($koneksi);
     }
-    $tahun_ajaran_esc = mysqli_real_escape_string($koneksi, $tahun_ajaran);
-
     // Cari data siswa
     $q_siswa = mysqli_query($koneksi, "SELECT s.*, k.nama_kelas FROM siswa s JOIN kelas k ON s.id_kelas = k.id_kelas WHERE s.nisn = '$nisn'");
     $d_siswa = mysqli_fetch_assoc($q_siswa);
@@ -300,14 +502,7 @@ function cek_tagihan_tunggakan($koneksi, $nisn, $tahun_ajaran = null) {
             
             if ($jb['tipe_bayar'] == 'Bulanan') {
                 // Dapatkan bulan yang sudah dibayar
-                $paid_months = [];
-                $q_bayar = mysqli_query($koneksi, "SELECT bulan_bayar FROM pembayaran WHERE nisn='$nisn' AND id_jenis_bayar='" . $jb['id_jenis_bayar'] . "' AND tahun_ajaran='$tahun_ajaran_esc'");
-                while ($row = mysqli_fetch_assoc($q_bayar)) {
-                    if (!empty($row['bulan_bayar'])) {
-                        $ms = array_map('trim', explode(',', $row['bulan_bayar']));
-                        $paid_months = array_merge($paid_months, $ms);
-                    }
-                }
+                $paid_months = ambil_bulan_bayar_tersimpan($koneksi, $nisn, $jb['id_jenis_bayar'], $tahun_ajaran);
                 
                 // Periksa bulan yang sudah jatuh tempo pada tahun ajaran ini.
                 foreach ($months as $index => $m) {
@@ -325,9 +520,7 @@ function cek_tagihan_tunggakan($koneksi, $nisn, $tahun_ajaran = null) {
                 }
             } else {
                 // Cicilan / Bebas
-                $q_total = mysqli_query($koneksi, "SELECT SUM(jumlah_bayar) as total FROM pembayaran WHERE nisn='$nisn' AND id_jenis_bayar='" . $jb['id_jenis_bayar'] . "' AND tahun_ajaran='$tahun_ajaran_esc'");
-                $d_total = mysqli_fetch_assoc($q_total);
-                $total_bayar = $d_total['total'] ?? 0;
+                $total_bayar = ambil_total_bayar_tersimpan($koneksi, $nisn, $jb['id_jenis_bayar'], $tahun_ajaran);
                 $sisa = $jb['nominal'] - $total_bayar;
                 
                 if ($sisa <= 0) {

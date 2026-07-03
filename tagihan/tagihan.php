@@ -41,17 +41,24 @@ include '../template/sidebar.php';
 if (isset($_GET['id_kelas'])) {
     $id_kelas = $_GET['id_kelas'];
     ensure_pembayaran_tahun_ajaran_column($koneksi);
+    ensure_pembayaran_arsip_table($koneksi);
     $tahun_ajaran_aktif = get_tahun_ajaran_aktif($koneksi);
     $tahun_ajaran_sebelumnya = tahun_ajaran_sebelumnya($tahun_ajaran_aktif);
     $tahun_ajaran_opsi = [$tahun_ajaran_aktif];
     if ($tahun_ajaran_sebelumnya !== '') {
         $tahun_ajaran_opsi[] = $tahun_ajaran_sebelumnya;
     }
-    $q_tahun_pembayaran = mysqli_query($koneksi, "SELECT DISTINCT tahun_ajaran FROM pembayaran WHERE tahun_ajaran IS NOT NULL AND tahun_ajaran <> '' ORDER BY tahun_ajaran DESC");
-    while ($row_tahun = $q_tahun_pembayaran ? mysqli_fetch_assoc($q_tahun_pembayaran) : null) {
-        $tahun_row = trim((string)($row_tahun['tahun_ajaran'] ?? ''));
-        if ($tahun_row !== '') {
-            $tahun_ajaran_opsi[] = $tahun_row;
+    $tahun_queries = [
+        "SELECT DISTINCT tahun_ajaran FROM pembayaran WHERE tahun_ajaran IS NOT NULL AND tahun_ajaran <> ''",
+        "SELECT DISTINCT tahun_ajaran FROM pembayaran_arsip WHERE tahun_ajaran IS NOT NULL AND tahun_ajaran <> ''",
+    ];
+    foreach ($tahun_queries as $tahun_sql) {
+        $q_tahun_pembayaran = mysqli_query($koneksi, $tahun_sql);
+        while ($row_tahun = $q_tahun_pembayaran ? mysqli_fetch_assoc($q_tahun_pembayaran) : null) {
+            $tahun_row = trim((string)($row_tahun['tahun_ajaran'] ?? ''));
+            if ($tahun_row !== '') {
+                $tahun_ajaran_opsi[] = $tahun_row;
+            }
         }
     }
     $tahun_ajaran_opsi = array_values(array_unique($tahun_ajaran_opsi));

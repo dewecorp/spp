@@ -44,12 +44,17 @@ $q_jenis = mysqli_query($koneksi, "SELECT COUNT(*) as total FROM jenis_bayar WHE
 $d_jenis = mysqli_fetch_assoc($q_jenis);
 $jml_jenis = $d_jenis['total'];
 
-// 3. Hitung Total Pembayaran (Semua Waktu)
-$q_bayar = mysqli_query($koneksi, "SELECT SUM(jumlah_bayar) as total FROM pembayaran");
+$tahun_ini = date('Y');
+$tahun_ajaran_aktif_dashboard = get_tahun_ajaran_aktif($koneksi);
+$tahun_ajaran_sebelumnya_dashboard = tahun_ajaran_sebelumnya($tahun_ajaran_aktif_dashboard);
+$tahun_ajaran_aktif_dashboard_esc = mysqli_real_escape_string($koneksi, $tahun_ajaran_aktif_dashboard);
+
+// 3. Hitung Total Pembayaran tahun ajaran aktif
+$q_bayar = mysqli_query($koneksi, "SELECT SUM(jumlah_bayar) as total FROM pembayaran WHERE tahun_ajaran = '$tahun_ajaran_aktif_dashboard_esc'");
 $d_bayar = mysqli_fetch_assoc($q_bayar);
 $total_bayar = $d_bayar['total'] ?? 0;
 
-// 3b. Total bayar per jenis (dinamis, mengikuti jenis bayar aktif)
+// 3b. Total bayar per jenis tahun ajaran aktif (dinamis, mengikuti jenis bayar aktif)
 $jenis_totals = [];
 $q_jenis_total = mysqli_query($koneksi, "
     SELECT
@@ -57,7 +62,7 @@ $q_jenis_total = mysqli_query($koneksi, "
         jb.nama_pembayaran,
         COALESCE(SUM(p.jumlah_bayar), 0) AS total_bayar_jenis
     FROM jenis_bayar jb
-    LEFT JOIN pembayaran p ON p.id_jenis_bayar = jb.id_jenis_bayar
+    LEFT JOIN pembayaran p ON p.id_jenis_bayar = jb.id_jenis_bayar AND p.tahun_ajaran = '$tahun_ajaran_aktif_dashboard_esc'
     WHERE jb.status = 'Aktif'
     GROUP BY jb.id_jenis_bayar, jb.nama_pembayaran
     ORDER BY
@@ -74,9 +79,6 @@ while ($row = mysqli_fetch_assoc($q_jenis_total)) {
     $jenis_totals[] = $row;
 }
 
-$tahun_ini = date('Y');
-$tahun_ajaran_aktif_dashboard = get_tahun_ajaran_aktif($koneksi);
-$tahun_ajaran_sebelumnya_dashboard = tahun_ajaran_sebelumnya($tahun_ajaran_aktif_dashboard);
 $total_tagihan = 0;
 $kelas_tunggakan = [];
 $q_kelas_dashboard = mysqli_query($koneksi, "SELECT id_kelas, nama_kelas FROM kelas ORDER BY nama_kelas ASC");
