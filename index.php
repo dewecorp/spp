@@ -49,13 +49,19 @@ while ($row = mysqli_fetch_assoc($q_jenis_total)) {
 }
 
 $tahun_ini = date('Y');
-$start_month = date('Y-m-01');
-$next_month = date('Y-m-01', strtotime('+1 month'));
-$q_sudah_bayar = mysqli_query($koneksi, "SELECT COUNT(DISTINCT nisn) as total FROM pembayaran WHERE tgl_bayar >= '$start_month' AND tgl_bayar < '$next_month'");
-$d_sudah_bayar = mysqli_fetch_assoc($q_sudah_bayar);
-$jml_sudah_bayar = $d_sudah_bayar['total'];
-$jml_belum_bayar = $jml_siswa - $jml_sudah_bayar;
-if ($jml_belum_bayar < 0) $jml_belum_bayar = 0; // Prevent negative if data inconsistency
+$tahun_ajaran_aktif_dashboard = get_tahun_ajaran_aktif($koneksi);
+$total_tagihan = 0;
+$q_siswa_tagihan = mysqli_query($koneksi, "SELECT nisn FROM siswa");
+while ($siswa_tagihan = mysqli_fetch_assoc($q_siswa_tagihan)) {
+    $tagihan_siswa = cek_tagihan_tunggakan($koneksi, $siswa_tagihan['nisn'], $tahun_ajaran_aktif_dashboard);
+    if (!$tagihan_siswa) {
+        continue;
+    }
+
+    foreach ($tagihan_siswa as $item_tagihan) {
+        $total_tagihan += (int) ($item_tagihan['sisa'] ?? 0);
+    }
+}
 
 // Data Grafik Pembayaran per Bulan (Tahun Ini)
 $chart_labels = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
@@ -101,7 +107,7 @@ $q_aktivitas = mysqli_query($koneksi, "
         ['label' => 'Jumlah Siswa', 'value' => number_format($jml_siswa), 'icon' => 'mdi-account-multiple', 'tone' => 'emerald'],
         ['label' => 'Jenis Bayar Aktif', 'value' => number_format($jml_jenis), 'icon' => 'mdi-receipt-text', 'tone' => 'sky'],
         ['label' => 'Total Pembayaran', 'value' => 'Rp ' . number_format($total_bayar, 0, ',', '.'), 'icon' => 'mdi-cash-multiple', 'tone' => 'violet'],
-        ['label' => 'Belum Bayar Bulan Ini', 'value' => number_format($jml_belum_bayar), 'icon' => 'mdi-account-alert', 'tone' => 'amber'],
+        ['label' => 'Total Tagihan', 'value' => 'Rp ' . number_format($total_tagihan, 0, ',', '.'), 'icon' => 'mdi-file-document-alert', 'tone' => 'amber'],
     ];
     foreach ($summary_cards as $card) :
         $tone_class = [

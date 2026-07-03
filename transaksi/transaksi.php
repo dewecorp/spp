@@ -369,6 +369,14 @@ if (isset($_POST['tambah'])) {
     if ($id_petugas <= 0 || $nisn === '' || $tgl_bayar === '' || (empty($id_jenis_bayar_input) && empty($payment_data))) {
         $error_tambah = 'Input transaksi belum lengkap.';
     } else {
+        $tunggakan_lama = cek_tunggakan_tahun_ajaran_lama($koneksi, $nisn, $tahun_ajaran);
+        if ($tunggakan_lama) {
+            $tahun_tunggakan = implode(', ', array_keys($tunggakan_lama));
+            $error_tambah = 'Transaksi ditolak. Siswa masih memiliki tunggakan tahun ajaran lama: ' . $tahun_tunggakan . '. Lunasi melalui menu Tagihan terlebih dahulu.';
+        }
+    }
+
+    if ($error_tambah === '') {
             mysqli_begin_transaction($koneksi);
             try {
                 // Generate no transaksi yang konsisten per bulan (TRX-YYYYMM-NNN).

@@ -475,6 +475,18 @@ if ($action === 'simpan_pembayaran' || $action === 'bayar' || $action === 'poton
         etab_output(['status' => 'error', 'message' => 'Jenis bayar tidak berlaku untuk kelas siswa ini'], 422);
     }
 
+    $tahun_ajaran_aktif = get_tahun_ajaran_aktif($koneksi);
+    if ($tahun_ajaran === $tahun_ajaran_aktif) {
+        $tunggakan_lama = cek_tunggakan_tahun_ajaran_lama($koneksi, $nisn, $tahun_ajaran_aktif);
+        if ($tunggakan_lama) {
+            etab_output([
+                'status' => 'error',
+                'message' => 'Pembayaran ditolak. Siswa masih memiliki tunggakan tahun ajaran lama.',
+                'tahun_ajaran_tunggakan' => array_keys($tunggakan_lama),
+            ], 409);
+        }
+    }
+
     if ($no_transaksi_etab !== '') {
         $q_dupe = etab_exec_select(
             $koneksi,

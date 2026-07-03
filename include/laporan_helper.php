@@ -151,6 +151,67 @@ function tahun_ajaran_sebelumnya($tahun_ajaran) {
     return '';
 }
 
+function tahun_ajaran_awal($tahun_ajaran) {
+    if (preg_match('/^(\d{4})\s*\/\s*(\d{4})$/', trim((string) $tahun_ajaran), $m)) {
+        return (int) $m[1];
+    }
+
+    return null;
+}
+
+function daftar_tahun_ajaran_lama_untuk_tunggakan($koneksi, $nisn, $tahun_ajaran_aktif = null) {
+    ensure_pembayaran_tahun_ajaran_column($koneksi);
+
+    $tahun_ajaran_aktif = trim((string) ($tahun_ajaran_aktif ?? get_tahun_ajaran_aktif($koneksi)));
+    $tahun_aktif_awal = tahun_ajaran_awal($tahun_ajaran_aktif);
+    $tahun_ajaran_opsi = [];
+
+    $tahun_sebelumnya = tahun_ajaran_sebelumnya($tahun_ajaran_aktif);
+    if ($tahun_sebelumnya !== '') {
+        $tahun_ajaran_opsi[] = $tahun_sebelumnya;
+    }
+
+    $nisn_esc = mysqli_real_escape_string($koneksi, (string) $nisn);
+    $q_tahun = mysqli_query($koneksi, "SELECT DISTINCT tahun_ajaran FROM pembayaran WHERE nisn = '$nisn_esc' AND tahun_ajaran IS NOT NULL AND tahun_ajaran <> ''");
+    if ($q_tahun) {
+        while ($row = mysqli_fetch_assoc($q_tahun)) {
+            $tahun = trim((string) ($row['tahun_ajaran'] ?? ''));
+            if ($tahun !== '') {
+                $tahun_ajaran_opsi[] = $tahun;
+            }
+        }
+    }
+
+    $tahun_ajaran_opsi = array_values(array_unique(array_filter($tahun_ajaran_opsi)));
+    usort($tahun_ajaran_opsi, static function ($a, $b) {
+        return (tahun_ajaran_awal($b) ?? 0) <=> (tahun_ajaran_awal($a) ?? 0);
+    });
+
+    $tahun_ajaran_lama = [];
+    foreach ($tahun_ajaran_opsi as $tahun) {
+        $awal = tahun_ajaran_awal($tahun);
+        if ($awal === null || $tahun_aktif_awal === null || $awal < $tahun_aktif_awal) {
+            $tahun_ajaran_lama[] = $tahun;
+        }
+    }
+
+    return array_values(array_unique($tahun_ajaran_lama));
+}
+
+function cek_tunggakan_tahun_ajaran_lama($koneksi, $nisn, $tahun_ajaran_aktif = null) {
+    $tahun_ajaran_aktif = trim((string) ($tahun_ajaran_aktif ?? get_tahun_ajaran_aktif($koneksi)));
+    $hasil = [];
+
+    foreach (daftar_tahun_ajaran_lama_untuk_tunggakan($koneksi, $nisn, $tahun_ajaran_aktif) as $tahun_ajaran_lama) {
+        $tagihan = cek_tagihan_tunggakan($koneksi, $nisn, $tahun_ajaran_lama);
+        if ($tagihan) {
+            $hasil[$tahun_ajaran_lama] = $tagihan;
+        }
+    }
+
+    return !empty($hasil) ? $hasil : false;
+}
+
 function isi_tahun_ajaran_pembayaran_kosong($koneksi) {
     mysqli_query(
         $koneksi,
