@@ -76,6 +76,7 @@ while ($row = mysqli_fetch_assoc($q_jenis_total)) {
 
 $tahun_ini = date('Y');
 $tahun_ajaran_aktif_dashboard = get_tahun_ajaran_aktif($koneksi);
+$tahun_ajaran_sebelumnya_dashboard = tahun_ajaran_sebelumnya($tahun_ajaran_aktif_dashboard);
 $total_tagihan = 0;
 $kelas_tunggakan = [];
 $q_kelas_dashboard = mysqli_query($koneksi, "SELECT id_kelas, nama_kelas FROM kelas ORDER BY nama_kelas ASC");
@@ -262,7 +263,7 @@ $q_aktivitas = mysqli_query($koneksi, "
     <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
             <p class="text-sm font-bold text-emerald-700">Tunggakan per kelas</p>
-            <h2 class="mt-1 text-xl font-extrabold tracking-normal text-slate-950">Siswa Menunggak Tahun Ajaran Lama</h2>
+            <h2 class="mt-1 text-xl font-extrabold tracking-normal text-slate-950">Siswa Menunggak Tahun Ajaran <?= htmlspecialchars($tahun_ajaran_sebelumnya_dashboard !== '' ? $tahun_ajaran_sebelumnya_dashboard : 'Sebelumnya') ?></h2>
         </div>
         <div class="inline-flex w-fit items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-bold text-amber-700">
             <i class="mdi mdi-file-document-alert"></i>
