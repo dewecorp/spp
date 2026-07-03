@@ -5,19 +5,26 @@ include '../template/sidebar.php';
 
 // Proses pembayaran tagihan
 if (isset($_POST['bayar_tagihan'])) {
+    ensure_pembayaran_tahun_ajaran_column($koneksi);
     $id_petugas = isset($_SESSION['id_pengguna']) ? (int)$_SESSION['id_pengguna'] : 0;
     $nisn = isset($_POST['nisn']) ? trim($_POST['nisn']) : '';
     $tgl_bayar = isset($_POST['tgl_bayar']) ? $_POST['tgl_bayar'] : '';
     $tahun_bayar = date('Y', strtotime($tgl_bayar));
+    $tahun_ajaran = isset($_POST['tahun_ajaran']) && trim((string)$_POST['tahun_ajaran']) !== ''
+        ? trim((string)$_POST['tahun_ajaran'])
+        : get_tahun_ajaran_aktif($koneksi);
+    $tahun_ajaran_aktif = get_tahun_ajaran_aktif($koneksi);
     
     $error = '';
     $success_count = 0;
     
-    if ($id_petugas <= 0 || $nisn === '' || $tgl_bayar === '') {
+    if ($tahun_ajaran === $tahun_ajaran_aktif) {
+        $error = 'Pembayaran tahun ajaran berjalan dilakukan melalui menu Transaksi.';
+    } elseif ($id_petugas <= 0 || $nisn === '' || $tgl_bayar === '') {
         $error = 'Data tidak lengkap!';
     } else {
         // Cek tagihan tunggakan
-        $tagihan_tunggakan = cek_tagihan_tunggakan($koneksi, $nisn);
+        $tagihan_tunggakan = cek_tagihan_tunggakan($koneksi, $nisn, $tahun_ajaran);
         if (!$tagihan_tunggakan) {
             $error = 'Siswa tidak memiliki tagihan tunggakan!';
         } else {
@@ -49,8 +56,8 @@ if (isset($_POST['bayar_tagihan'])) {
                         $bulan_bayar = '';
                     }
                     
-                    $stmt_insert = mysqli_prepare($koneksi, "INSERT INTO pembayaran (id_petugas, nisn, tgl_bayar, id_jenis_bayar, jumlah_bayar, ket, bulan_bayar, tahun_bayar, no_transaksi) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                    mysqli_stmt_bind_param($stmt_insert, 'issiissss', $id_petugas, $nisn, $tgl_bayar, $id_jenis_bayar, $jumlah_bayar, $ket, $bulan_bayar, $tahun_bayar, $no_transaksi);
+                    $stmt_insert = mysqli_prepare($koneksi, "INSERT INTO pembayaran (id_petugas, nisn, tgl_bayar, id_jenis_bayar, jumlah_bayar, ket, bulan_bayar, tahun_bayar, tahun_ajaran, no_transaksi) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    mysqli_stmt_bind_param($stmt_insert, 'issiisssss', $id_petugas, $nisn, $tgl_bayar, $id_jenis_bayar, $jumlah_bayar, $ket, $bulan_bayar, $tahun_bayar, $tahun_ajaran, $no_transaksi);
                     mysqli_stmt_execute($stmt_insert);
                     mysqli_stmt_close($stmt_insert);
                     
@@ -58,7 +65,7 @@ if (isset($_POST['bayar_tagihan'])) {
                 }
                 
                 mysqli_commit($koneksi);
-                logActivity($koneksi, 'Create', "Membayar tagihan tunggakan NISN: $nisn, No Transaksi: $no_transaksi");
+                logActivity($koneksi, 'Create', "Membayar tagihan tunggakan NISN: $nisn, Tahun Ajaran: $tahun_ajaran, No Transaksi: $no_transaksi");
                 echo "<script>
                     Swal.fire({
                         title: 'Berhasil',
@@ -84,13 +91,18 @@ if (isset($_POST['bayar_tagihan'])) {
 
 // Jika ada NISN yang dipilih
 $selected_nisn = isset($_GET['nisn']) ? $_GET['nisn'] : '';
+$tahun_ajaran = isset($_GET['tahun_ajaran']) && trim((string)$_GET['tahun_ajaran']) !== ''
+    ? trim((string)$_GET['tahun_ajaran'])
+    : get_tahun_ajaran_aktif($koneksi);
+$tahun_ajaran_aktif = get_tahun_ajaran_aktif($koneksi);
+$is_tahun_ajaran_aktif = $tahun_ajaran === $tahun_ajaran_aktif;
 $selected_siswa = null;
 $tagihan = null;
 
 if ($selected_nisn) {
     $q_siswa = mysqli_query($koneksi, "SELECT s.*, k.nama_kelas FROM siswa s JOIN kelas k ON s.id_kelas = k.id_kelas WHERE s.nisn = '$selected_nisn'");
     $selected_siswa = mysqli_fetch_assoc($q_siswa);
-    $tagihan = cek_tagihan_tunggakan($koneksi, $selected_nisn);
+    $tagihan = cek_tagihan_tunggakan($koneksi, $selected_nisn, $tahun_ajaran);
 }
 
 // Dapatkan daftar siswa berdasarkan kelas (jika dipilih)
@@ -112,6 +124,7 @@ $q_kelas = mysqli_query($koneksi, "SELECT * FROM kelas ORDER BY nama_kelas ASC")
                     <i class="mdi mdi-arrow-left"></i> Kembali
                 </a>
                 <h4 class="truncate text-xl font-extrabold tracking-normal text-slate-950">Bayar Tagihan Tunggakan</h4>
+                <span class="app-badge app-badge-info">Tahun Ajaran <?= htmlspecialchars($tahun_ajaran, ENT_QUOTES, 'UTF-8') ?></span>
             </div>
         </div>
 
@@ -119,6 +132,7 @@ $q_kelas = mysqli_query($koneksi, "SELECT * FROM kelas ORDER BY nama_kelas ASC")
             <div class="app-panel-body">
                 <form method="get" action="">
                     <?php if (!$id_kelas): ?>
+                    <input type="hidden" name="tahun_ajaran" value="<?= htmlspecialchars($tahun_ajaran, ENT_QUOTES, 'UTF-8') ?>">
                     <div class="app-field">
                         <label>Pilih Kelas</label>
                         <select name="id_kelas" class="app-control" required onchange="this.form.submit()">
@@ -136,12 +150,13 @@ $q_kelas = mysqli_query($koneksi, "SELECT * FROM kelas ORDER BY nama_kelas ASC")
                 <?php if ($id_kelas): ?>
                 <form method="get" action="">
                     <input type="hidden" name="id_kelas" value="<?= $id_kelas ?>">
+                    <input type="hidden" name="tahun_ajaran" value="<?= htmlspecialchars($tahun_ajaran, ENT_QUOTES, 'UTF-8') ?>">
                     <div class="app-field">
                         <label>Pilih Siswa</label>
                         <select name="nisn" class="app-control" required onchange="this.form.submit()">
                             <option value="">-- Pilih Siswa --</option>
                             <?php while ($s = mysqli_fetch_assoc($q_siswa_list)):
-                                $t = cek_tagihan_tunggakan($koneksi, $s['nisn']);
+                                $t = cek_tagihan_tunggakan($koneksi, $s['nisn'], $tahun_ajaran);
                                 $has_tagihan = $t ? true : false;
                             ?>
                                 <option value="<?= $s['nisn'] ?>" <?= ($selected_nisn == $s['nisn']) ? 'selected' : '' ?>>
@@ -159,6 +174,7 @@ $q_kelas = mysqli_query($koneksi, "SELECT * FROM kelas ORDER BY nama_kelas ASC")
                         <p><strong>NISN:</strong> <?= $selected_siswa['nisn'] ?></p>
                         <p><strong>Nama:</strong> <?= $selected_siswa['nama'] ?></p>
                         <p><strong>Kelas:</strong> <?= $selected_siswa['nama_kelas'] ?></p>
+                        <p><strong>Tahun Ajaran:</strong> <?= htmlspecialchars($tahun_ajaran, ENT_QUOTES, 'UTF-8') ?></p>
                     </div>
 
                     <div class="mb-6">
@@ -197,24 +213,31 @@ $q_kelas = mysqli_query($koneksi, "SELECT * FROM kelas ORDER BY nama_kelas ASC")
                         </div>
                     </div>
 
-                    <form method="post" action="">
-                        <input type="hidden" name="id_kelas" value="<?= $id_kelas ?>">
-                        <input type="hidden" name="nisn" value="<?= $selected_nisn ?>">
-                        
-                        <div class="app-field">
-                            <label>Tanggal Bayar</label>
-                            <input type="date" name="tgl_bayar" class="app-control" value="<?= date('Y-m-d') ?>" required>
+                    <?php if ($is_tahun_ajaran_aktif): ?>
+                        <div class="p-4 bg-yellow-50 text-yellow-800 rounded-lg">
+                            <i class="mdi mdi-information-outline mr-2"></i> Tagihan tahun ajaran berjalan hanya untuk dilihat. Pembayaran dilakukan melalui menu Transaksi.
                         </div>
+                    <?php else: ?>
+                        <form method="post" action="">
+                            <input type="hidden" name="id_kelas" value="<?= $id_kelas ?>">
+                            <input type="hidden" name="nisn" value="<?= $selected_nisn ?>">
+                            <input type="hidden" name="tahun_ajaran" value="<?= htmlspecialchars($tahun_ajaran, ENT_QUOTES, 'UTF-8') ?>">
 
-                        <div class="flex items-center gap-3 mt-4">
-                            <button type="submit" name="bayar_tagihan" class="app-button app-button-success">
-                                <i class="mdi mdi-check-circle"></i> Bayar Semua Tagihan
-                            </button>
-                            <a href="tagihan.php?id_kelas=<?= $id_kelas ?>" class="app-button app-button-secondary">
-                                Batal
-                            </a>
-                        </div>
-                    </form>
+                            <div class="app-field">
+                                <label>Tanggal Bayar</label>
+                                <input type="date" name="tgl_bayar" class="app-control" value="<?= date('Y-m-d') ?>" required>
+                            </div>
+
+                            <div class="flex items-center gap-3 mt-4">
+                                <button type="submit" name="bayar_tagihan" class="app-button app-button-success">
+                                    <i class="mdi mdi-check-circle"></i> Bayar Semua Tagihan
+                                </button>
+                                <a href="tagihan.php?id_kelas=<?= $id_kelas ?>" class="app-button app-button-secondary">
+                                    Batal
+                                </a>
+                            </div>
+                        </form>
+                    <?php endif; ?>
                 <?php elseif ($selected_siswa && !$tagihan): ?>
                     <div class="p-4 bg-green-50 text-green-800 rounded-lg">
                         <i class="mdi mdi-check-circle mr-2"></i> Siswa ini tidak memiliki tagihan tunggakan!

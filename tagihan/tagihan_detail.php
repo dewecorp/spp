@@ -10,6 +10,13 @@ if (!isset($_GET['nisn']) || !isset($_GET['id_kelas'])) {
 
 $nisn = $_GET['nisn'];
 $id_kelas = $_GET['id_kelas'];
+ensure_pembayaran_tahun_ajaran_column($koneksi);
+$tahun_ajaran = isset($_GET['tahun_ajaran']) && trim((string)$_GET['tahun_ajaran']) !== ''
+    ? trim((string)$_GET['tahun_ajaran'])
+    : get_tahun_ajaran_aktif($koneksi);
+$tahun_ajaran_aktif = get_tahun_ajaran_aktif($koneksi);
+$is_tahun_ajaran_aktif = $tahun_ajaran === $tahun_ajaran_aktif;
+$tahun_ajaran_esc = mysqli_real_escape_string($koneksi, $tahun_ajaran);
 
 // Get Data Siswa & Kelas
 $q_siswa_detail = mysqli_query($koneksi, "SELECT siswa.*, kelas.nama_kelas FROM siswa JOIN kelas ON siswa.id_kelas = kelas.id_kelas WHERE siswa.nisn = '$nisn'");
@@ -28,11 +35,16 @@ $q_jb = mysqli_query($koneksi, "SELECT * FROM jenis_bayar WHERE status = 'Aktif'
                         <i class="mdi mdi-arrow-left"></i> Kembali
                     </a>
                     <h4 class="truncate text-xl font-extrabold tracking-normal text-slate-950">Detail Tagihan: <?= $d_siswa['nama'] ?> (<?= $nama_kelas ?>)</h4>
+                    <span class="app-badge app-badge-info">Tahun Ajaran <?= htmlspecialchars($tahun_ajaran, ENT_QUOTES, 'UTF-8') ?></span>
                 </div>
                 <div class="flex items-center gap-2">
-                    <a href="bayar_tagihan.php?nisn=<?= $nisn ?>&id_kelas=<?= $id_kelas ?>" class="inline-flex h-10 w-auto px-4 items-center justify-center rounded-lg bg-success text-white shadow-sm transition hover:bg-success-600">
-                        <i class="mdi mdi-cash mr-2"></i> Bayar Tagihan
-                    </a>
+                    <?php if (!$is_tahun_ajaran_aktif): ?>
+                        <a href="bayar_tagihan.php?nisn=<?= $nisn ?>&id_kelas=<?= $id_kelas ?>&tahun_ajaran=<?= urlencode($tahun_ajaran) ?>" class="inline-flex h-10 w-auto px-4 items-center justify-center rounded-lg bg-success text-white shadow-sm transition hover:bg-success-600">
+                            <i class="mdi mdi-cash mr-2"></i> Bayar Tagihan
+                        </a>
+                    <?php else: ?>
+                        <span class="app-badge app-badge-warning">Pembayaran tahun berjalan lewat menu Transaksi</span>
+                    <?php endif; ?>
                     <a href="export_excel.php?nisn=<?= $nisn ?>&id_kelas=<?= $id_kelas ?>" 
                        class="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500 text-white shadow-sm transition hover:bg-emerald-600" target="_blank" title="Export Excel">
                         <i class="mdi mdi-file-excel"></i>
@@ -61,8 +73,7 @@ $q_jb = mysqli_query($koneksi, "SELECT * FROM jenis_bayar WHERE status = 'Aktif'
                             $months = ['Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni'];
                             
                             // Calculate current month index (relative to school year starting July)
-                            $current_month_num = date('n'); // 1-12
-                            $limit_index = ($current_month_num >= 7) ? $current_month_num - 7 : $current_month_num + 5;
+                            $limit_index = limit_index_bulan_tahun_ajaran($koneksi, $tahun_ajaran);
 
                             $displayed_bills = 0;
 
@@ -83,7 +94,7 @@ $q_jb = mysqli_query($koneksi, "SELECT * FROM jenis_bayar WHERE status = 'Aktif'
 
                                 if ($jb['tipe_bayar'] == 'Bulanan') {
                                     // Get payments for this student and this payment type
-                                    $q_bayar = mysqli_query($koneksi, "SELECT bulan_bayar FROM pembayaran WHERE nisn='$nisn' AND id_jenis_bayar='" . $jb['id_jenis_bayar'] . "'");
+                                    $q_bayar = mysqli_query($koneksi, "SELECT bulan_bayar FROM pembayaran WHERE nisn='$nisn' AND id_jenis_bayar='" . $jb['id_jenis_bayar'] . "' AND tahun_ajaran='$tahun_ajaran_esc'");
                                     while ($row = mysqli_fetch_assoc($q_bayar)) {
                                         if (!empty($row['bulan_bayar'])) {
                                             $ms = array_map('trim', explode(',', $row['bulan_bayar']));
@@ -95,6 +106,7 @@ $q_jb = mysqli_query($koneksi, "SELECT * FROM jenis_bayar WHERE status = 'Aktif'
                                     $is_extracurricular = stripos($jb['nama_pembayaran'], 'ekstrakurikuler') !== false;
                                     $has_unpaid = false;
                                     foreach ($months as $index => $m) {
+                                        if ($limit_index < 0) continue;
                                         if (!$is_extracurricular && $index > $limit_index) continue;
                                         if (!in_array($m, $paid_months)) {
                                             $has_unpaid = true;
@@ -107,7 +119,7 @@ $q_jb = mysqli_query($koneksi, "SELECT * FROM jenis_bayar WHERE status = 'Aktif'
                                     }
                                 } else {
                                     // Cicilan / Bebas
-                                    $q_total = mysqli_query($koneksi, "SELECT SUM(jumlah_bayar) as total FROM pembayaran WHERE nisn='$nisn' AND id_jenis_bayar='" . $jb['id_jenis_bayar'] . "'");
+                                    $q_total = mysqli_query($koneksi, "SELECT SUM(jumlah_bayar) as total FROM pembayaran WHERE nisn='$nisn' AND id_jenis_bayar='" . $jb['id_jenis_bayar'] . "' AND tahun_ajaran='$tahun_ajaran_esc'");
                                     $d_total = mysqli_fetch_assoc($q_total);
                                     $total_bayar = $d_total['total'] ?? 0;
                                     $sisa = $jb['nominal'] - $total_bayar;
@@ -135,6 +147,7 @@ $q_jb = mysqli_query($koneksi, "SELECT * FROM jenis_bayar WHERE status = 'Aktif'
                                     $is_extracurricular = stripos($jb['nama_pembayaran'], 'ekstrakurikuler') !== false;
                                     echo '<div class="flex flex-wrap gap-3">';
                                     foreach ($months as $index => $m) {
+                                        if ($limit_index < 0) continue;
                                         if (!$is_extracurricular && $index > $limit_index) continue; // Skip future months (non-ekskul)
                                         if (in_array($m, $paid_months)) continue; // Skip paid months
 

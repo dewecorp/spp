@@ -31,10 +31,6 @@ include '../template/sidebar.php';
                         <i class="mdi mdi-printer app-button-icon"></i>
                         <span>Cetak Tagihan Semua Siswa</span>
                     </a>
-                    <a href="bayar_tagihan.php?id_kelas=<?= $_GET['id_kelas'] ?>" class="app-button app-button-success app-button-with-text h-[46px] w-full md:w-auto md:px-5">
-                        <i class="mdi mdi-cash app-button-icon"></i>
-                        <span>Bayar Tagihan</span>
-                    </a>
                 </div>
             <?php endif; ?>
         </div>
@@ -44,6 +40,22 @@ include '../template/sidebar.php';
 <?php
 if (isset($_GET['id_kelas'])) {
     $id_kelas = $_GET['id_kelas'];
+    ensure_pembayaran_tahun_ajaran_column($koneksi);
+    $tahun_ajaran_aktif = get_tahun_ajaran_aktif($koneksi);
+    $tahun_ajaran_sebelumnya = tahun_ajaran_sebelumnya($tahun_ajaran_aktif);
+    $tahun_ajaran_opsi = [$tahun_ajaran_aktif];
+    if ($tahun_ajaran_sebelumnya !== '') {
+        $tahun_ajaran_opsi[] = $tahun_ajaran_sebelumnya;
+    }
+    $q_tahun_pembayaran = mysqli_query($koneksi, "SELECT DISTINCT tahun_ajaran FROM pembayaran WHERE tahun_ajaran IS NOT NULL AND tahun_ajaran <> '' ORDER BY tahun_ajaran DESC");
+    while ($row_tahun = $q_tahun_pembayaran ? mysqli_fetch_assoc($q_tahun_pembayaran) : null) {
+        $tahun_row = trim((string)($row_tahun['tahun_ajaran'] ?? ''));
+        if ($tahun_row !== '') {
+            $tahun_ajaran_opsi[] = $tahun_row;
+        }
+    }
+    $tahun_ajaran_opsi = array_values(array_unique($tahun_ajaran_opsi));
+
     $q_siswa = mysqli_query($koneksi, "SELECT * FROM siswa WHERE id_kelas = '$id_kelas' ORDER BY nama ASC");
     $d_kelas = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT nama_kelas FROM kelas WHERE id_kelas = '$id_kelas'"));
 ?>
@@ -67,21 +79,44 @@ if (isset($_GET['id_kelas'])) {
                             <?php
                             $no = 1;
                             while ($s = mysqli_fetch_assoc($q_siswa)) :
-                                // Cek apakah siswa memiliki tagihan tunggakan
-                                $tagihan_tunggakan = cek_tagihan_tunggakan($koneksi, $s['nisn']);
+                                $tagihan_per_tahun = [];
+                                foreach ($tahun_ajaran_opsi as $tahun_ajaran_item) {
+                                    $tagihan_tunggakan = cek_tagihan_tunggakan($koneksi, $s['nisn'], $tahun_ajaran_item);
+                                    $is_tahun_aktif_item = $tahun_ajaran_item === $tahun_ajaran_aktif;
+                                    if ($is_tahun_aktif_item || $tagihan_tunggakan) {
+                                        $tagihan_per_tahun[$tahun_ajaran_item] = [
+                                            'is_tahun_aktif' => $is_tahun_aktif_item,
+                                            'tagihan' => $tagihan_tunggakan,
+                                        ];
+                                    }
+                                }
                             ?>
                                 <tr>
                                     <td><?= $no++ ?></td>
                                     <td><?= $s['nisn'] ?></td>
                                     <td><?= $s['nama'] ?></td>
-                                    <td class="flex gap-2 items-center">
-                                        <?php if ($tagihan_tunggakan): ?>
-                                            <a href="tagihan_detail.php?nisn=<?= $s['nisn'] ?>&id_kelas=<?= $id_kelas ?>" class="app-button app-button-info app-button-sm">
-                                                <i class="mdi mdi-eye"></i> Lihat Tagihan
-                                            </a>
-                                            <a href="bayar_tagihan.php?nisn=<?= $s['nisn'] ?>&id_kelas=<?= $id_kelas ?>" class="app-button app-button-success app-button-sm">
-                                                <i class="mdi mdi-cash"></i> Bayar
-                                            </a>
+                                    <td>
+                                        <?php if (!empty($tagihan_per_tahun)): ?>
+                                            <div class="flex flex-wrap items-center gap-2">
+                                                <?php foreach ($tagihan_per_tahun as $tahun_ajaran_item => $tagihan_info): ?>
+                                                    <?php
+                                                    $is_tahun_aktif = $tagihan_info['is_tahun_aktif'];
+                                                    $has_tagihan = !empty($tagihan_info['tagihan']);
+                                                    $button_class = $is_tahun_aktif ? 'app-button-info' : 'app-button-warning';
+                                                    $tahun_query = urlencode($tahun_ajaran_item);
+                                                    ?>
+                                                    <a href="tagihan_detail.php?nisn=<?= $s['nisn'] ?>&id_kelas=<?= $id_kelas ?>&tahun_ajaran=<?= $tahun_query ?>" class="app-button <?= $button_class ?> app-button-sm flex-col gap-0 py-2 leading-tight">
+                                                        <span><i class="mdi mdi-eye"></i> Tagihan</span>
+                                                        <small class="font-bold opacity-90"><?= htmlspecialchars($tahun_ajaran_item, ENT_QUOTES, 'UTF-8') ?></small>
+                                                    </a>
+                                                    <?php if (!$is_tahun_aktif && $has_tagihan): ?>
+                                                        <a href="bayar_tagihan.php?nisn=<?= $s['nisn'] ?>&id_kelas=<?= $id_kelas ?>&tahun_ajaran=<?= $tahun_query ?>" class="app-button app-button-success app-button-sm flex-col gap-0 py-2 leading-tight">
+                                                            <span><i class="mdi mdi-cash"></i> Bayar</span>
+                                                            <small class="font-bold opacity-90"><?= htmlspecialchars($tahun_ajaran_item, ENT_QUOTES, 'UTF-8') ?></small>
+                                                        </a>
+                                                    <?php endif; ?>
+                                                <?php endforeach; ?>
+                                            </div>
                                         <?php else: ?>
                                             <span class="app-badge app-badge-success">
                                                 <i class="mdi mdi-check-circle mr-1"></i> Lunas

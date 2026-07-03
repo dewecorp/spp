@@ -428,6 +428,7 @@ if ($action === 'jenis_bayar' || $action === 'get_jenis_bayar') {
 }
 
 if ($action === 'simpan_pembayaran' || $action === 'bayar' || $action === 'potongan_tabungan') {
+    ensure_pembayaran_tahun_ajaran_column($koneksi);
     $nisn = trim((string) etab_array_value($request, ['nisn'], ''));
     $id_jenis_bayar = (int) etab_array_value($request, ['id_jenis_bayar', 'kode_jenis_bayar'], 0);
     $tgl_bayar = trim((string) etab_array_value($request, ['tgl_bayar', 'tanggal_bayar', 'tanggal'], date('Y-m-d')));
@@ -436,6 +437,7 @@ if ($action === 'simpan_pembayaran' || $action === 'bayar' || $action === 'poton
     $bulan_bayar = etab_month_list(etab_array_value($request, ['bulan_bayar', 'bulan'], []));
     $no_transaksi_etab = trim((string) etab_array_value($request, ['no_transaksi', 'no_transaksi_etab', 'ref_etab', 'id_transaksi_etab'], ''));
     $tahun_bayar = trim((string) etab_array_value($request, ['tahun_bayar'], date('Y', strtotime($tgl_bayar))));
+    $tahun_ajaran = trim((string) etab_array_value($request, ['tahun_ajaran'], get_tahun_ajaran_aktif($koneksi)));
 
     if ($nisn === '') {
         etab_output(['status' => 'error', 'message' => 'NISN wajib diisi'], 422);
@@ -502,9 +504,9 @@ if ($action === 'simpan_pembayaran' || $action === 'bayar' || $action === 'poton
 
         $q_paid = etab_exec_select(
             $koneksi,
-            'SELECT bulan_bayar FROM pembayaran WHERE nisn = ? AND id_jenis_bayar = ?',
-            'si',
-            [$nisn, $id_jenis_bayar]
+            'SELECT bulan_bayar FROM pembayaran WHERE nisn = ? AND id_jenis_bayar = ? AND tahun_ajaran = ?',
+            'sis',
+            [$nisn, $id_jenis_bayar, $tahun_ajaran]
         );
         $paid_months = [];
         while ($paid = mysqli_fetch_assoc($q_paid)) {
@@ -535,9 +537,9 @@ if ($action === 'simpan_pembayaran' || $action === 'bayar' || $action === 'poton
 
         $q_total = etab_exec_select(
             $koneksi,
-            'SELECT COALESCE(SUM(jumlah_bayar), 0) AS total_bayar, COALESCE(MAX(cicilan_ke), 0) AS last_cicilan FROM pembayaran WHERE nisn = ? AND id_jenis_bayar = ?',
-            'si',
-            [$nisn, $id_jenis_bayar]
+            'SELECT COALESCE(SUM(jumlah_bayar), 0) AS total_bayar, COALESCE(MAX(cicilan_ke), 0) AS last_cicilan FROM pembayaran WHERE nisn = ? AND id_jenis_bayar = ? AND tahun_ajaran = ?',
+            'sis',
+            [$nisn, $id_jenis_bayar, $tahun_ajaran]
         );
         $d_total = mysqli_fetch_assoc($q_total);
         $total_sudah_bayar = (int) ($d_total['total_bayar'] ?? 0);
@@ -562,13 +564,13 @@ if ($action === 'simpan_pembayaran' || $action === 'bayar' || $action === 'poton
     }
 
     $id_petugas = etab_default_petugas_id($koneksi, etab_array_value($request, ['id_petugas'], 0));
-    $no_transaksi = etab_next_transaction_number($koneksi, $tgl_bayar, 'ETAB');
+    $no_transaksi = $no_transaksi_etab !== '' ? $no_transaksi_etab : etab_next_transaction_number($koneksi, $tgl_bayar, 'ETAB');
 
     mysqli_begin_transaction($koneksi);
     try {
         $stmt_insert = mysqli_prepare(
             $koneksi,
-            'INSERT INTO pembayaran (no_transaksi, id_petugas, nisn, tgl_bayar, bulan_bayar, tahun_bayar, id_jenis_bayar, jumlah_bayar, cicilan_ke, ket) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+            'INSERT INTO pembayaran (no_transaksi, id_petugas, nisn, tgl_bayar, bulan_bayar, tahun_bayar, tahun_ajaran, id_jenis_bayar, jumlah_bayar, cicilan_ke, ket) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
         );
         if (!$stmt_insert) {
             throw new Exception('Gagal menyiapkan query simpan pembayaran: ' . mysqli_error($koneksi));
@@ -576,13 +578,14 @@ if ($action === 'simpan_pembayaran' || $action === 'bayar' || $action === 'poton
 
         mysqli_stmt_bind_param(
             $stmt_insert,
-            'sissssiiis',
+            'sisssssiiis',
             $no_transaksi,
             $id_petugas,
             $nisn,
             $tgl_bayar,
             $bulan_bayar_str,
             $tahun_bayar,
+            $tahun_ajaran,
             $id_jenis_bayar,
             $jumlah_bayar,
             $cicilan_ke,
@@ -621,6 +624,7 @@ if ($action === 'simpan_pembayaran' || $action === 'bayar' || $action === 'poton
             'tipe_bayar' => $jenis_bayar['tipe_bayar'],
             'jumlah_bayar' => $jumlah_bayar,
             'bulan_bayar' => $bulan_bayar,
+            'tahun_ajaran' => $tahun_ajaran,
             'cicilan_ke' => $cicilan_ke,
             'ket' => $ket,
         ],
@@ -628,8 +632,9 @@ if ($action === 'simpan_pembayaran' || $action === 'bayar' || $action === 'poton
 }
 
 if ($action === 'transaksi' || $action === 'query_transaksi') {
+    ensure_pembayaran_tahun_ajaran_column($koneksi);
     $sql = "SELECT p.id_pembayaran, p.no_transaksi, p.id_petugas, p.nisn, s.nama, k.id_kelas, k.nama_kelas,
-                   p.tgl_bayar, p.bulan_bayar, p.tahun_bayar, p.id_jenis_bayar, jb.nama_pembayaran,
+                   p.tgl_bayar, p.bulan_bayar, p.tahun_bayar, p.tahun_ajaran, p.id_jenis_bayar, jb.nama_pembayaran,
                    jb.tipe_bayar, p.jumlah_bayar, p.cicilan_ke, p.ket, p.created_at,
                    pg.nama_lengkap AS nama_petugas
             FROM pembayaran p
@@ -657,6 +662,12 @@ if ($action === 'transaksi' || $action === 'query_transaksi') {
         $sql .= ' AND p.id_jenis_bayar = ?';
         $types .= 'i';
         $params[] = (int) $request['id_jenis_bayar'];
+    }
+
+    if (!empty($request['tahun_ajaran'])) {
+        $sql .= ' AND p.tahun_ajaran = ?';
+        $types .= 's';
+        $params[] = (string) $request['tahun_ajaran'];
     }
 
     if (!empty($request['tanggal_mulai'])) {
@@ -720,6 +731,7 @@ if ($action === 'transaksi' || $action === 'query_transaksi') {
             'jumlah_bayar' => $jumlah_bayar,
             'bulan_bayar' => $bulan_bayar,
             'tahun_bayar' => $row['tahun_bayar'],
+            'tahun_ajaran' => $row['tahun_ajaran'],
             'cicilan_ke' => (int) ($row['cicilan_ke'] ?? 0),
             'ket' => $row['ket'],
             'id_petugas' => (int) $row['id_petugas'],

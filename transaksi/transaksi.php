@@ -250,10 +250,12 @@ while ($jb = mysqli_fetch_assoc($q_jb)) {
 
 // Proses Tambah
 if (isset($_POST['tambah'])) {
+    ensure_pembayaran_tahun_ajaran_column($koneksi);
     $id_petugas = isset($_SESSION['id_pengguna']) ? (int)$_SESSION['id_pengguna'] : 0;
     $nisn = isset($_POST['nisn']) ? trim($_POST['nisn']) : '';
     $tgl_bayar = isset($_POST['tgl_bayar']) ? $_POST['tgl_bayar'] : '';
     $tahun_bayar = date('Y', strtotime($tgl_bayar));
+    $tahun_ajaran = get_tahun_ajaran_aktif($koneksi);
     $payment_data = isset($_POST['payment']) && is_array($_POST['payment']) ? $_POST['payment'] : [];
     $payment_items_by_id = [];
     foreach ($payment_data as $payment_key => $payment_item) {
@@ -367,12 +369,6 @@ if (isset($_POST['tambah'])) {
     if ($id_petugas <= 0 || $nisn === '' || $tgl_bayar === '' || (empty($id_jenis_bayar_input) && empty($payment_data))) {
         $error_tambah = 'Input transaksi belum lengkap.';
     } else {
-        // Cek apakah siswa memiliki tagihan tunggakan
-        $tagihan_tunggakan = cek_tagihan_tunggakan($koneksi, $nisn);
-        if ($tagihan_tunggakan) {
-            $total_tagihan = array_sum(array_column($tagihan_tunggakan, 'sisa'));
-            $error_tambah = 'Siswa masih memiliki tagihan tunggakan sebesar Rp ' . number_format($total_tagihan, 0, ',', '.') . '. Silakan bayar tagihan terlebih dahulu melalui menu Tagihan!';
-        } else {
             mysqli_begin_transaction($koneksi);
             try {
                 // Generate no transaksi yang konsisten per bulan (TRX-YYYYMM-NNN).
@@ -401,7 +397,7 @@ if (isset($_POST['tambah'])) {
                 $kelas_siswa_normalized = $normalize_kelas($kelas_siswa_nama);
 
                 $stmt_cek_jb = mysqli_prepare($koneksi, "SELECT id_jenis_bayar, tipe_bayar, nominal, IFNULL(tagihan_kelas,'') AS tagihan_kelas FROM jenis_bayar WHERE id_jenis_bayar = ? LIMIT 1");
-                $stmt_insert = mysqli_prepare($koneksi, "INSERT INTO pembayaran (id_petugas, nisn, tgl_bayar, id_jenis_bayar, jumlah_bayar, cicilan_ke, ket, bulan_bayar, tahun_bayar, no_transaksi) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmt_insert = mysqli_prepare($koneksi, "INSERT INTO pembayaran (id_petugas, nisn, tgl_bayar, id_jenis_bayar, jumlah_bayar, cicilan_ke, ket, bulan_bayar, tahun_bayar, tahun_ajaran, no_transaksi) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
                 if (!$stmt_cek_jb || !$stmt_insert) {
                     throw new Exception('Gagal menyiapkan query simpan transaksi: ' . mysqli_error($koneksi));
@@ -469,7 +465,7 @@ if (isset($_POST['tambah'])) {
                     $ket = "Lunas (Bulanan) - " . $bulan_bayar_str;
                 }
 
-                mysqli_stmt_bind_param($stmt_insert, 'issiiissss', $id_petugas, $nisn, $tgl_bayar, $id_jb, $jumlah_bayar, $cicilan_ke, $ket, $bulan_bayar_str, $tahun_bayar, $no_transaksi);
+                mysqli_stmt_bind_param($stmt_insert, 'issiiisssss', $id_petugas, $nisn, $tgl_bayar, $id_jb, $jumlah_bayar, $cicilan_ke, $ket, $bulan_bayar_str, $tahun_bayar, $tahun_ajaran, $no_transaksi);
                 if (!mysqli_stmt_execute($stmt_insert)) {
                     throw new Exception('Gagal menyimpan data pembayaran: ' . mysqli_stmt_error($stmt_insert));
                 }
@@ -487,7 +483,6 @@ if (isset($_POST['tambah'])) {
         } catch (Exception $e) {
             mysqli_rollback($koneksi);
             $error_tambah = $e->getMessage();
-        }
         }
     }
 
@@ -510,6 +505,8 @@ if (isset($_POST['tambah'])) {
 
 // Proses Update Transaksi
 if (isset($_POST['update_transaksi'])) {
+    ensure_pembayaran_tahun_ajaran_column($koneksi);
+    $tahun_ajaran = get_tahun_ajaran_aktif($koneksi);
     $no_transaksi = $_POST['no_transaksi'];
     $tgl_bayar = $_POST['tgl_bayar'];
     $nisn = $_POST['nisn']; 
@@ -571,9 +568,9 @@ if (isset($_POST['update_transaksi'])) {
             $tahun_bayar = date('Y', strtotime($tgl_bayar));
             
             $query = mysqli_query($koneksi, "INSERT INTO pembayaran 
-                (id_petugas, nisn, tgl_bayar, id_jenis_bayar, jumlah_bayar, cicilan_ke, ket, bulan_bayar, tahun_bayar, no_transaksi) 
+                (id_petugas, nisn, tgl_bayar, id_jenis_bayar, jumlah_bayar, cicilan_ke, ket, bulan_bayar, tahun_bayar, tahun_ajaran, no_transaksi)
                 VALUES 
-                ('$id_petugas', '$nisn', '$tgl_bayar', '$id_jb', '$jumlah_bayar', '$cicilan_ke', '$ket', '$bulan_bayar_str', '$tahun_bayar', '$no_transaksi')");
+                ('$id_petugas', '$nisn', '$tgl_bayar', '$id_jb', '$jumlah_bayar', '$cicilan_ke', '$ket', '$bulan_bayar_str', '$tahun_bayar', '$tahun_ajaran', '$no_transaksi')");
             
             if ($query) $success_count++;
         }

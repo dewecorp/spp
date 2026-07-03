@@ -3,6 +3,8 @@ $title = 'Pengaturan Sekolah';
 include '../template/header.php';
 include '../template/sidebar.php';
 
+ensure_pengaturan_tanggal_mulai_column($koneksi);
+
 // Ambil data pengaturan
 $query = mysqli_query($koneksi, "SELECT * FROM pengaturan WHERE id_pengaturan = 1");
 $data = mysqli_fetch_assoc($query);
@@ -12,9 +14,13 @@ if (isset($_POST['simpan'])) {
     $alamat_sekolah = $_POST['alamat_sekolah'];
     $nama_bendahara = $_POST['nama_bendahara'];
     $tahun_ajaran = $_POST['tahun_ajaran'];
+    $tanggal_mulai_tahun_ajaran = trim((string)($_POST['tanggal_mulai_tahun_ajaran'] ?? ''));
+    if ($tanggal_mulai_tahun_ajaran === '') {
+        $tanggal_mulai_tahun_ajaran = default_tanggal_mulai_tahun_ajaran($tahun_ajaran);
+    }
     
     // Default Query
-    $query_update = "UPDATE pengaturan SET nama_sekolah='$nama_sekolah', alamat_sekolah='$alamat_sekolah', nama_bendahara='$nama_bendahara', tahun_ajaran='$tahun_ajaran'";
+    $query_update = "UPDATE pengaturan SET nama_sekolah='$nama_sekolah', alamat_sekolah='$alamat_sekolah', nama_bendahara='$nama_bendahara', tahun_ajaran='$tahun_ajaran', tanggal_mulai_tahun_ajaran='$tanggal_mulai_tahun_ajaran'";
 
     // Upload Logo
     if (!empty($_FILES['logo']['name'])) {
@@ -129,6 +135,10 @@ if (isset($_POST['reset_data'])) {
                         <div class="app-field">
                             <label for="tahun_ajaran">Tahun Ajaran Aktif</label>
                             <input type="text" class="app-control" id="tahun_ajaran" name="tahun_ajaran" value="<?= $data['tahun_ajaran'] ?? '' ?>" placeholder="Contoh: 2024/2025" required>
+                        </div>
+                        <div class="app-field">
+                            <label for="tanggal_mulai_tahun_ajaran">Tanggal Mulai Tahun Ajaran</label>
+                            <input type="date" class="app-control" id="tanggal_mulai_tahun_ajaran" name="tanggal_mulai_tahun_ajaran" value="<?= $data['tanggal_mulai_tahun_ajaran'] ?? default_tanggal_mulai_tahun_ajaran($data['tahun_ajaran'] ?? '') ?>" required>
                         </div>
                         <div class="app-field lg:row-span-2">
                             <label for="alamat_sekolah">Alamat Sekolah</label>
