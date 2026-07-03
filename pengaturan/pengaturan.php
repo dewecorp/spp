@@ -1,5 +1,5 @@
 <?php
-$title = 'Pengaturan Sekolah';
+$title = 'Pengaturan';
 include '../template/header.php';
 include '../template/sidebar.php';
 
