@@ -8,6 +8,32 @@ if (!isset($_SESSION['last_log_cleanup']) || (time() - (int)$_SESSION['last_log_
     $_SESSION['last_log_cleanup'] = time();
 }
 
+function dashboard_kelas_sort_key($nama_kelas) {
+    $nama = strtoupper(trim((string) $nama_kelas));
+    if (strpos($nama, 'ALUMNI') !== false) {
+        return 99;
+    }
+
+    $roman_map = [
+        'I' => 1,
+        'II' => 2,
+        'III' => 3,
+        'IV' => 4,
+        'V' => 5,
+        'VI' => 6,
+    ];
+
+    if (isset($roman_map[$nama])) {
+        return $roman_map[$nama];
+    }
+
+    if (preg_match('/\b([1-6])\b/', $nama, $m) || preg_match('/([1-6])/', $nama, $m)) {
+        return (int) $m[1];
+    }
+
+    return 50;
+}
+
 // 1. Hitung Jumlah Siswa
 $q_siswa = mysqli_query($koneksi, "SELECT COUNT(*) as total FROM siswa");
 $d_siswa = mysqli_fetch_assoc($q_siswa);
@@ -51,16 +77,78 @@ while ($row = mysqli_fetch_assoc($q_jenis_total)) {
 $tahun_ini = date('Y');
 $tahun_ajaran_aktif_dashboard = get_tahun_ajaran_aktif($koneksi);
 $total_tagihan = 0;
-$q_siswa_tagihan = mysqli_query($koneksi, "SELECT nisn FROM siswa");
+$kelas_tunggakan = [];
+$q_kelas_dashboard = mysqli_query($koneksi, "SELECT id_kelas, nama_kelas FROM kelas ORDER BY nama_kelas ASC");
+while ($kelas_dashboard = mysqli_fetch_assoc($q_kelas_dashboard)) {
+    $id_kelas_dashboard = (int) $kelas_dashboard['id_kelas'];
+    $kelas_tunggakan[$id_kelas_dashboard] = [
+        'id_kelas' => $id_kelas_dashboard,
+        'nama_kelas' => $kelas_dashboard['nama_kelas'],
+        'total_siswa' => 0,
+        'siswa_tunggakan' => 0,
+        'total_tagihan' => 0,
+        'siswa' => [],
+    ];
+}
+
+$q_siswa_tagihan = mysqli_query($koneksi, "
+    SELECT s.nisn, s.nama, k.id_kelas, k.nama_kelas
+    FROM siswa s
+    JOIN kelas k ON s.id_kelas = k.id_kelas
+    ORDER BY k.nama_kelas ASC, s.nama ASC
+");
 while ($siswa_tagihan = mysqli_fetch_assoc($q_siswa_tagihan)) {
+    $id_kelas_dashboard = (int) $siswa_tagihan['id_kelas'];
+    if (!isset($kelas_tunggakan[$id_kelas_dashboard])) {
+        $kelas_tunggakan[$id_kelas_dashboard] = [
+            'id_kelas' => $id_kelas_dashboard,
+            'nama_kelas' => $siswa_tagihan['nama_kelas'],
+            'total_siswa' => 0,
+            'siswa_tunggakan' => 0,
+            'total_tagihan' => 0,
+            'siswa' => [],
+        ];
+    }
+
+    $kelas_tunggakan[$id_kelas_dashboard]['total_siswa']++;
     $tagihan_siswa = cek_tagihan_tunggakan($koneksi, $siswa_tagihan['nisn'], $tahun_ajaran_aktif_dashboard);
     if (!$tagihan_siswa) {
         continue;
     }
 
+    $total_tagihan_siswa = 0;
     foreach ($tagihan_siswa as $item_tagihan) {
-        $total_tagihan += (int) ($item_tagihan['sisa'] ?? 0);
+        $total_tagihan_siswa += (int) ($item_tagihan['sisa'] ?? 0);
     }
+
+    if ($total_tagihan_siswa <= 0) {
+        continue;
+    }
+
+    $total_tagihan += $total_tagihan_siswa;
+    $kelas_tunggakan[$id_kelas_dashboard]['siswa_tunggakan']++;
+    $kelas_tunggakan[$id_kelas_dashboard]['total_tagihan'] += $total_tagihan_siswa;
+    $kelas_tunggakan[$id_kelas_dashboard]['siswa'][] = [
+        'nisn' => $siswa_tagihan['nisn'],
+        'nama' => $siswa_tagihan['nama'],
+        'total_tagihan' => $total_tagihan_siswa,
+    ];
+}
+
+$kelas_tunggakan = array_values(array_filter($kelas_tunggakan, static function ($kelas) {
+    return (int) $kelas['siswa_tunggakan'] > 0;
+}));
+usort($kelas_tunggakan, static function ($a, $b) {
+    $sort_a = dashboard_kelas_sort_key($a['nama_kelas']);
+    $sort_b = dashboard_kelas_sort_key($b['nama_kelas']);
+    if ($sort_a === $sort_b) {
+        return strnatcasecmp((string) $a['nama_kelas'], (string) $b['nama_kelas']);
+    }
+    return $sort_a <=> $sort_b;
+});
+$max_tagihan_kelas = 0;
+foreach ($kelas_tunggakan as $kelas_item) {
+    $max_tagihan_kelas = max($max_tagihan_kelas, (int) $kelas_item['total_tagihan']);
 }
 
 // Data Grafik Pembayaran per Bulan (Tahun Ini)
@@ -167,6 +255,100 @@ $q_aktivitas = mysqli_query($koneksi, "
         </div>
     </div>
     <?php endforeach; ?>
+</div>
+
+<div class="mb-6">
+    <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+            <p class="text-sm font-bold text-emerald-700">Tunggakan per kelas</p>
+            <h2 class="mt-1 text-xl font-extrabold tracking-normal text-slate-950">Siswa Menunggak Tahun Ajaran <?= htmlspecialchars($tahun_ajaran_aktif_dashboard) ?></h2>
+        </div>
+        <div class="inline-flex w-fit items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-bold text-amber-700">
+            <i class="mdi mdi-file-document-alert"></i>
+            Rp <?= number_format($total_tagihan, 0, ',', '.') ?>
+        </div>
+    </div>
+
+    <?php if (!empty($kelas_tunggakan)) : ?>
+        <div class="grid grid-cols-1 gap-5 lg:grid-cols-2 xl:grid-cols-3">
+            <?php foreach ($kelas_tunggakan as $kelas_item) :
+                $total_siswa_kelas = max(1, (int) $kelas_item['total_siswa']);
+                $jumlah_tunggakan_kelas = (int) $kelas_item['siswa_tunggakan'];
+                $persen_siswa_tunggakan = min(100, round(($jumlah_tunggakan_kelas / $total_siswa_kelas) * 100));
+                $persen_nominal_kelas = $max_tagihan_kelas > 0 ? min(100, round(((int) $kelas_item['total_tagihan'] / $max_tagihan_kelas) * 100)) : 0;
+            ?>
+                <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
+                    <div class="flex items-start justify-between gap-4">
+                        <div class="min-w-0">
+                            <p class="text-sm font-bold text-slate-500">Kelas</p>
+                            <h3 class="mt-1 truncate text-2xl font-extrabold tracking-normal text-slate-950" title="<?= htmlspecialchars($kelas_item['nama_kelas']) ?>">
+                                <?= htmlspecialchars($kelas_item['nama_kelas']) ?>
+                            </h3>
+                        </div>
+                        <a href="<?= base_url('tagihan/tagihan.php?id_kelas=' . (int) $kelas_item['id_kelas']) ?>" class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100 transition hover:bg-emerald-100" title="Buka tagihan kelas <?= htmlspecialchars($kelas_item['nama_kelas']) ?>">
+                            <i class="mdi mdi-arrow-right text-xl"></i>
+                        </a>
+                    </div>
+
+                    <div class="mt-5 grid grid-cols-2 gap-4 border-y border-slate-100 py-4">
+                        <div>
+                            <p class="text-xs font-bold uppercase text-slate-400">Total Tagihan</p>
+                            <p class="mt-1 break-words text-lg font-extrabold text-slate-950">Rp <?= number_format($kelas_item['total_tagihan'], 0, ',', '.') ?></p>
+                        </div>
+                        <div class="border-l border-slate-100 pl-4">
+                            <p class="text-xs font-bold uppercase text-amber-600">Siswa</p>
+                            <p class="mt-1 text-lg font-extrabold text-slate-950"><?= number_format($jumlah_tunggakan_kelas) ?> / <?= number_format($kelas_item['total_siswa']) ?></p>
+                        </div>
+                    </div>
+
+                    <div class="mt-5">
+                        <div class="mb-2 flex items-center justify-between text-xs font-bold text-slate-500">
+                            <span>Porsi tunggakan kelas</span>
+                            <span><?= $persen_nominal_kelas ?>%</span>
+                        </div>
+                        <div class="h-2.5 overflow-hidden rounded-full bg-slate-100">
+                            <div class="h-full rounded-full bg-amber-500" style="width: <?= $persen_nominal_kelas ?>%"></div>
+                        </div>
+                        <div class="mt-2 flex items-center justify-between text-xs font-semibold text-slate-400">
+                            <span><?= $persen_siswa_tunggakan ?>% siswa kelas ini menunggak</span>
+                        </div>
+                    </div>
+
+                    <details class="group mt-5 rounded-lg border border-slate-200 bg-slate-50/70">
+                        <summary class="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-extrabold text-slate-700 transition hover:bg-slate-100">
+                            <span class="inline-flex min-w-0 items-center gap-2">
+                                <i class="mdi mdi-account-alert text-amber-500"></i>
+                                <span class="truncate">Daftar siswa menunggak</span>
+                            </span>
+                            <span class="inline-flex shrink-0 items-center gap-2 text-xs font-bold text-slate-500">
+                                <?= number_format($jumlah_tunggakan_kelas) ?> siswa
+                                <i class="mdi mdi-chevron-down text-lg transition group-open:rotate-180"></i>
+                            </span>
+                        </summary>
+                        <div class="max-h-72 overflow-y-auto border-t border-slate-200 bg-white px-3 py-2">
+                            <?php foreach ($kelas_item['siswa'] as $index_siswa => $siswa_preview) : ?>
+                                <div class="flex items-start justify-between gap-3 <?= $index_siswa > 0 ? 'border-t border-slate-100' : '' ?> py-2.5">
+                                    <div class="min-w-0">
+                                        <p class="truncate text-sm font-extrabold text-slate-700" title="<?= htmlspecialchars($siswa_preview['nama']) ?>">
+                                            <?= htmlspecialchars($siswa_preview['nama']) ?>
+                                        </p>
+                                        <p class="mt-0.5 text-xs font-semibold text-slate-400">NISN <?= htmlspecialchars($siswa_preview['nisn']) ?></p>
+                                    </div>
+                                    <span class="shrink-0 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-extrabold text-amber-700 ring-1 ring-amber-100">
+                                        Rp <?= number_format($siswa_preview['total_tagihan'], 0, ',', '.') ?>
+                                    </span>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </details>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    <?php else : ?>
+        <div class="rounded-lg border border-emerald-200 bg-emerald-50 p-5 text-sm font-bold text-emerald-700">
+            <i class="mdi mdi-check-circle mr-1"></i> Belum ada tunggakan pada tahun ajaran aktif.
+        </div>
+    <?php endif; ?>
 </div>
 
 <div class="mb-6 grid grid-cols-1 gap-5">
