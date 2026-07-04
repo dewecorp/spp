@@ -11,6 +11,8 @@ if (!$d_siswa) {
     echo "<script>alert('Data siswa tidak ditemukan!'); window.location='laporan.php';</script>";
     exit;
 }
+
+$tahun_ajaran_laporan = get_tahun_ajaran_aktif($koneksi);
 ?>
 
 <div class="app-page">
@@ -48,7 +50,7 @@ if (!$d_siswa) {
                         </tr>
                         <tr>
                             <th class="text-left py-1">Tahun Ajaran</th>
-                            <td class="py-1">: <?= date('Y') ?></td>
+                            <td class="py-1">: <?= htmlspecialchars($tahun_ajaran_laporan, ENT_QUOTES, 'UTF-8') ?></td>
                         </tr>
                     </table>
                 </div>
@@ -90,7 +92,7 @@ if (!$d_siswa) {
                                             <?php
                                             $bulan = ['Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni'];
 
-                                            $paid_by_month = bulanan_map_pembayaran_per_bulan($koneksi, $nisn, $d_jenis['id_jenis_bayar']);
+                                            $paid_by_month = bulanan_map_pembayaran_per_bulan($koneksi, $nisn, $d_jenis['id_jenis_bayar'], $tahun_ajaran_laporan);
                                             
                                             foreach ($bulan as $bln) {
                                                 $d_bayar = $paid_by_month[$bln] ?? null;
@@ -109,9 +111,7 @@ if (!$d_siswa) {
                                         </tbody>
                                     <?php } else { 
                                         // Tipe Cicilan / Bebas
-                                        $q_total_bayar = mysqli_query($koneksi, "SELECT SUM(jumlah_bayar) as total FROM pembayaran WHERE nisn = '$nisn' AND id_jenis_bayar = '" . $d_jenis['id_jenis_bayar'] . "'");
-                                        $d_total = mysqli_fetch_assoc($q_total_bayar);
-                                        $total_bayar = $d_total['total'] ?? 0;
+                                        $total_bayar = ambil_total_bayar_tersimpan($koneksi, $nisn, $d_jenis['id_jenis_bayar'], $tahun_ajaran_laporan);
                                         $sisa = $d_jenis['nominal'] - $total_bayar;
                                         $status_lunas = ($sisa <= 0) ? '<span class="inline-flex px-2 py-0.5 text-xs font-medium rounded-full bg-emerald-100 text-emerald-800">Lunas</span>' : '<span class="inline-flex px-2 py-0.5 text-xs font-medium rounded-full bg-amber-100 text-amber-800">Belum Lunas</span>';
                                     ?>
@@ -125,7 +125,8 @@ if (!$d_siswa) {
                                                     <strong>Riwayat Pembayaran:</strong>
                                                     <ul class="mt-2 ml-4 list-disc">
                                                         <?php
-                                                        $q_riwayat = mysqli_query($koneksi, "SELECT * FROM pembayaran WHERE nisn = '$nisn' AND id_jenis_bayar = '" . $d_jenis['id_jenis_bayar'] . "' ORDER BY tgl_bayar ASC");
+                                                        $tahun_ajaran_laporan_esc = mysqli_real_escape_string($koneksi, $tahun_ajaran_laporan);
+                                                        $q_riwayat = mysqli_query($koneksi, "SELECT * FROM pembayaran WHERE nisn = '$nisn' AND id_jenis_bayar = '" . $d_jenis['id_jenis_bayar'] . "' AND tahun_ajaran = '$tahun_ajaran_laporan_esc' ORDER BY tgl_bayar ASC");
                                                         if (mysqli_num_rows($q_riwayat) > 0) {
                                                             while ($r = mysqli_fetch_assoc($q_riwayat)) {
                                                                 echo "<li>" . date('d/m/Y', strtotime($r['tgl_bayar'])) . " - Rp. " . number_format($r['jumlah_bayar'], 0, ',', '.') . "</li>";

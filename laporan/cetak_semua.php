@@ -14,6 +14,7 @@ $q_info = mysqli_query($koneksi, "SELECT * FROM pengaturan LIMIT 1");
 $d_info = mysqli_fetch_assoc($q_info);
 $nama_bendahara = $d_info['nama_bendahara'] ?? 'Bendahara';
 $nama_sekolah = $d_info['nama_sekolah'] ?? '';
+$tahun_ajaran_laporan = trim((string)($d_info['tahun_ajaran'] ?? get_tahun_ajaran_aktif($koneksi)));
 
 // Ambil semua siswa di kelas ini
 $q_siswa_all = mysqli_query($koneksi, "SELECT * FROM siswa WHERE id_kelas = '$id_kelas' ORDER BY nama ASC");
@@ -145,7 +146,7 @@ $tgl_cetak = date('d') . ' ' . $bulan_indo[date('m')] . ' ' . date('Y');
                     <td>Nama</td>
                     <td>: <?= $d_siswa['nama'] ?></td>
                     <td style="white-space: nowrap;">Th. Ajaran</td>
-                    <td>: <?= $d_info['tahun_ajaran'] ?></td>
+                    <td>: <?= htmlspecialchars($tahun_ajaran_laporan, ENT_QUOTES, 'UTF-8') ?></td>
                 </tr>
             </table>
         </div>
@@ -177,7 +178,7 @@ $tgl_cetak = date('d') . ' ' . $bulan_indo[date('m')] . ' ' . date('Y');
                                 <?php
                                 $bulan = ['Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni'];
 
-                                $paid_by_month = bulanan_map_pembayaran_per_bulan($koneksi, $nisn, $d_jenis['id_jenis_bayar']);
+                                $paid_by_month = bulanan_map_pembayaran_per_bulan($koneksi, $nisn, $d_jenis['id_jenis_bayar'], $tahun_ajaran_laporan);
                                 
                                 foreach ($bulan as $bln) {
                                     $d_bayar = $paid_by_month[$bln] ?? null;
@@ -194,9 +195,7 @@ $tgl_cetak = date('d') . ' ' . $bulan_indo[date('m')] . ' ' . date('Y');
                             </tbody>
                         </table>
                     <?php } else { 
-                        $q_total_bayar = mysqli_query($koneksi, "SELECT SUM(jumlah_bayar) as total FROM pembayaran WHERE nisn = '$nisn' AND id_jenis_bayar = '" . $d_jenis['id_jenis_bayar'] . "'");
-                        $d_total = mysqli_fetch_assoc($q_total_bayar);
-                        $total_bayar = $d_total['total'] ?? 0;
+                        $total_bayar = ambil_total_bayar_tersimpan($koneksi, $nisn, $d_jenis['id_jenis_bayar'], $tahun_ajaran_laporan);
                         $sisa = $d_jenis['nominal'] - $total_bayar;
                         $status_lunas = ($sisa <= 0) ? 'Lunas' : 'Belum Lunas';
                     ?>

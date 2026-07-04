@@ -21,13 +21,19 @@ function jenis_bayar_berlaku_untuk_kelas($tagihan_kelas_raw, $id_kelas_siswa, $n
  *
  * @return array<string, array<string, mixed>>
  */
-function bulanan_map_pembayaran_per_bulan($koneksi, $nisn, $id_jenis_bayar) {
+function bulanan_map_pembayaran_per_bulan($koneksi, $nisn, $id_jenis_bayar, $tahun_ajaran = null) {
     $nisn_esc = mysqli_real_escape_string($koneksi, (string) $nisn);
     $id_esc = mysqli_real_escape_string($koneksi, (string) $id_jenis_bayar);
+    $tahun_filter = '';
+    if ($tahun_ajaran !== null && trim((string) $tahun_ajaran) !== '') {
+        ensure_pembayaran_tahun_ajaran_column($koneksi);
+        $tahun_esc = mysqli_real_escape_string($koneksi, (string) $tahun_ajaran);
+        $tahun_filter = " AND tahun_ajaran = '$tahun_esc'";
+    }
     $q = mysqli_query(
         $koneksi,
         "SELECT bulan_bayar, tgl_bayar, jumlah_bayar FROM pembayaran
-         WHERE nisn = '$nisn_esc' AND id_jenis_bayar = '$id_esc'
+         WHERE nisn = '$nisn_esc' AND id_jenis_bayar = '$id_esc'$tahun_filter
          ORDER BY tgl_bayar ASC, id_pembayaran ASC"
     );
     $map = [];
