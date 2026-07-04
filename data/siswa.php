@@ -39,11 +39,12 @@ function pastikan_kelas_alumni($koneksi) {
 }
 
 function kelas_id_valid($koneksi, $id_kelas) {
-    $id_kelas = (int) $id_kelas;
-    if ($id_kelas <= 0) {
+    $id_kelas_raw = trim((string) $id_kelas);
+    if ($id_kelas_raw === '' || !ctype_digit($id_kelas_raw)) {
         return false;
     }
 
+    $id_kelas = (int) $id_kelas_raw;
     $q_kelas = mysqli_query($koneksi, "SELECT id_kelas FROM kelas WHERE id_kelas = '$id_kelas' LIMIT 1");
     return $q_kelas && mysqli_num_rows($q_kelas) > 0;
 }
@@ -241,7 +242,8 @@ if (isset($_POST['multi_edit_save'])) {
         $old_nisn = trim((string)$old_nisn);
         $new_nisn = trim((string)($nisn[$key] ?? ''));
         $new_nama = trim((string)($nama[$key] ?? ''));
-        $new_kelas = (int)($id_kelas[$key] ?? 0);
+        $new_kelas_raw = trim((string)($id_kelas[$key] ?? ''));
+        $new_kelas = $new_kelas_raw !== '' && ctype_digit($new_kelas_raw) ? (int)$new_kelas_raw : -1;
 
         if ($old_nisn === '' || $new_nisn === '' || $new_nama === '' || !kelas_id_valid($koneksi, $new_kelas)) {
             $error_count++;
