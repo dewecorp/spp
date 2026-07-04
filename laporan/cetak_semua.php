@@ -9,6 +9,10 @@ if (!$d_kelas) {
     die("Data kelas tidak ditemukan!");
 }
 
+if (kelas_adalah_alumni($d_kelas['nama_kelas'] ?? '')) {
+    die("Kelas Alumni tidak memiliki laporan tahun ajaran berjalan.");
+}
+
 // Ambil info sekolah
 $q_info = mysqli_query($koneksi, "SELECT * FROM pengaturan LIMIT 1");
 $d_info = mysqli_fetch_assoc($q_info);

@@ -15,6 +15,10 @@ function jenis_bayar_berlaku_untuk_kelas($tagihan_kelas_raw, $id_kelas_siswa, $n
     return in_array($nama, $allowed) || in_array($id, $allowed);
 }
 
+function kelas_adalah_alumni($nama_kelas) {
+    return stripos(trim((string) $nama_kelas), 'alumni') !== false;
+}
+
 /**
  * Map bulan akademik (nama: Juli..Juni) => pembayaran pertama yang melunasi bulan itu.
  * Satu baris pembayaran bisa berisi banyak bulan di kolom bulan_bayar (dipisah koma), seperti di transaksi.

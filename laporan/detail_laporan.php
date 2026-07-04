@@ -12,6 +12,11 @@ if (!$d_siswa) {
     exit;
 }
 
+if (kelas_adalah_alumni($d_siswa['nama_kelas'] ?? '')) {
+    echo "<script>alert('Kelas Alumni tidak memiliki laporan tahun ajaran berjalan.'); window.location='laporan.php';</script>";
+    exit;
+}
+
 $tahun_ajaran_laporan = get_tahun_ajaran_aktif($koneksi);
 ?>
 

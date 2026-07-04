@@ -42,9 +42,11 @@ if (isset($_GET['id_kelas'])) {
     $id_kelas = $_GET['id_kelas'];
     ensure_pembayaran_tahun_ajaran_column($koneksi);
     ensure_pembayaran_arsip_table($koneksi);
+    $d_kelas = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT nama_kelas FROM kelas WHERE id_kelas = '$id_kelas'"));
+    $is_kelas_alumni = kelas_adalah_alumni($d_kelas['nama_kelas'] ?? '');
     $tahun_ajaran_aktif = get_tahun_ajaran_aktif($koneksi);
     $tahun_ajaran_sebelumnya = tahun_ajaran_sebelumnya($tahun_ajaran_aktif);
-    $tahun_ajaran_opsi = [$tahun_ajaran_aktif];
+    $tahun_ajaran_opsi = $is_kelas_alumni ? [] : [$tahun_ajaran_aktif];
     if ($tahun_ajaran_sebelumnya !== '') {
         $tahun_ajaran_opsi[] = $tahun_ajaran_sebelumnya;
     }
@@ -56,7 +58,7 @@ if (isset($_GET['id_kelas'])) {
         $q_tahun_pembayaran = mysqli_query($koneksi, $tahun_sql);
         while ($row_tahun = $q_tahun_pembayaran ? mysqli_fetch_assoc($q_tahun_pembayaran) : null) {
             $tahun_row = trim((string)($row_tahun['tahun_ajaran'] ?? ''));
-            if ($tahun_row !== '') {
+            if ($tahun_row !== '' && (!$is_kelas_alumni || $tahun_row !== $tahun_ajaran_aktif)) {
                 $tahun_ajaran_opsi[] = $tahun_row;
             }
         }
@@ -64,7 +66,6 @@ if (isset($_GET['id_kelas'])) {
     $tahun_ajaran_opsi = array_values(array_unique($tahun_ajaran_opsi));
 
     $q_siswa = mysqli_query($koneksi, "SELECT * FROM siswa WHERE id_kelas = '$id_kelas' ORDER BY nama ASC");
-    $d_kelas = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT nama_kelas FROM kelas WHERE id_kelas = '$id_kelas'"));
 ?>
 
 <div class="app-grid">
@@ -88,9 +89,13 @@ if (isset($_GET['id_kelas'])) {
                             while ($s = mysqli_fetch_assoc($q_siswa)) :
                                 $tagihan_per_tahun = [];
                                 foreach ($tahun_ajaran_opsi as $tahun_ajaran_item) {
-                                    $tagihan_tunggakan = cek_tagihan_tunggakan($koneksi, $s['nisn'], $tahun_ajaran_item);
                                     $is_tahun_aktif_item = $tahun_ajaran_item === $tahun_ajaran_aktif;
-                                    if ($is_tahun_aktif_item || $tagihan_tunggakan) {
+                                    if ($is_kelas_alumni && $is_tahun_aktif_item) {
+                                        continue;
+                                    }
+
+                                    $tagihan_tunggakan = cek_tagihan_tunggakan($koneksi, $s['nisn'], $tahun_ajaran_item);
+                                    if (($is_tahun_aktif_item && !$is_kelas_alumni) || $tagihan_tunggakan) {
                                         $tagihan_per_tahun[$tahun_ajaran_item] = [
                                             'is_tahun_aktif' => $is_tahun_aktif_item,
                                             'tagihan' => $tagihan_tunggakan,
