@@ -27,6 +27,29 @@ foreach ($columns_to_add as $col => $type) {
     }
 }
 
+function pastikan_kelas_alumni($koneksi) {
+    $q_alumni = mysqli_query($koneksi, "SELECT id_kelas FROM kelas WHERE LOWER(nama_kelas) = 'alumni' LIMIT 1");
+    if ($q_alumni && mysqli_num_rows($q_alumni) > 0) {
+        $d_alumni = mysqli_fetch_assoc($q_alumni);
+        return (int) $d_alumni['id_kelas'];
+    }
+
+    mysqli_query($koneksi, "INSERT INTO kelas (nama_kelas) VALUES ('Alumni')");
+    return (int) mysqli_insert_id($koneksi);
+}
+
+function kelas_id_valid($koneksi, $id_kelas) {
+    $id_kelas = (int) $id_kelas;
+    if ($id_kelas <= 0) {
+        return false;
+    }
+
+    $q_kelas = mysqli_query($koneksi, "SELECT id_kelas FROM kelas WHERE id_kelas = '$id_kelas' LIMIT 1");
+    return $q_kelas && mysqli_num_rows($q_kelas) > 0;
+}
+
+pastikan_kelas_alumni($koneksi);
+
 // Proses Sinkronisasi Simad
 // Logic moved to ajax_sinkron_simad.php
 
@@ -209,8 +232,10 @@ if (isset($_POST['multi_edit_save'])) {
 
     $success_count = 0;
     $error_count = 0;
+    $error_messages = [];
 
-    $stmt_multi_edit = mysqli_prepare($koneksi, "UPDATE siswa SET nisn = ?, nama = ?, id_kelas = ? WHERE nisn = ?");
+    $stmt_multi_edit = mysqli_prepare($koneksi, "UPDATE siswa SET nama = ?, id_kelas = ? WHERE nisn = ?");
+    $stmt_multi_edit_nisn = mysqli_prepare($koneksi, "UPDATE siswa SET nisn = ?, nama = ?, id_kelas = ? WHERE nisn = ?");
 
     foreach ($nisn_lama as $key => $old_nisn) {
         $old_nisn = trim((string)$old_nisn);
@@ -218,21 +243,66 @@ if (isset($_POST['multi_edit_save'])) {
         $new_nama = trim((string)($nama[$key] ?? ''));
         $new_kelas = (int)($id_kelas[$key] ?? 0);
 
-        if (!$stmt_multi_edit || $old_nisn === '' || $new_nisn === '' || $new_nama === '' || $new_kelas <= 0) {
+        if ($old_nisn === '' || $new_nisn === '' || $new_nama === '' || !kelas_id_valid($koneksi, $new_kelas)) {
             $error_count++;
+            if (count($error_messages) < 3) {
+                $error_messages[] = "Data tidak valid: $old_nisn";
+            }
             continue;
         }
 
-        mysqli_stmt_bind_param($stmt_multi_edit, 'ssis', $new_nisn, $new_nama, $new_kelas, $old_nisn);
-        if (mysqli_stmt_execute($stmt_multi_edit)) {
+        if ($new_nisn === $old_nisn) {
+            if (!$stmt_multi_edit) {
+                $error_count++;
+                if (count($error_messages) < 3) {
+                    $error_messages[] = mysqli_error($koneksi) ?: 'Query update kelas gagal disiapkan';
+                }
+                continue;
+            }
+
+            mysqli_stmt_bind_param($stmt_multi_edit, 'sis', $new_nama, $new_kelas, $old_nisn);
+            $execute_ok = mysqli_stmt_execute($stmt_multi_edit);
+            $execute_error = mysqli_stmt_error($stmt_multi_edit);
+        } else {
+            $new_nisn_esc = mysqli_real_escape_string($koneksi, $new_nisn);
+            $old_nisn_esc = mysqli_real_escape_string($koneksi, $old_nisn);
+            $q_duplikat = mysqli_query($koneksi, "SELECT nisn FROM siswa WHERE nisn = '$new_nisn_esc' AND nisn <> '$old_nisn_esc' LIMIT 1");
+            if ($q_duplikat && mysqli_num_rows($q_duplikat) > 0) {
+                $error_count++;
+                if (count($error_messages) < 3) {
+                    $error_messages[] = "NISN $new_nisn sudah digunakan";
+                }
+                continue;
+            }
+
+            if (!$stmt_multi_edit_nisn) {
+                $error_count++;
+                if (count($error_messages) < 3) {
+                    $error_messages[] = mysqli_error($koneksi) ?: 'Query update NISN gagal disiapkan';
+                }
+                continue;
+            }
+
+            mysqli_stmt_bind_param($stmt_multi_edit_nisn, 'ssis', $new_nisn, $new_nama, $new_kelas, $old_nisn);
+            $execute_ok = mysqli_stmt_execute($stmt_multi_edit_nisn);
+            $execute_error = mysqli_stmt_error($stmt_multi_edit_nisn);
+        }
+
+        if ($execute_ok) {
             $success_count++;
         } else {
             $error_count++;
+            if (count($error_messages) < 3) {
+                $error_messages[] = $execute_error ?: mysqli_error($koneksi) ?: "Gagal update NISN $old_nisn";
+            }
         }
     }
 
     if ($stmt_multi_edit) {
         mysqli_stmt_close($stmt_multi_edit);
+    }
+    if ($stmt_multi_edit_nisn) {
+        mysqli_stmt_close($stmt_multi_edit_nisn);
     }
 
     if ($success_count > 0) {
@@ -250,7 +320,8 @@ if (isset($_POST['multi_edit_save'])) {
             });
         </script>";
     } else {
-        echo "<script>Swal.fire('Gagal', 'Data gagal diupdate', 'error');</script>";
+        $error_detail = !empty($error_messages) ? htmlspecialchars(implode(' | ', $error_messages), ENT_QUOTES) : 'Data gagal diupdate';
+        echo "<script>Swal.fire('Gagal', '$error_detail', 'error');</script>";
     }
 }
 
@@ -313,10 +384,11 @@ while($k = mysqli_fetch_assoc($kelas)) {
 }
 
 // Logic Filter & Query Data Siswa
-$filter_kelas = isset($_GET['kelas']) ? $_GET['kelas'] : '';
+$filter_kelas = isset($_GET['kelas']) ? trim((string)$_GET['kelas']) : '';
 $where_sql = "";
-if (!empty($filter_kelas)) {
-    $where_sql = " WHERE siswa.id_kelas = '$filter_kelas' ";
+if ($filter_kelas !== '') {
+    $filter_kelas_esc = mysqli_real_escape_string($koneksi, $filter_kelas);
+    $where_sql = " WHERE siswa.id_kelas = '$filter_kelas_esc' ";
 }
 
 $query_siswa = mysqli_query($koneksi, "SELECT siswa.*, kelas.nama_kelas FROM siswa JOIN kelas ON siswa.id_kelas = kelas.id_kelas $where_sql ORDER BY kelas.nama_kelas ASC, siswa.nama ASC");
@@ -348,7 +420,7 @@ $jumlah_siswa = mysqli_num_rows($query_siswa);
                         <select name="kelas" class="app-control filter-kelas" onchange="this.form.submit()" style="width: 250px;">
                             <option value="">-- Semua Kelas --</option>
                             <?php foreach($data_kelas as $kls) : ?>
-                                <option value="<?= $kls['id_kelas'] ?>" <?= (isset($_GET['kelas']) && $_GET['kelas'] == $kls['id_kelas']) ? 'selected' : '' ?>>
+                                <option value="<?= $kls['id_kelas'] ?>" <?= ($filter_kelas !== '' && $filter_kelas == $kls['id_kelas']) ? 'selected' : '' ?>>
                                     <?= $kls['nama_kelas'] ?>
                                 </option>
                             <?php endforeach; ?>
@@ -553,7 +625,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Data Kelas Options untuk JS
-    const optionsKelas = `<?php foreach($data_kelas as $kls) { echo '<option value="'.$kls['id_kelas'].'">'.$kls['nama_kelas'].'</option>'; } ?>`;
+    const optionsKelas = `<?php foreach($data_kelas as $kls) { echo '<option value="'.htmlspecialchars($kls['id_kelas'], ENT_QUOTES).'">'.htmlspecialchars($kls['nama_kelas'], ENT_QUOTES).'</option>'; } ?>`;
 
     // Handle Multi Edit Button
     const btnMultiEdit = document.getElementById('btnMultiEdit');
