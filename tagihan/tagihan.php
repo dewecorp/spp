@@ -46,6 +46,11 @@ if (isset($_GET['id_kelas'])) {
     $is_kelas_alumni = kelas_adalah_alumni($d_kelas['nama_kelas'] ?? '');
     $tahun_ajaran_aktif = get_tahun_ajaran_aktif($koneksi);
     $tahun_ajaran_sebelumnya = tahun_ajaran_sebelumnya($tahun_ajaran_aktif);
+    $hapus_alumni_lunas_tagihan = null;
+    if ($is_kelas_alumni && isset($_POST['hapus_alumni_lunas'])) {
+        $hapus_alumni_lunas_tagihan = hapus_semua_siswa_alumni_lunas($koneksi, $tahun_ajaran_aktif);
+    }
+    $alumni_lunas_tagihan = $is_kelas_alumni ? daftar_siswa_alumni_lunas($koneksi, $tahun_ajaran_aktif) : [];
     $tahun_ajaran_opsi = $is_kelas_alumni ? [] : [$tahun_ajaran_aktif];
     if ($tahun_ajaran_sebelumnya !== '') {
         $tahun_ajaran_opsi[] = $tahun_ajaran_sebelumnya;
@@ -149,6 +154,11 @@ if (isset($_GET['id_kelas'])) {
 }
 ?>
 
+<?php if (isset($alumni_lunas_tagihan) && !empty($alumni_lunas_tagihan)) : ?>
+<form method="post" id="formHapusAlumniLunas" style="display: none;">
+    <input type="hidden" name="hapus_alumni_lunas" value="1">
+</form>
+<?php endif; ?>
 <?php include '../template/footer.php'; ?>
 <!-- Select2 JS -->
 <script src="<?= base_url('assets/vendors/select2/select2.min.js') ?>"></script>
@@ -173,5 +183,28 @@ if (isset($_GET['id_kelas'])) {
                 $(this).closest('form').submit();
             }
         });
+
+        <?php if (isset($hapus_alumni_lunas_tagihan) && $hapus_alumni_lunas_tagihan !== null): ?>
+        Swal.fire({
+            title: 'Berhasil',
+            text: '<?= (int) $hapus_alumni_lunas_tagihan ?> data alumni lunas berhasil dihapus.',
+            icon: 'success',
+            timer: 1800,
+            showConfirmButton: false
+        });
+        <?php elseif (isset($alumni_lunas_tagihan) && !empty($alumni_lunas_tagihan)): ?>
+        Swal.fire({
+            title: 'Hapus data alumni lunas?',
+            text: 'Ada <?= count($alumni_lunas_tagihan) ?> data alumni yang semua tagihannya sudah lunas. Data siswa alumninya bisa dihapus, riwayat pembayaran tetap tersimpan.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Hapus sekarang',
+            cancelButtonText: 'Nanti saja'
+        }).then(function(result) {
+            if (result.isConfirmed) {
+                document.getElementById('formHapusAlumniLunas').submit();
+            }
+        });
+        <?php endif; ?>
     });
 </script>

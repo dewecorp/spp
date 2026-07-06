@@ -34,8 +34,25 @@ function dashboard_kelas_sort_key($nama_kelas) {
     return 50;
 }
 
-// 1. Hitung Jumlah Siswa
-$q_siswa = mysqli_query($koneksi, "SELECT COUNT(*) as total FROM siswa");
+$tahun_ini = date('Y');
+$tahun_ajaran_aktif_dashboard = get_tahun_ajaran_aktif($koneksi);
+$tahun_ajaran_sebelumnya_dashboard = tahun_ajaran_sebelumnya($tahun_ajaran_aktif_dashboard);
+$tahun_ajaran_aktif_dashboard_esc = mysqli_real_escape_string($koneksi, $tahun_ajaran_aktif_dashboard);
+
+$hapus_alumni_lunas_dashboard = null;
+if (isset($_POST['hapus_alumni_lunas'])) {
+    $hapus_alumni_lunas_dashboard = hapus_semua_siswa_alumni_lunas($koneksi, $tahun_ajaran_aktif_dashboard);
+}
+
+$alumni_lunas_dashboard = daftar_siswa_alumni_lunas($koneksi, $tahun_ajaran_aktif_dashboard);
+
+// 1. Hitung Jumlah Siswa aktif. Kelas Alumni hanya alat bantu tagihan, bukan siswa aktif.
+$q_siswa = mysqli_query($koneksi, "
+    SELECT COUNT(*) as total
+    FROM siswa s
+    JOIN kelas k ON s.id_kelas = k.id_kelas
+    WHERE LOWER(k.nama_kelas) NOT LIKE '%alumni%'
+");
 $d_siswa = mysqli_fetch_assoc($q_siswa);
 $jml_siswa = $d_siswa['total'];
 
@@ -43,11 +60,6 @@ $jml_siswa = $d_siswa['total'];
 $q_jenis = mysqli_query($koneksi, "SELECT COUNT(*) as total FROM jenis_bayar WHERE status = 'Aktif'");
 $d_jenis = mysqli_fetch_assoc($q_jenis);
 $jml_jenis = $d_jenis['total'];
-
-$tahun_ini = date('Y');
-$tahun_ajaran_aktif_dashboard = get_tahun_ajaran_aktif($koneksi);
-$tahun_ajaran_sebelumnya_dashboard = tahun_ajaran_sebelumnya($tahun_ajaran_aktif_dashboard);
-$tahun_ajaran_aktif_dashboard_esc = mysqli_real_escape_string($koneksi, $tahun_ajaran_aktif_dashboard);
 
 // 3. Hitung Total Pembayaran tahun ajaran aktif
 $q_bayar = mysqli_query($koneksi, "SELECT SUM(jumlah_bayar) as total FROM pembayaran WHERE tahun_ajaran = '$tahun_ajaran_aktif_dashboard_esc'");
@@ -452,10 +464,39 @@ $q_aktivitas = mysqli_query($koneksi, "
             </div>
         </div>
 
+<?php if (!empty($alumni_lunas_dashboard)) : ?>
+<form method="post" id="formHapusAlumniLunas" style="display: none;">
+    <input type="hidden" name="hapus_alumni_lunas" value="1">
+</form>
+<?php endif; ?>
+
 <?php include 'template/footer.php'; ?>
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
+        <?php if ($hapus_alumni_lunas_dashboard !== null): ?>
+        Swal.fire({
+            title: 'Berhasil',
+            text: '<?= (int) $hapus_alumni_lunas_dashboard ?> data alumni lunas berhasil dihapus.',
+            icon: 'success',
+            timer: 1800,
+            showConfirmButton: false
+        });
+        <?php elseif (!empty($alumni_lunas_dashboard)): ?>
+        Swal.fire({
+            title: 'Hapus data alumni lunas?',
+            text: 'Ada <?= count($alumni_lunas_dashboard) ?> data alumni yang semua tagihannya sudah lunas. Data siswa alumninya bisa dihapus, riwayat pembayaran tetap tersimpan.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Hapus sekarang',
+            cancelButtonText: 'Nanti saja'
+        }).then(function(result) {
+            if (result.isConfirmed) {
+                document.getElementById('formHapusAlumniLunas').submit();
+            }
+        });
+        <?php endif; ?>
+
         var ctx = document.getElementById('pembayaranChart').getContext('2d');
         var myChart = new Chart(ctx, {
             type: 'bar',

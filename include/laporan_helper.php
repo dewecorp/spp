@@ -19,6 +19,92 @@ function kelas_adalah_alumni($nama_kelas) {
     return stripos(trim((string) $nama_kelas), 'alumni') !== false;
 }
 
+function hapus_siswa_alumni_jika_lunas($koneksi, $nisn, $tahun_ajaran_aktif = null) {
+    $nisn = trim((string) $nisn);
+    if ($nisn === '') {
+        return false;
+    }
+
+    $nisn_esc = mysqli_real_escape_string($koneksi, $nisn);
+    $q_siswa = mysqli_query(
+        $koneksi,
+        "SELECT s.nisn, s.nama, k.nama_kelas
+         FROM siswa s
+         JOIN kelas k ON s.id_kelas = k.id_kelas
+         WHERE s.nisn = '$nisn_esc'
+         LIMIT 1"
+    );
+    $siswa = $q_siswa ? mysqli_fetch_assoc($q_siswa) : null;
+    if (!$siswa || !kelas_adalah_alumni($siswa['nama_kelas'] ?? '')) {
+        return false;
+    }
+
+    $tahun_ajaran_aktif = trim((string) ($tahun_ajaran_aktif ?? get_tahun_ajaran_aktif($koneksi)));
+    if (cek_tunggakan_tahun_ajaran_lama($koneksi, $nisn, $tahun_ajaran_aktif)) {
+        return false;
+    }
+
+    $deleted = mysqli_query($koneksi, "DELETE FROM siswa WHERE nisn = '$nisn_esc' LIMIT 1");
+    if ($deleted && function_exists('logActivity')) {
+        logActivity($koneksi, 'Delete', 'Menghapus data alumni lunas NISN: ' . $nisn);
+    }
+
+    return (bool) $deleted;
+}
+
+function daftar_siswa_alumni_lunas($koneksi, $tahun_ajaran_aktif = null, $limit = 200) {
+    $tahun_ajaran_aktif = trim((string) ($tahun_ajaran_aktif ?? get_tahun_ajaran_aktif($koneksi)));
+    $limit = max(1, (int) $limit);
+    $q_alumni = mysqli_query(
+        $koneksi,
+        "SELECT s.nisn, s.nama
+         FROM siswa s
+         JOIN kelas k ON s.id_kelas = k.id_kelas
+         WHERE LOWER(k.nama_kelas) LIKE '%alumni%'
+         ORDER BY s.nama ASC
+         LIMIT $limit"
+    );
+    if (!$q_alumni) {
+        return [];
+    }
+
+    $alumni_lunas = [];
+    while ($row = mysqli_fetch_assoc($q_alumni)) {
+        $nisn = trim((string) ($row['nisn'] ?? ''));
+        if ($nisn !== '' && !cek_tunggakan_tahun_ajaran_lama($koneksi, $nisn, $tahun_ajaran_aktif)) {
+            $alumni_lunas[] = $row;
+        }
+    }
+
+    return $alumni_lunas;
+}
+
+function hapus_semua_siswa_alumni_lunas($koneksi, $tahun_ajaran_aktif = null, $limit = 200) {
+    $tahun_ajaran_aktif = trim((string) ($tahun_ajaran_aktif ?? get_tahun_ajaran_aktif($koneksi)));
+    $limit = max(1, (int) $limit);
+    $q_alumni = mysqli_query(
+        $koneksi,
+        "SELECT s.nisn
+         FROM siswa s
+         JOIN kelas k ON s.id_kelas = k.id_kelas
+         WHERE LOWER(k.nama_kelas) LIKE '%alumni%'
+         ORDER BY s.nama ASC
+         LIMIT $limit"
+    );
+    if (!$q_alumni) {
+        return 0;
+    }
+
+    $deleted = 0;
+    while ($row = mysqli_fetch_assoc($q_alumni)) {
+        if (hapus_siswa_alumni_jika_lunas($koneksi, $row['nisn'] ?? '', $tahun_ajaran_aktif)) {
+            $deleted++;
+        }
+    }
+
+    return $deleted;
+}
+
 /**
  * Map bulan akademik (nama: Juli..Juni) => pembayaran pertama yang melunasi bulan itu.
  * Satu baris pembayaran bisa berisi banyak bulan di kolom bulan_bayar (dipisah koma), seperti di transaksi.
