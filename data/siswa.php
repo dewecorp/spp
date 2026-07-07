@@ -378,19 +378,19 @@ if (isset($_GET['hapus'])) {
     }
 }
 
-// Ambil data kelas untuk dropdown
-$kelas = mysqli_query($koneksi, "SELECT * FROM kelas ORDER BY nama_kelas ASC");
+// Ambil data kelas untuk dropdown (exclude alumni)
+$kelas = mysqli_query($koneksi, "SELECT * FROM kelas WHERE LOWER(nama_kelas) NOT LIKE '%alumni%' ORDER BY nama_kelas ASC");
 $data_kelas = [];
 while($k = mysqli_fetch_assoc($kelas)) {
     $data_kelas[] = $k;
 }
 
-// Logic Filter & Query Data Siswa
+// Logic Filter & Query Data Siswa (exclude alumni - hanya siswa aktif)
 $filter_kelas = isset($_GET['kelas']) ? trim((string)$_GET['kelas']) : '';
-$where_sql = "";
+$where_sql = " WHERE LOWER(kelas.nama_kelas) NOT LIKE '%alumni%' ";
 if ($filter_kelas !== '') {
     $filter_kelas_esc = mysqli_real_escape_string($koneksi, $filter_kelas);
-    $where_sql = " WHERE siswa.id_kelas = '$filter_kelas_esc' ";
+    $where_sql .= " AND siswa.id_kelas = '$filter_kelas_esc' ";
 }
 
 $query_siswa = mysqli_query($koneksi, "SELECT siswa.*, kelas.nama_kelas FROM siswa JOIN kelas ON siswa.id_kelas = kelas.id_kelas $where_sql ORDER BY kelas.nama_kelas ASC, siswa.nama ASC");
