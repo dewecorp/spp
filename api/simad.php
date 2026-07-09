@@ -32,6 +32,7 @@ if ($api_key !== $valid_api_key) {
 }
 
 $action = $_GET['action'] ?? 'get_student_data';
+$tahun_ajaran = mysqli_real_escape_string($koneksi, $_GET['tahun_ajaran'] ?? '');
 
 // 1. Health Check & Environment Info
 if ($action == 'check') {
@@ -55,7 +56,11 @@ if ($action == 'get_all_summary') {
                                    ORDER BY k.nama_kelas ASC, s.nama ASC");
     
     // Cache jenis_bayar to avoid multiple queries
-    $q_jenis = mysqli_query($koneksi, "SELECT * FROM jenis_bayar WHERE status = 'Aktif'");
+    $jenis_query = "SELECT * FROM jenis_bayar WHERE status = 'Aktif'";
+    if (!empty($tahun_ajaran)) {
+        $jenis_query .= " AND tahun_ajaran = '$tahun_ajaran'";
+    }
+    $q_jenis = mysqli_query($koneksi, $jenis_query);
     $jenis_bayar_all = [];
     while($jb = mysqli_fetch_assoc($q_jenis)) {
         $jenis_bayar_all[] = $jb;
@@ -76,7 +81,11 @@ if ($action == 'get_all_summary') {
         
         // Get all payments for this student at once to optimize
         $paid_data = [];
-        $q_p = mysqli_query($koneksi, "SELECT id_jenis_bayar, jumlah_bayar, bulan_bayar FROM pembayaran WHERE nisn='$nisn'");
+        $pembayaran_query = "SELECT id_jenis_bayar, jumlah_bayar, bulan_bayar FROM pembayaran WHERE nisn='$nisn'";
+        if (!empty($tahun_ajaran)) {
+            $pembayaran_query .= " AND tahun_bayar = '$tahun_ajaran'";
+        }
+        $q_p = mysqli_query($koneksi, $pembayaran_query);
         while($p = mysqli_fetch_assoc($q_p)) {
             $jb_id = $p['id_jenis_bayar'];
             if(!isset($paid_data[$jb_id])) {
@@ -131,12 +140,28 @@ if ($action == 'get_all_summary') {
         'status' => 'success',
         'data' => $data,
         'count' => count($data),
+        'tahun_ajaran' => $tahun_ajaran,
         'env' => 'production'
     ]);
     exit;
 }
 
-// 3. Single Student Actions
+// 3. Get available tahun ajaran list
+if ($action == 'get_tahun_ajaran') {
+    $q_ta = mysqli_query($koneksi, "SELECT DISTINCT tahun_ajaran FROM jenis_bayar ORDER BY tahun_ajaran DESC");
+    $tahun_ajaran_list = [];
+    while($ta = mysqli_fetch_assoc($q_ta)) {
+        $tahun_ajaran_list[] = $ta['tahun_ajaran'];
+    }
+    echo json_encode([
+        'status' => 'success',
+        'data' => $tahun_ajaran_list,
+        'env' => 'production'
+    ]);
+    exit;
+}
+
+// 4. Single Student Actions
 $nisn = mysqli_real_escape_string($koneksi, $_GET['nisn'] ?? '');
 
 if (empty($nisn)) {
@@ -161,7 +186,12 @@ if ($action == 'get_student_data') {
     // Get Tagihan
     $id_kelas_siswa = $d_siswa['id_kelas'];
     $nama_kelas_siswa = $d_siswa['nama_kelas'];
-    $q_jenis = mysqli_query($koneksi, "SELECT * FROM jenis_bayar WHERE status = 'Aktif' ORDER BY tipe_bayar ASC");
+    $jenis_query = "SELECT * FROM jenis_bayar WHERE status = 'Aktif'";
+    if (!empty($tahun_ajaran)) {
+        $jenis_query .= " AND tahun_ajaran = '$tahun_ajaran'";
+    }
+    $jenis_query .= " ORDER BY tipe_bayar ASC";
+    $q_jenis = mysqli_query($koneksi, $jenis_query);
     
     $current_month_name = date('F');
     $month_map = [
@@ -178,7 +208,11 @@ if ($action == 'get_student_data') {
             
             if ($jb['tipe_bayar'] == 'Bulanan') {
                 $paid_months = [];
-                $q_bayar = mysqli_query($koneksi, "SELECT bulan_bayar FROM pembayaran WHERE nisn='$nisn' AND id_jenis_bayar='" . $jb['id_jenis_bayar'] . "'");
+                $pembayaran_query = "SELECT bulan_bayar FROM pembayaran WHERE nisn='$nisn' AND id_jenis_bayar='" . $jb['id_jenis_bayar'] . "'";
+                if (!empty($tahun_ajaran)) {
+                    $pembayaran_query .= " AND tahun_bayar = '$tahun_ajaran'";
+                }
+                $q_bayar = mysqli_query($koneksi, $pembayaran_query);
                 while ($row = mysqli_fetch_assoc($q_bayar)) {
                     if (!empty($row['bulan_bayar'])) {
                         $ms = array_map('trim', explode(',', $row['bulan_bayar']));
@@ -196,7 +230,11 @@ if ($action == 'get_student_data') {
                     }
                 }
             } else {
-                $q_total = mysqli_query($koneksi, "SELECT SUM(jumlah_bayar) as total FROM pembayaran WHERE nisn='$nisn' AND id_jenis_bayar='" . $jb['id_jenis_bayar'] . "'");
+                $pembayaran_query = "SELECT SUM(jumlah_bayar) as total FROM pembayaran WHERE nisn='$nisn' AND id_jenis_bayar='" . $jb['id_jenis_bayar'] . "'";
+                if (!empty($tahun_ajaran)) {
+                    $pembayaran_query .= " AND tahun_bayar = '$tahun_ajaran'";
+                }
+                $q_total = mysqli_query($koneksi, $pembayaran_query);
                 $d_total = mysqli_fetch_assoc($q_total);
                 $total_bayar = $d_total['total'] ?? 0;
                 $total_sisa = max(0, (int)$jb['nominal'] - (int)$total_bayar);
@@ -207,6 +245,7 @@ if ($action == 'get_student_data') {
                 'id_jenis_bayar' => $jb['id_jenis_bayar'],
                 'nama_pembayaran' => $jb['nama_pembayaran'],
                 'tipe_bayar' => $jb['tipe_bayar'],
+                'tahun_ajaran' => $jb['tahun_ajaran'],
                 'total_nominal' => (int)$jb['nominal'],
                 'sisa_tagihan' => $total_sisa,
                 'item_belum_bayar' => $unpaid_details,
@@ -216,11 +255,15 @@ if ($action == 'get_student_data') {
     }
 
     // Get Payment History
-    $q_history = mysqli_query($koneksi, "SELECT p.*, jb.nama_pembayaran 
+    $pembayaran_query = "SELECT p.*, jb.nama_pembayaran 
                                        FROM pembayaran p 
                                        JOIN jenis_bayar jb ON p.id_jenis_bayar = jb.id_jenis_bayar 
-                                       WHERE p.nisn = '$nisn' 
-                                       ORDER BY p.tgl_bayar DESC, p.id_pembayaran DESC");
+                                       WHERE p.nisn = '$nisn'";
+    if (!empty($tahun_ajaran)) {
+        $pembayaran_query .= " AND p.tahun_bayar = '$tahun_ajaran'";
+    }
+    $pembayaran_query .= " ORDER BY p.tgl_bayar DESC, p.id_pembayaran DESC";
+    $q_history = mysqli_query($koneksi, $pembayaran_query);
     while($h = mysqli_fetch_assoc($q_history)) {
         $pembayaran[] = [
             'no_transaksi' => $h['no_transaksi'],
@@ -228,7 +271,8 @@ if ($action == 'get_student_data') {
             'jumlah_bayar' => (int)$h['jumlah_bayar'],
             'nama_pembayaran' => $h['nama_pembayaran'],
             'ket' => $h['ket'],
-            'waktu_input' => $h['created_at']
+            'waktu_input' => $h['created_at'],
+            'tahun_bayar' => $h['tahun_bayar']
         ];
     }
 
@@ -241,6 +285,7 @@ if ($action == 'get_student_data') {
         ],
         'billing' => $tagihan,
         'payments' => $pembayaran,
+        'tahun_ajaran' => $tahun_ajaran,
         'env' => 'production'
     ]);
 
