@@ -17,29 +17,18 @@ $id_kelas = $_GET['id_kelas'];
 $q_kelas = mysqli_query($koneksi, "SELECT nama_kelas FROM kelas WHERE id_kelas = '$id_kelas'");
 $d_kelas = mysqli_fetch_assoc($q_kelas);
 $nama_kelas = $d_kelas['nama_kelas'];
+$is_kelas_alumni = kelas_adalah_alumni($nama_kelas);
 
 // Get Data Siswa
 $q_siswa = mysqli_query($koneksi, "SELECT * FROM siswa WHERE id_kelas = '$id_kelas' ORDER BY nama ASC");
-
-// Get Jenis Bayar
-$jb_data = [];
-$q_jb = mysqli_query($koneksi, "SELECT * FROM jenis_bayar WHERE status = 'Aktif' ORDER BY tipe_bayar ASC, nama_pembayaran ASC");
-while ($row = mysqli_fetch_assoc($q_jb)) {
-    $jb_data[] = $row;
-}
-
-$months = ['Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni'];
 
 // Get School Settings
 $q_setting = mysqli_query($koneksi, "SELECT * FROM pengaturan WHERE id_pengaturan = 1");
 $d_setting = mysqli_fetch_assoc($q_setting);
 $nama_sekolah = $d_setting['nama_sekolah'] ?? 'SMK NEGERI 1 CONTOH';
 $nama_bendahara = $d_setting['nama_bendahara'] ?? 'Bendahara Sekolah';
-$tahun_ajaran = $d_setting['tahun_ajaran'] ?? '';
-$boleh_ditagihkan = tahun_ajaran_boleh_ditagihkan($koneksi, $tahun_ajaran);
-
-// Calculate current month index (relative to school year starting July)
-$limit_index = limit_index_bulan_tahun_ajaran($koneksi, $tahun_ajaran);
+$tahun_ajaran_aktif = $d_setting['tahun_ajaran'] ?? get_tahun_ajaran_aktif($koneksi);
+$tahun_ajaran_default = $is_kelas_alumni ? (tahun_ajaran_sebelumnya($tahun_ajaran_aktif) ?: $tahun_ajaran_aktif) : $tahun_ajaran_aktif;
 
 // Date strings
 $tgl = date('d');
@@ -139,6 +128,15 @@ $tanggal_str = $tgl . ' ' . $bln . ' ' . $thn;
 $counter = 0;
 while ($d_siswa = mysqli_fetch_assoc($q_siswa)) {
     $nisn = $d_siswa['nisn'];
+    $tahun_ajaran_cetak = $tahun_ajaran_default;
+    if ($is_kelas_alumni) {
+        $tunggakan_lama = cek_tunggakan_tahun_ajaran_lama($koneksi, $nisn, $tahun_ajaran_aktif);
+        if (!empty($tunggakan_lama)) {
+            $tahun_ajaran_cetak = (string) array_key_first($tunggakan_lama);
+        }
+    }
+
+    $tagihan_siswa = cek_tagihan_tunggakan($koneksi, $nisn, $tahun_ajaran_cetak);
     $counter++;
     
     echo '<div class="bill-wrapper">';
@@ -151,7 +149,7 @@ while ($d_siswa = mysqli_fetch_assoc($q_siswa)) {
     echo '<div class="header-content">';
     echo '<h2>LAPORAN TAGIHAN SISWA</h2>';
     echo '<h3>' . strtoupper($nama_sekolah) . '</h3>';
-    echo '<p>TAHUN AJARAN ' . strtoupper($tahun_ajaran) . '</p>';
+    echo '<p>TAHUN AJARAN ' . strtoupper($tahun_ajaran_cetak) . '</p>';
     echo '</div>';
     echo '</div>';
     
@@ -180,135 +178,48 @@ while ($d_siswa = mysqli_fetch_assoc($q_siswa)) {
     $total_tagihan = 0;
     $displayed_bills = 0;
     
-    foreach ($jb_data as $jb) {
-        if (!$boleh_ditagihkan) {
-            continue;
-        }
-
-        // Filter by Class
-        if (!empty($jb['tagihan_kelas'])) {
-            $allowed_kelas = array_map('trim', explode(',', $jb['tagihan_kelas']));
-            if (!in_array($nama_kelas, $allowed_kelas)) {
-                continue;
-            }
-        }
-        
-        // Check status before displaying
-        $is_fully_paid = false;
-        $paid_months = []; // For Bulanan
-        $total_bayar = 0; // For Cicilan/Bebas
-        $sisa = 0; // For Cicilan/Bebas
-        
-        if ($jb['tipe_bayar'] == 'Bulanan') {
-            $q_bayar = mysqli_query($koneksi, "SELECT bulan_bayar FROM pembayaran WHERE nisn='$nisn' AND id_jenis_bayar='" . $jb['id_jenis_bayar'] . "'");
-            while ($r = mysqli_fetch_assoc($q_bayar)) {
-                if (!empty($r['bulan_bayar'])) {
-                    $ms = array_map('trim', explode(',', $r['bulan_bayar']));
-                    $paid_months = array_merge($paid_months, $ms);
-                }
-            }
-            
-            $is_extracurricular = stripos($jb['nama_pembayaran'], 'ekstrakurikuler') !== false;
-            $has_unpaid = false;
-            foreach ($months as $index => $m) {
-                if (!$is_extracurricular && $index > $limit_index) continue; // Skip future months for non-ekskul
-                if (!in_array($m, $paid_months)) {
-                    $has_unpaid = true;
-                    break;
-                }
-            }
-            
-            if (!$has_unpaid) {
-                $is_fully_paid = true;
-            }
-            
-        } else {
-            $q_total = mysqli_query($koneksi, "SELECT SUM(jumlah_bayar) as total FROM pembayaran WHERE nisn='$nisn' AND id_jenis_bayar='" . $jb['id_jenis_bayar'] . "'");
-            $d_total = mysqli_fetch_assoc($q_total);
-            $total_bayar = $d_total['total'] ?? 0;
-            $sisa = $jb['nominal'] - $total_bayar;
-            
-            if ($sisa <= 0) {
-                $is_fully_paid = true;
-            }
-        }
-        
-        // Skip if fully paid
-        if ($is_fully_paid) {
-            continue;
-        }
-        
+    if ($tagihan_siswa) {
+    foreach ($tagihan_siswa as $tagihan) {
         $displayed_bills++;
         
         echo "<tr>";
         echo "<td>" . $no++ . "</td>";
-        echo "<td>" . $jb['nama_pembayaran'] . "</td>";
+        echo "<td>" . $tagihan['nama_pembayaran'] . "</td>";
         echo "<td>";
-        echo "Rp " . number_format($jb['nominal'], 0, ',', '.');
-        if ($jb['tipe_bayar'] == 'Bulanan' && stripos($jb['nama_pembayaran'], 'ekstrakurikuler') !== false) {
-            $unpaid_count_nominal = 0;
-            foreach ($months as $index_nominal => $month_nominal) {
-                if (!in_array($month_nominal, $paid_months)) {
-                    $unpaid_count_nominal++;
-                }
-            }
-            $tagihan_ekskul_nominal = $unpaid_count_nominal * $jb['nominal'];
-            echo "<br><span class='text-danger'>Jumlah Tagihan Ekskul: Rp " . number_format($tagihan_ekskul_nominal, 0, ',', '.') . "</span>";
-        }
+        echo "Rp " . number_format($tagihan['nominal'], 0, ',', '.');
         echo "</td>";
         echo "<td>";
 
-        if ($jb['tipe_bayar'] == 'Bulanan') {
-            $is_extracurricular = stripos($jb['nama_pembayaran'], 'ekstrakurikuler') !== false;
-            $unpaid_count = 0;
+        if ($tagihan['tipe_bayar'] == 'Bulanan') {
             echo '<div style="display: table; width: 100%;">';
             $month_counter = 0;
             echo '<div style="display: table-row;">';
-            foreach ($months as $index => $m) {
-                if (!$is_extracurricular && $index > $limit_index) continue; // Skip future months for non-ekskul
-
-                $is_paid = in_array($m, $paid_months);
-                $symbol = $is_paid ? '&#10004;' : '&#10006;';
-                $color = $is_paid ? 'green' : 'red';
-                if (!$is_paid) {
-                    $unpaid_count++;
-                }
-                
+            foreach ($tagihan['unpaid_details'] as $m) {
                 echo '<div style="display: table-cell; width: 50%; padding-bottom: 1px; font-size: 10pt;">';
-                echo '<span style="color: '.$color.';">'.$symbol.'</span> ' . $m;
+                echo '<span style="color: red;">&#10006;</span> ' . $m;
                 echo '</div>';
                 
                 $month_counter++;
-                if ($month_counter % 2 == 0 && $month_counter < 12) {
+                if ($month_counter % 2 == 0 && $month_counter < count($tagihan['unpaid_details'])) {
                     echo '</div><div style="display: table-row;">';
                 }
             }
             echo '</div></div>';
-            $tagihan_ekskul = $unpaid_count * $jb['nominal'];
-            $total_tagihan += $tagihan_ekskul;
-            if ($is_extracurricular) {
-                echo '<div class="text-danger" style="margin-top:3px;">Jumlah Tagihan Ekskul: Rp ' . number_format($tagihan_ekskul, 0, ',', '.') . '</div>';
-            }
+            $total_tagihan += (int)$tagihan['sisa'];
+            echo '<div class="text-danger" style="margin-top:3px;">Jumlah Tagihan: Rp ' . number_format($tagihan['sisa'], 0, ',', '.') . '</div>';
             
         } else {
-            if ($sisa > 0) {
-                $total_tagihan += $sisa;
-            }
-
-            // echo "Sudah Bayar: Rp " . number_format($total_bayar, 0, ',', '.') . "<br>";
-            if ($sisa <= 0) {
-                echo '<span class="text-success">&#10004; LUNAS</span>';
-            } else {
-                echo '<span class="text-danger">&#10006; Kurang: Rp ' . number_format($sisa, 0, ',', '.') . '</span>';
-            }
+            $total_tagihan += (int)$tagihan['sisa'];
+            echo '<span class="text-danger">&#10006; Kurang: Rp ' . number_format($tagihan['sisa'], 0, ',', '.') . '</span>';
         }
 
         echo "</td>";
         echo "</tr>";
     }
+    }
     
     if ($displayed_bills == 0) {
-        echo '<tr><td colspan="5" style="text-align: center; font-weight: bold; color: red;">TIDAK ADA TAGIHAN (LUNAS SEMUA)</td></tr>';
+        echo '<tr><td colspan="4" style="text-align: center; font-weight: bold; color: red;">TIDAK ADA TAGIHAN (LUNAS SEMUA)</td></tr>';
     }
     
     echo '<tr>';
