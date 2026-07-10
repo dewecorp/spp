@@ -1,27 +1,24 @@
 <?php
 /**
  * SIBAYAR SPP - INTEGRATION CLIENT FOR SIMAD
- * Versi: 1.0.0
- * 
- * Script ini dirancang untuk digunakan oleh pengembang SIMAD agar dapat 
+ * Versi: 1.1.0
+ *
+ * Script ini dirancang untuk digunakan oleh pengembang SIMAD agar dapat
  * terhubung dengan API Sibayar (SPP) dengan mudah.
  */
 
 class SibayarClient {
     private $apiUrl;
     private $apiKey;
-    private $isProduction;
 
     /**
      * Konfigurasi Client
-     * 
+     *
      * @param string $apiKey API Key yang disepakati
-     * @param bool $isProduction Set true untuk ke server web, false untuk localhost
      */
     public function __construct($apiKey = 'SPP_SECRET_KEY_2026') {
         $this->apiKey = $apiKey;
-        // Selalu arahkan ke server web produksi
-        $this->apiUrl = "https://sibayar.misultanfattah.sch.id/api/simad.php";
+        $this->apiUrl = 'https://sibayar.misultanfattah.sch.id/api/simad.php';
     }
 
     /**
@@ -30,7 +27,7 @@ class SibayarClient {
     private function request($action, $params = []) {
         $queryParams = array_merge([
             'api_key' => $this->apiKey,
-            'action' => $action
+            'action' => $action,
         ], $params);
 
         $url = $this->apiUrl . '?' . http_build_query($queryParams);
@@ -40,22 +37,19 @@ class SibayarClient {
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-        
-        // Menggunakan Header X-API-KEY sebagai standar keamanan tambahan
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
             'X-API-KEY: ' . $this->apiKey,
-            'Accept: application/json'
+            'Accept: application/json',
         ]);
 
         $response = curl_exec($ch);
         $error = curl_error($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
         if ($response === false) {
             return [
                 'status' => 'error',
-                'message' => 'Connection failed: ' . $error
+                'message' => 'Connection failed: ' . $error,
             ];
         }
 
@@ -64,7 +58,7 @@ class SibayarClient {
             return [
                 'status' => 'error',
                 'message' => 'Invalid JSON response',
-                'raw_response' => $response
+                'raw_response' => $response,
             ];
         }
 
@@ -79,18 +73,40 @@ class SibayarClient {
     }
 
     /**
-     * 2. Ambil Ringkasan Data Seluruh Siswa (Bulk Sync)
-     * Cocok digunakan untuk sinkronisasi massal ke database SIMAD
+     * 2. Ambil daftar tahun ajaran
      */
-    public function getAllStudentSummary() {
-        return $this->request('get_all_summary');
+    public function getTahunAjaran() {
+        return $this->request('get_tahun_ajaran');
     }
 
     /**
-     * 3. Ambil Detail Tagihan & Riwayat Pembayaran Siswa per NISN
+     * 3. Ambil Ringkasan Data Seluruh Siswa (Bulk Sync)
+     * Termasuk tunggakan tahun ajaran aktif dan tahun ajaran lama.
+     *
+     * @param string|null $tahunAjaran Kosongkan untuk memakai tahun ajaran aktif.
      */
-    public function getStudentDetail($nisn) {
-        return $this->request('get_student_data', ['nisn' => $nisn]);
+    public function getAllStudentSummary($tahunAjaran = null) {
+        $params = [];
+        if ($tahunAjaran !== null && $tahunAjaran !== '') {
+            $params['tahun_ajaran'] = $tahunAjaran;
+        }
+
+        return $this->request('get_all_summary', $params);
+    }
+
+    /**
+     * 4. Ambil Detail Tagihan, Tunggakan Lama, dan Riwayat Pembayaran Siswa per NISN
+     *
+     * @param string $nisn
+     * @param string|null $tahunAjaran Kosongkan untuk memakai tahun ajaran aktif.
+     */
+    public function getStudentDetail($nisn, $tahunAjaran = null) {
+        $params = ['nisn' => $nisn];
+        if ($tahunAjaran !== null && $tahunAjaran !== '') {
+            $params['tahun_ajaran'] = $tahunAjaran;
+        }
+
+        return $this->request('get_student_data', $params);
     }
 }
 
@@ -99,27 +115,25 @@ class SibayarClient {
 // ==========================================
 
 /*
-// 1. Inisialisasi
 $sibayar = new SibayarClient('SPP_SECRET_KEY_2026');
 
-// 2. Test Koneksi
 $health = $sibayar->checkConnection();
-echo "Status API: " . $health['status'] . " | Env: " . $health['env'] . "\n";
+echo "Status API: " . $health['status'] . " | Tahun Aktif: " . ($health['tahun_ajaran_aktif'] ?? '-') . "\n";
 
-// 3. Ambil Data Semua Siswa untuk Sync Dashboard
 $allData = $sibayar->getAllStudentSummary();
 if ($allData['status'] === 'success') {
     foreach ($allData['data'] as $siswa) {
-        echo "Nama: {$siswa['nama']} | Tunggakan: Rp" . number_format($siswa['total_tunggakan']) . "\n";
+        echo $siswa['nama']
+            . " | Tunggakan Aktif: Rp" . number_format($siswa['total_tunggakan_aktif'])
+            . " | Tunggakan Lama: Rp" . number_format($siswa['total_tunggakan_tahun_lama'])
+            . " | Total: Rp" . number_format($siswa['total_tunggakan']) . "\n";
     }
 }
 
-// 4. Ambil Detail per Siswa
-$detail = $sibayar->getStudentDetail('3137563185'); // Contoh NISN
+$detail = $sibayar->getStudentDetail('3137563185');
 if ($detail['status'] === 'success') {
-    // Tampilkan Billing
     print_r($detail['billing']);
-    // Tampilkan Riwayat Bayar
-    print_r($detail['payments']);
+    print_r($detail['tunggakan_tahun_ajaran_lama']);
+    print_r($detail['summary']);
 }
 */
