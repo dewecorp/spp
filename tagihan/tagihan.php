@@ -51,7 +51,8 @@ if (isset($_GET['id_kelas'])) {
         $hapus_alumni_lunas_tagihan = hapus_semua_siswa_alumni_lunas($koneksi, $tahun_ajaran_aktif);
     }
     $alumni_lunas_tagihan = $is_kelas_alumni ? daftar_siswa_alumni_lunas($koneksi, $tahun_ajaran_aktif) : [];
-    $tahun_ajaran_opsi = $is_kelas_alumni ? [] : [$tahun_ajaran_aktif];
+    $tahun_aktif_boleh_ditagihkan = tahun_ajaran_boleh_ditagihkan($koneksi, $tahun_ajaran_aktif);
+    $tahun_ajaran_opsi = (!$is_kelas_alumni && $tahun_aktif_boleh_ditagihkan) ? [$tahun_ajaran_aktif] : [];
     if ($tahun_ajaran_sebelumnya !== '') {
         $tahun_ajaran_opsi[] = $tahun_ajaran_sebelumnya;
     }
@@ -100,7 +101,7 @@ if (isset($_GET['id_kelas'])) {
                                     }
 
                                     $tagihan_tunggakan = cek_tagihan_tunggakan($koneksi, $s['nisn'], $tahun_ajaran_item);
-                                    if (($is_tahun_aktif_item && !$is_kelas_alumni) || $tagihan_tunggakan) {
+                                    if (($is_tahun_aktif_item && !$is_kelas_alumni && $tahun_aktif_boleh_ditagihkan) || $tagihan_tunggakan) {
                                         $tagihan_per_tahun[$tahun_ajaran_item] = [
                                             'is_tahun_aktif' => $is_tahun_aktif_item,
                                             'tagihan' => $tagihan_tunggakan,

@@ -73,10 +73,15 @@ $q_jb = mysqli_query($koneksi, "SELECT * FROM jenis_bayar WHERE status = 'Aktif'
                             
                             // Calculate current month index (relative to school year starting July)
                             $limit_index = limit_index_bulan_tahun_ajaran($koneksi, $tahun_ajaran);
+                            $boleh_ditagihkan = tahun_ajaran_boleh_ditagihkan($koneksi, $tahun_ajaran);
 
                             $displayed_bills = 0;
 
                             while ($jb = mysqli_fetch_assoc($q_jb)) {
+                                if (!$boleh_ditagihkan) {
+                                    continue;
+                                }
+
                                 // Filter by Class
                                 if (!empty($jb['tagihan_kelas'])) {
                                     $allowed_kelas = array_map('trim', explode(',', $jb['tagihan_kelas']));
@@ -159,7 +164,11 @@ $q_jb = mysqli_query($koneksi, "SELECT * FROM jenis_bayar WHERE status = 'Aktif'
                             }
 
                             if ($displayed_bills == 0) {
-                                echo '<tr><td colspan="5" class="text-center text-red-500 font-bold py-4">Tidak ada tagihan (Lunas Semua)</td></tr>';
+                                if (!$boleh_ditagihkan) {
+                                    echo '<tr><td colspan="5" class="text-center text-slate-500 font-bold py-4">Belum ada tagihan. Tahun ajaran mulai pada ' . htmlspecialchars(get_tanggal_mulai_tahun_ajaran_aktif($koneksi), ENT_QUOTES, 'UTF-8') . '</td></tr>';
+                                } else {
+                                    echo '<tr><td colspan="5" class="text-center text-red-500 font-bold py-4">Tidak ada tagihan (Lunas Semua)</td></tr>';
+                                }
                             }
                             ?>
                         </tbody>

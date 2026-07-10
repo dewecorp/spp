@@ -219,6 +219,25 @@ function get_tanggal_mulai_tahun_ajaran_aktif($koneksi) {
     return default_tanggal_mulai_tahun_ajaran(get_tahun_ajaran_aktif($koneksi));
 }
 
+function tahun_ajaran_aktif_sudah_mulai($koneksi) {
+    $mulai = DateTime::createFromFormat('Y-m-d', get_tanggal_mulai_tahun_ajaran_aktif($koneksi));
+    if (!$mulai) {
+        return true;
+    }
+
+    $today = new DateTime(date('Y-m-d'));
+    return $today >= $mulai;
+}
+
+function tahun_ajaran_boleh_ditagihkan($koneksi, $tahun_ajaran) {
+    $tahun_ajaran = trim((string) $tahun_ajaran);
+    if ($tahun_ajaran !== get_tahun_ajaran_aktif($koneksi)) {
+        return true;
+    }
+
+    return tahun_ajaran_aktif_sudah_mulai($koneksi);
+}
+
 function limit_index_bulan_tahun_ajaran($koneksi, $tahun_ajaran) {
     if ($tahun_ajaran !== get_tahun_ajaran_aktif($koneksi)) {
         return 11;
@@ -571,6 +590,10 @@ function cek_tagihan_tunggakan($koneksi, $nisn, $tahun_ajaran = null) {
     if ($tahun_ajaran === '') {
         $tahun_ajaran = get_tahun_ajaran_aktif($koneksi);
     }
+    if (!tahun_ajaran_boleh_ditagihkan($koneksi, $tahun_ajaran)) {
+        return false;
+    }
+
     // Cari data siswa
     $q_siswa = mysqli_query($koneksi, "SELECT s.*, k.nama_kelas FROM siswa s JOIN kelas k ON s.id_kelas = k.id_kelas WHERE s.nisn = '$nisn'");
     $d_siswa = mysqli_fetch_assoc($q_siswa);

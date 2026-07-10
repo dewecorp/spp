@@ -58,8 +58,23 @@ if (!$d_siswa) {
 
 if ($action == 'get_tagihan') {
     $tagihan = [];
+    $tahun_ajaran_aktif = get_tahun_ajaran_aktif($koneksi);
+    if (!tahun_ajaran_boleh_ditagihkan($koneksi, $tahun_ajaran_aktif)) {
+        echo json_encode([
+            'status' => 'success',
+            'student' => [
+                'nisn' => $d_siswa['nisn'],
+                'nama' => $d_siswa['nama'],
+                'kelas' => $d_siswa['nama_kelas']
+            ],
+            'data' => $tagihan
+        ]);
+        exit;
+    }
+
     $id_kelas_siswa = $d_siswa['id_kelas'];
     $nama_kelas_siswa = $d_siswa['nama_kelas'];
+    $limit_index = limit_index_bulan_tahun_ajaran($koneksi, $tahun_ajaran_aktif);
     
     $q_jenis = mysqli_query($koneksi, "SELECT * FROM jenis_bayar WHERE status = 'Aktif' ORDER BY tipe_bayar ASC");
     
@@ -81,31 +96,18 @@ if ($action == 'get_tagihan') {
                     }
                 }
                 
-                // Determine which months are unpaid
-                // We use current month to limit bills for non-extracurricular items
-                $current_month_name = date('F');
-                $month_map = [
-                    'July' => 0, 'August' => 1, 'September' => 2, 'October' => 3, 'November' => 4, 'December' => 5,
-                    'January' => 6, 'February' => 7, 'March' => 8, 'April' => 9, 'May' => 10, 'June' => 11
-                ];
-                $current_index = $month_map[$current_month_name] ?? 0;
-                
-                // Academic year starts in July. So if current is July, index is 0.
-                // If current is June, index is 11.
-                
-                $is_extracurricular = stripos($jb['nama_pembayaran'], 'ekstrakurikuler') !== false;
                 $total_sisa = 0;
                 
                 foreach ($months as $index => $m) {
+                    if ($limit_index < 0 || $index > $limit_index) {
+                        continue;
+                    }
+
                     $is_paid = in_array($m, $paid_months);
                     
                     if (!$is_paid) {
                         $unpaid_details[] = $m;
-                        
-                        // Only add to total_sisa if it's already due or it's extracurricular (always due)
-                        if ($is_extracurricular || $index <= $current_index) {
-                            $total_sisa += (int)$jb['nominal'];
-                        }
+                        $total_sisa += (int)$jb['nominal'];
                     }
                 }
                 

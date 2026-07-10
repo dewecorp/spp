@@ -1,5 +1,6 @@
 <?php
 include '../config/config.php';
+require_once '../include/laporan_helper.php';
 
 if (!isset($_SESSION['login'])) {
     header("Location: " . base_url('auth/login.php'));
@@ -37,6 +38,7 @@ $d_setting = mysqli_fetch_assoc($q_setting);
 $nama_sekolah = $d_setting['nama_sekolah'] ?? 'SMK NEGERI 1 CONTOH';
 $nama_bendahara = $d_setting['nama_bendahara'] ?? 'Bendahara Sekolah';
 $tahun_ajaran = $d_setting['tahun_ajaran'] ?? '';
+$boleh_ditagihkan = tahun_ajaran_boleh_ditagihkan($koneksi, $tahun_ajaran);
 
 $spreadsheet = new Spreadsheet();
 $sheet = $spreadsheet->getActiveSheet();
@@ -90,10 +92,13 @@ $q_jb = mysqli_query($koneksi, "SELECT * FROM jenis_bayar WHERE status = 'Aktif'
 $months = ['Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni'];
 
 // Calculate current month index (relative to school year starting July)
-$current_month_num = date('n'); // 1-12
-$limit_index = ($current_month_num >= 7) ? $current_month_num - 7 : $current_month_num + 5;
+$limit_index = limit_index_bulan_tahun_ajaran($koneksi, $tahun_ajaran);
 
 while ($jb = mysqli_fetch_assoc($q_jb)) {
+    if (!$boleh_ditagihkan) {
+        continue;
+    }
+
     // Filter by Class
     if (!empty($jb['tagihan_kelas'])) {
         $allowed_kelas = array_map('trim', explode(',', $jb['tagihan_kelas']));

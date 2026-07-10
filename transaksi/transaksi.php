@@ -368,6 +368,8 @@ if (isset($_POST['tambah'])) {
 
     if ($id_petugas <= 0 || $nisn === '' || $tgl_bayar === '' || (empty($id_jenis_bayar_input) && empty($payment_data))) {
         $error_tambah = 'Input transaksi belum lengkap.';
+    } elseif (!tahun_ajaran_boleh_ditagihkan($koneksi, $tahun_ajaran)) {
+        $error_tambah = 'Transaksi ditolak. Tahun ajaran aktif belum memasuki tanggal mulai (' . get_tanggal_mulai_tahun_ajaran_aktif($koneksi) . ').';
     } else {
         $tunggakan_lama = cek_tunggakan_tahun_ajaran_lama($koneksi, $nisn, $tahun_ajaran);
         if ($tunggakan_lama) {
@@ -529,8 +531,17 @@ if (isset($_POST['update_transaksi'])) {
 
     $submitted_ids = [];
     $success_count = 0;
+    $error_update = '';
+
+    if (!tahun_ajaran_boleh_ditagihkan($koneksi, $tahun_ajaran)) {
+        $error_update = 'Transaksi ditolak. Tahun ajaran aktif belum memasuki tanggal mulai (' . get_tanggal_mulai_tahun_ajaran_aktif($koneksi) . ').';
+    }
 
     foreach ($payments_input as $id_jb => $data) {
+        if ($error_update !== '') {
+            break;
+        }
+
         $id_pembayaran = isset($data['id_pembayaran']) ? $data['id_pembayaran'] : null;
         
         // Get Info Jenis Bayar
@@ -586,12 +597,15 @@ if (isset($_POST['update_transaksi'])) {
 
     // DELETE REMOVED ITEMS (User deselected a payment type)
     $ids_to_delete = array_diff($existing_ids, $submitted_ids);
-    if (!empty($ids_to_delete)) {
+    if ($error_update === '' && !empty($ids_to_delete)) {
         $ids_str = implode(',', $ids_to_delete);
         mysqli_query($koneksi, "DELETE FROM pembayaran WHERE id_pembayaran IN ($ids_str)");
     }
 
-    if ($success_count > 0 || !empty($ids_to_delete)) {
+    if ($error_update !== '') {
+        $error_safe = htmlspecialchars($error_update, ENT_QUOTES);
+        echo "<script>Swal.fire('Gagal', '$error_safe', 'error');</script>";
+    } elseif ($success_count > 0 || !empty($ids_to_delete)) {
         logActivity($koneksi, 'Update', "Mengedit transaksi No: $no_transaksi");
         echo "<script>
             Swal.fire({

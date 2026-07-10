@@ -76,6 +76,10 @@ function simad_total_sudah_bayar($koneksi, $nisn, $tahun_ajaran) {
 }
 
 function simad_billing_for_student($koneksi, $siswa, $tahun_ajaran) {
+    if (!tahun_ajaran_boleh_ditagihkan($koneksi, $tahun_ajaran)) {
+        return [];
+    }
+
     $months = bulan_akademik_list();
     $limit_index = limit_index_bulan_tahun_ajaran($koneksi, $tahun_ajaran);
     $billing = [];

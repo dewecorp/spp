@@ -192,8 +192,12 @@ function etab_due_month_index() {
 }
 
 function etab_billing_for_student($koneksi, $siswa, $only_unpaid = true) {
-    $months = ['Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni'];
     $tahun_ajaran_aktif = get_tahun_ajaran_aktif($koneksi);
+    if (!tahun_ajaran_boleh_ditagihkan($koneksi, $tahun_ajaran_aktif)) {
+        return [];
+    }
+
+    $months = ['Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni'];
     $current_index = limit_index_bulan_tahun_ajaran($koneksi, $tahun_ajaran_aktif);
     $items = [];
 
@@ -478,6 +482,14 @@ if ($action === 'simpan_pembayaran' || $action === 'bayar' || $action === 'poton
     }
 
     $tahun_ajaran_aktif = get_tahun_ajaran_aktif($koneksi);
+    if ($tahun_ajaran === $tahun_ajaran_aktif && !tahun_ajaran_boleh_ditagihkan($koneksi, $tahun_ajaran_aktif)) {
+        etab_output([
+            'status' => 'error',
+            'message' => 'Pembayaran ditolak. Tahun ajaran aktif belum memasuki tanggal mulai.',
+            'tanggal_mulai_tahun_ajaran' => get_tanggal_mulai_tahun_ajaran_aktif($koneksi),
+        ], 409);
+    }
+
     if ($tahun_ajaran === $tahun_ajaran_aktif) {
         $tunggakan_lama = cek_tunggakan_tahun_ajaran_lama($koneksi, $nisn, $tahun_ajaran_aktif);
         if ($tunggakan_lama) {
