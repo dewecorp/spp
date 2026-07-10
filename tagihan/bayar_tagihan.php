@@ -90,7 +90,7 @@ if (isset($_POST['bayar_tagihan'])) {
 }
 
 // Jika ada NISN yang dipilih
-$selected_nisn = isset($_GET['nisn']) ? $_GET['nisn'] : '';
+$selected_nisn = isset($_GET['nisn']) ? trim((string)$_GET['nisn']) : '';
 $tahun_ajaran = isset($_GET['tahun_ajaran']) && trim((string)$_GET['tahun_ajaran']) !== ''
     ? trim((string)$_GET['tahun_ajaran'])
     : get_tahun_ajaran_aktif($koneksi);
@@ -98,17 +98,21 @@ $tahun_ajaran_aktif = get_tahun_ajaran_aktif($koneksi);
 $is_tahun_ajaran_aktif = $tahun_ajaran === $tahun_ajaran_aktif;
 $selected_siswa = null;
 $tagihan = null;
+$id_kelas = isset($_GET['id_kelas']) ? trim((string)$_GET['id_kelas']) : '';
 
 if ($selected_nisn) {
     $q_siswa = mysqli_query($koneksi, "SELECT s.*, k.nama_kelas FROM siswa s JOIN kelas k ON s.id_kelas = k.id_kelas WHERE s.nisn = '$selected_nisn'");
     $selected_siswa = mysqli_fetch_assoc($q_siswa);
+    if ($id_kelas === '' && $selected_siswa) {
+        $id_kelas = (string)$selected_siswa['id_kelas'];
+    }
     $tagihan = cek_tagihan_tunggakan($koneksi, $selected_nisn, $tahun_ajaran);
 }
 
 // Dapatkan daftar siswa berdasarkan kelas (jika dipilih)
-$id_kelas = isset($_GET['id_kelas']) ? $_GET['id_kelas'] : '';
+$has_id_kelas = $id_kelas !== '';
 $q_siswa_list = null;
-if ($id_kelas) {
+if ($has_id_kelas) {
     $q_siswa_list = mysqli_query($koneksi, "SELECT s.*, k.nama_kelas FROM siswa s JOIN kelas k ON s.id_kelas = k.id_kelas WHERE s.id_kelas = '$id_kelas' ORDER BY s.nama ASC");
 }
 
@@ -131,7 +135,7 @@ $q_kelas = mysqli_query($koneksi, "SELECT * FROM kelas ORDER BY nama_kelas ASC")
         <div class="app-panel">
             <div class="app-panel-body">
                 <form method="get" action="">
-                    <?php if (!$id_kelas): ?>
+                    <?php if (!$has_id_kelas): ?>
                     <input type="hidden" name="tahun_ajaran" value="<?= htmlspecialchars($tahun_ajaran, ENT_QUOTES, 'UTF-8') ?>">
                     <div class="app-field">
                         <label>Pilih Kelas</label>
@@ -147,7 +151,7 @@ $q_kelas = mysqli_query($koneksi, "SELECT * FROM kelas ORDER BY nama_kelas ASC")
                     <?php endif; ?>
                 </form>
 
-                <?php if ($id_kelas): ?>
+                <?php if ($has_id_kelas): ?>
                 <form method="get" action="">
                     <input type="hidden" name="id_kelas" value="<?= $id_kelas ?>">
                     <input type="hidden" name="tahun_ajaran" value="<?= htmlspecialchars($tahun_ajaran, ENT_QUOTES, 'UTF-8') ?>">
