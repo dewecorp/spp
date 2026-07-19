@@ -289,6 +289,42 @@ function etab_billing_for_student($koneksi, $siswa, $only_unpaid = true) {
     return $items;
 }
 
+function etab_format_tunggakan_lama($tunggakan_lama) {
+    if (!$tunggakan_lama || !is_array($tunggakan_lama)) {
+        return [];
+    }
+
+    $result = [];
+    foreach ($tunggakan_lama as $tahun => $items) {
+        $formatted_items = [];
+        $total = 0;
+
+        foreach ($items as $item) {
+            $sisa = (int) ($item['sisa'] ?? 0);
+            $formatted_items[] = [
+                'id_jenis_bayar' => (int) ($item['id_jenis_bayar'] ?? 0),
+                'kode_jenis_bayar' => (string) ($item['id_jenis_bayar'] ?? 0),
+                'nama_pembayaran' => $item['nama_pembayaran'] ?? '',
+                'tipe_bayar' => $item['tipe_bayar'] ?? '',
+                'tahun_ajaran' => $tahun,
+                'nominal' => (int) ($item['nominal'] ?? 0),
+                'sisa_tagihan' => $sisa,
+                'item_belum_bayar' => $item['unpaid_details'] ?? [],
+                'is_lunas' => false,
+            ];
+            $total += $sisa;
+        }
+
+        $result[$tahun] = [
+            'tahun_ajaran' => $tahun,
+            'total_tunggakan' => $total,
+            'items' => $formatted_items,
+        ];
+    }
+
+    return $result;
+}
+
 function etab_array_value($data, $keys, $default = null) {
     foreach ($keys as $key) {
         if (isset($data[$key]) && $data[$key] !== '') {
@@ -802,6 +838,13 @@ if ($action === 'tagihan' || $action === 'query_tagihan') {
         $total_tagihan += (int) $item['sisa_tagihan'];
     }
 
+    $tunggakan_lama_raw = cek_tunggakan_tahun_ajaran_lama($koneksi, $siswa['nisn']);
+    $tunggakan_lama = etab_format_tunggakan_lama($tunggakan_lama_raw);
+    $total_tunggakan_lama = 0;
+    foreach ($tunggakan_lama as $group) {
+        $total_tunggakan_lama += (int) ($group['total_tunggakan'] ?? 0);
+    }
+
     etab_output([
         'status' => 'success',
         'app_url' => $hosted_app_url,
@@ -815,6 +858,10 @@ if ($action === 'tagihan' || $action === 'query_tagihan') {
         'data' => $billing,
         'count' => count($billing),
         'total_tagihan' => $total_tagihan,
+        'tunggakan_tahun_ajaran_lama' => $tunggakan_lama,
+        'total_tunggakan_lama' => $total_tunggakan_lama,
+        'total_keseluruhan' => $total_tagihan + $total_tunggakan_lama,
+        'tahun_ajaran_tunggakan' => array_keys($tunggakan_lama),
     ]);
 }
 
