@@ -72,34 +72,34 @@ if (isset($_POST['import'])) {
             $failed_insert_count = 0;
 
             foreach ($rows as $key => $row) {
-                // Skip header
                 if ($key == 0) continue;
 
-                $nisn = mysqli_real_escape_string($koneksi, trim($row[0] ?? ''));
-                $nama = mysqli_real_escape_string($koneksi, trim($row[1] ?? ''));
-                $nama_kelas = mysqli_real_escape_string($koneksi, trim($row[2] ?? ''));
-                $alamat = mysqli_real_escape_string($koneksi, trim($row[3] ?? ''));
+                $nisn   = mysqli_real_escape_string($koneksi, trim($row[0] ?? ''));
+                $nama   = mysqli_real_escape_string($koneksi, trim($row[1] ?? ''));
+                $gender = mysqli_real_escape_string($koneksi, trim($row[2] ?? '-'));
+                $nama_kelas = mysqli_real_escape_string($koneksi, trim($row[3] ?? ''));
+                $tempat = mysqli_real_escape_string($koneksi, trim($row[4] ?? '-'));
+                $tgl    = mysqli_real_escape_string($koneksi, trim($row[5] ?? '1900-01-01'));
+                $wali   = mysqli_real_escape_string($koneksi, trim($row[6] ?? '-'));
 
-                // Validate essential data
                 if (empty($nisn) || empty($nama)) {
                     $invalid_count++;
                     continue;
                 }
 
-                // Defaults
                 $no_telp = '';
+                if ($gender !== 'L' && $gender !== 'P') $gender = '-';
+                if (empty($tgl)) $tgl = '1900-01-01';
 
-                // Cari ID Kelas
                 $q_kelas = mysqli_query($koneksi, "SELECT id_kelas FROM kelas WHERE nama_kelas = '$nama_kelas'");
                 if (mysqli_num_rows($q_kelas) > 0) {
                     $d_kelas = mysqli_fetch_assoc($q_kelas);
                     $id_kelas = $d_kelas['id_kelas'];
 
-                    // Cek Duplicate NISN
                     $cek = mysqli_query($koneksi, "SELECT nisn FROM siswa WHERE nisn = '$nisn'");
                     if (mysqli_num_rows($cek) == 0) {
-                        $insert = mysqli_query($koneksi, "INSERT INTO siswa (nisn, nis, nama, id_kelas, alamat, no_telp, jenis_kelamin, tempat_lahir, tgl_lahir, nama_wali)
-                            VALUES ('$nisn', '-', '$nama', '$id_kelas', '$alamat', '$no_telp', '-', '-', '1900-01-01', '-')");
+                        $insert = mysqli_query($koneksi, "INSERT INTO siswa (nisn, nama, id_kelas, alamat, no_telp, jenis_kelamin, tempat_lahir, tgl_lahir, nama_wali, tanggal_masuk)
+                            VALUES ('$nisn', '$nama', '$id_kelas', '-', '$no_telp', '$gender', '$tempat', '$tgl', '$wali', CURDATE())");
                         if ($insert) {
                             $success_count++;
                         } else {
@@ -117,12 +117,15 @@ if (isset($_POST['import'])) {
 
             echo "<script>
                 Swal.fire({
-                    title: 'Selesai',
+                    title: 'Hasil Import',
                     html: 'Import selesai.<br>' +
                           'Berhasil: <b>$success_count</b><br>' +
-                          'Gagal: <b>$failed_count</b>',
+                          'Gagal Insert: <b>$failed_count</b><br>' +
+                          'Duplikat: <b>$duplicate_count</b><br>' +
+                          'Kelas tidak ditemukan: <b>$missing_class_count</b><br>' +
+                          'Data tidak valid: <b>$invalid_count</b>',
                     icon: 'success',
-                    timer: 4000,
+                    timer: 5000,
                     showConfirmButton: false
                 }).then(() => {
                     window.location='siswa.php';
@@ -156,8 +159,8 @@ if (isset($_POST['tambah'])) {
     if (mysqli_num_rows($cek) > 0) {
          echo "<script>Swal.fire('Gagal', 'NISN sudah ada!', 'error');</script>";
     } else {
-        $query = mysqli_query($koneksi, "INSERT INTO siswa (nisn, nis, nama, id_kelas, alamat, no_telp, jenis_kelamin, tempat_lahir, tgl_lahir, nama_wali)
-            VALUES ('$nisn', '-', '$nama', '$id_kelas', '$alamat', '$no_telp', '$gender', '$tempat', '$tgl', '$wali')");
+        $query = mysqli_query($koneksi, "INSERT INTO siswa (nisn, nama, id_kelas, alamat, no_telp, jenis_kelamin, tempat_lahir, tgl_lahir, nama_wali, tanggal_masuk)
+            VALUES ('$nisn', '$nama', '$id_kelas', '$alamat', '$no_telp', '$gender', '$tempat', '$tgl', '$wali', CURDATE())");
         if ($query) {
             logActivity($koneksi, 'Create', "Menambah data siswa baru: $nama ($nisn)");
             echo "<script>
@@ -172,7 +175,8 @@ if (isset($_POST['tambah'])) {
             });
         </script>";
     } else {
-        echo "<script>Swal.fire('Gagal', 'Data gagal ditambahkan', 'error');</script>";
+        $err = htmlspecialchars(mysqli_error($koneksi), ENT_QUOTES);
+        echo "<script>Swal.fire('Gagal', '$err', 'error');</script>";
     }
 }
 }
@@ -732,7 +736,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         if (!response.ok) {
                              throw new Error('HTTP error! status: ' + response.status);
                         }
-                        return response.text(); // Ambil sebagai teks dulu untuk cek format
+                        return response.text();
                     })
                     .then(text => {
                         try {
@@ -751,6 +755,46 @@ document.addEventListener('DOMContentLoaded', function() {
                                 }).then(() => {
                                     window.location.reload();
                                 });
+                            } else if (data.status === 'client_fetch') {
+                                // Server kena Imunify360 → coba fetch dari browser langsung
+                                Swal.fire({
+                                    title: 'Mencoba Sinkron via Browser...',
+                                    text: 'Server diblokir Imunify360. Mencoba akses langsung dari browser.',
+                                    allowOutsideClick: false,
+                                    didOpen: () => Swal.showLoading()
+                                });
+                                fetch(data.url, { mode: 'cors' })
+                                    .then(r => r.json())
+                                    .then(simadData => {
+                                        return fetch('ajax_simpan_simad.php', {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({ data: simadData.data })
+                                        });
+                                    })
+                                    .then(r => r.json())
+                                    .then(result => {
+                                        if (result.status === 'success') {
+                                            Swal.fire({
+                                                title: 'Sinkronisasi Selesai',
+                                                html: `<div class="text-center"><i class="mdi mdi-check-circle-outline text-emerald-600" style="font-size: 50px;"></i><br>
+                                                      Proses sinkronisasi telah selesai.<br>
+                                                      <span class="app-badge app-badge-success">Total Data Simad: ${result.total_api}</span><br>
+                                                       <span class="app-badge app-badge-primary">Berhasil (Baru/Update): ${result.new + result.update}</span>
+                                                       <span class="app-badge app-badge-danger">Gagal: ${result.failed}</span></div>`,
+                                                icon: 'success',
+                                                confirmButtonText: 'Mantap!',
+                                                confirmButtonColor: '#3085d6'
+                                            }).then(() => window.location.reload());
+                                        } else {
+                                            Swal.fire('Gagal Sinkronisasi', result.message, 'error');
+                                        }
+                                    })
+                                    .catch(err => {
+                                        Swal.fire('Gagal Akses SIMAD',
+                                            'Browser tidak bisa mengakses SIMAD langsung (CORS). Minta admin SIMAD untuk:<br>1. Whitelist IP server sibayar di Imunify360<br>2. Atau aktifkan CORS di API SIMAD',
+                                            'error');
+                                    });
                             } else {
                                 Swal.fire('Gagal Sinkronisasi', data.message, 'error');
                             }

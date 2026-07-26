@@ -199,6 +199,18 @@ function etab_billing_for_student($koneksi, $siswa, $only_unpaid = true) {
 
     $months = ['Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni'];
     $current_index = limit_index_bulan_tahun_ajaran($koneksi, $tahun_ajaran_aktif);
+    $nisn_esc = mysqli_real_escape_string($koneksi, $siswa['nisn'] ?? '');
+    $q_masuk = mysqli_query($koneksi, "SELECT tanggal_masuk FROM siswa WHERE nisn = '$nisn_esc' LIMIT 1");
+    $row_masuk = $q_masuk ? mysqli_fetch_assoc($q_masuk) : null;
+    $tgl_masuk = $row_masuk ? trim($row_masuk['tanggal_masuk'] ?? '') : '';
+    $min_index = 0;
+    if ($tgl_masuk !== '' && preg_match('/^(\d{4})\//', $tahun_ajaran_aktif, $m_thn)) {
+        $dt_masuk = DateTime::createFromFormat('Y-m-d', $tgl_masuk);
+        if ($dt_masuk) {
+            $diff = ((int)$dt_masuk->format('Y') - (int)$m_thn[1]) * 12 + ((int)$dt_masuk->format('n') - 7);
+            $min_index = $diff >= 12 ? 12 : max(0, $diff);
+        }
+    }
     $items = [];
 
     $q_jenis = etab_exec_select(
@@ -240,7 +252,7 @@ function etab_billing_for_student($koneksi, $siswa, $only_unpaid = true) {
             $detail_sudah_bayar = $paid_months;
 
             foreach ($months as $index => $month) {
-                if ($current_index < 0 || $index > $current_index) {
+                if ($current_index < 0 || $index > $current_index || $index < $min_index) {
                     continue;
                 }
 

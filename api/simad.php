@@ -9,6 +9,7 @@ require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../include/laporan_helper.php';
 
 ensure_pembayaran_tahun_ajaran_column($koneksi);
+ensure_siswa_tanggal_masuk_column($koneksi);
 
 function simad_resolve_tahun_ajaran($koneksi, $tahun_ajaran_param) {
     $tahun_ajaran = trim((string) $tahun_ajaran_param);
@@ -82,6 +83,22 @@ function simad_billing_for_student($koneksi, $siswa, $tahun_ajaran) {
 
     $months = bulan_akademik_list();
     $limit_index = limit_index_bulan_tahun_ajaran($koneksi, $tahun_ajaran);
+
+    $nisn = mysqli_real_escape_string($koneksi, $siswa['nisn'] ?? '');
+    $q_masuk = mysqli_query($koneksi, "SELECT tanggal_masuk FROM siswa WHERE nisn = '$nisn' LIMIT 1");
+    $row_masuk = $q_masuk ? mysqli_fetch_assoc($q_masuk) : null;
+    $tanggal_masuk = $row_masuk ? trim($row_masuk['tanggal_masuk'] ?? '') : '';
+
+    $min_index = 0;
+    if ($tanggal_masuk !== '' && preg_match('/^(\d{4})\s*\/\s*(\d{4})$/', $tahun_ajaran, $m_thn)) {
+        $tahun_mulai = (int)$m_thn[1];
+        $dt_masuk = DateTime::createFromFormat('Y-m-d', $tanggal_masuk);
+        if ($dt_masuk) {
+            $diff = ((int)$dt_masuk->format('Y') - $tahun_mulai) * 12 + ((int)$dt_masuk->format('n') - 7);
+            $min_index = $diff >= 12 ? 12 : max(0, $diff);
+        }
+    }
+
     $billing = [];
 
     $q_jenis = mysqli_query($koneksi, "SELECT * FROM jenis_bayar WHERE status = 'Aktif' ORDER BY tipe_bayar ASC, nama_pembayaran ASC");
@@ -102,7 +119,7 @@ function simad_billing_for_student($koneksi, $siswa, $tahun_ajaran) {
             $paid_months = ambil_bulan_bayar_tersimpan($koneksi, $siswa['nisn'], $jb['id_jenis_bayar'], $tahun_ajaran);
 
             foreach ($months as $index => $month) {
-                if ($limit_index < 0 || $index > $limit_index) {
+                if ($limit_index < 0 || $index > $limit_index || $index < $min_index) {
                     continue;
                 }
 

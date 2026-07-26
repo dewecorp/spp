@@ -75,6 +75,7 @@ if ($action == 'get_tagihan') {
     $id_kelas_siswa = $d_siswa['id_kelas'];
     $nama_kelas_siswa = $d_siswa['nama_kelas'];
     $limit_index = limit_index_bulan_tahun_ajaran($koneksi, $tahun_ajaran_aktif);
+    $min_index = get_bulan_masuk_siswa($koneksi, $nisn, $tahun_ajaran_aktif);
     
     $q_jenis = mysqli_query($koneksi, "SELECT * FROM jenis_bayar WHERE status = 'Aktif' ORDER BY tipe_bayar ASC");
     
@@ -99,7 +100,7 @@ if ($action == 'get_tagihan') {
                 $total_sisa = 0;
                 
                 foreach ($months as $index => $m) {
-                    if ($limit_index < 0 || $index > $limit_index) {
+                    if ($limit_index < 0 || $index > $limit_index || $index < $min_index) {
                         continue;
                     }
 

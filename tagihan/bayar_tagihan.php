@@ -160,8 +160,8 @@ $q_kelas = mysqli_query($koneksi, "SELECT * FROM kelas ORDER BY nama_kelas ASC")
                         <select name="nisn" class="app-control" required onchange="this.form.submit()">
                             <option value="">-- Pilih Siswa --</option>
                             <?php while ($s = mysqli_fetch_assoc($q_siswa_list)):
-                                $t = cek_tagihan_tunggakan($koneksi, $s['nisn'], $tahun_ajaran);
-                                $has_tagihan = $t ? true : false;
+                                $nm_kelas = trim($s['nama_kelas'] ?? '');
+                                $has_tagihan = ($nm_kelas !== '1' && $nm_kelas !== 'I') ? (cek_tagihan_tunggakan($koneksi, $s['nisn'], $tahun_ajaran) ? true : false) : false;
                             ?>
                                 <option value="<?= $s['nisn'] ?>" <?= ($selected_nisn == $s['nisn']) ? 'selected' : '' ?>>
                                     <?= $s['nama'] ?> - <?= $s['nama_kelas'] ?>

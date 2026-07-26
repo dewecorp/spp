@@ -521,6 +521,13 @@ function cek_tunggakan_tahun_ajaran_lama($koneksi, $nisn, $tahun_ajaran_aktif = 
     $tahun_ajaran_aktif = trim((string) ($tahun_ajaran_aktif ?? get_tahun_ajaran_aktif($koneksi)));
     $hasil = [];
 
+    // Siswa kelas 1 tidak punya tunggakan tahun lampau
+    $q_k = mysqli_query($koneksi, "SELECT k.nama_kelas FROM siswa s JOIN kelas k ON s.id_kelas = k.id_kelas WHERE s.nisn = '" . mysqli_real_escape_string($koneksi, $nisn) . "' LIMIT 1");
+    if ($q_k && ($r_k = mysqli_fetch_assoc($q_k))) {
+        $nm = trim($r_k['nama_kelas']);
+        if ($nm === '1' || $nm === 'I') return false;
+    }
+
     foreach (daftar_tahun_ajaran_lama_untuk_tunggakan($koneksi, $nisn, $tahun_ajaran_aktif) as $tahun_ajaran_lama) {
         $tagihan = cek_tagihan_tunggakan($koneksi, $nisn, $tahun_ajaran_lama);
         if ($tagihan) {
@@ -578,6 +585,35 @@ function ensure_pembayaran_tahun_ajaran_column($koneksi) {
     normalisasi_tahun_ajaran_tagihan_tunggakan($koneksi);
 }
 
+function ensure_siswa_tanggal_masuk_column($koneksi) {
+    static $checked = false;
+    if ($checked) return;
+    $checked = true;
+    $col = mysqli_query($koneksi, "SHOW COLUMNS FROM siswa LIKE 'tanggal_masuk'");
+    if (!$col || mysqli_num_rows($col) == 0) {
+        mysqli_query($koneksi, "ALTER TABLE siswa ADD tanggal_masuk DATE NULL AFTER nama_wali");
+    }
+    mysqli_query($koneksi, "UPDATE siswa s JOIN (SELECT nisn, MIN(tgl_bayar) AS tgl_awal FROM pembayaran GROUP BY nisn) p ON s.nisn = p.nisn SET s.tanggal_masuk = p.tgl_awal WHERE s.tanggal_masuk IS NULL");
+    mysqli_query($koneksi, "UPDATE siswa SET tanggal_masuk = CURDATE() WHERE tanggal_masuk IS NULL");
+}
+
+function get_bulan_masuk_siswa($koneksi, $nisn, $tahun_ajaran) {
+    $nisn_esc = mysqli_real_escape_string($koneksi, $nisn);
+    $q = mysqli_query($koneksi, "SELECT tanggal_masuk FROM siswa WHERE nisn = '$nisn_esc' LIMIT 1");
+    if (!$q || !($row = mysqli_fetch_assoc($q))) return 0;
+    $tanggal_masuk = trim($row['tanggal_masuk'] ?? '');
+    if (empty($tanggal_masuk)) return 0;
+    if (!preg_match('/^(\d{4})\s*\/\s*(\d{4})$/', $tahun_ajaran, $m)) return 0;
+    $tahun_mulai = (int)$m[1];
+    $masuk = DateTime::createFromFormat('Y-m-d', $tanggal_masuk);
+    if (!$masuk) return 0;
+    $bulan_masuk = (int)$masuk->format('n');
+    $tahun_masuk = (int)$masuk->format('Y');
+    $diff = ($tahun_masuk - $tahun_mulai) * 12 + ($bulan_masuk - 7);
+    if ($diff >= 12) return 12;
+    return max(0, $diff);
+}
+
 /**
  * Periksa apakah siswa memiliki tagihan tunggakan.
  * Tagihan dianggap tunggakan jika melewati tahun ajaran berjalan atau sampai bulan Juli.
@@ -585,6 +621,7 @@ function ensure_pembayaran_tahun_ajaran_column($koneksi) {
  */
 function cek_tagihan_tunggakan($koneksi, $nisn, $tahun_ajaran = null) {
     ensure_pembayaran_tahun_ajaran_column($koneksi);
+    ensure_siswa_tanggal_masuk_column($koneksi);
 
     $tahun_ajaran = trim((string) ($tahun_ajaran ?? get_tahun_ajaran_aktif($koneksi)));
     if ($tahun_ajaran === '') {
@@ -594,7 +631,6 @@ function cek_tagihan_tunggakan($koneksi, $nisn, $tahun_ajaran = null) {
         return false;
     }
 
-    // Cari data siswa
     $q_siswa = mysqli_query($koneksi, "SELECT s.*, k.nama_kelas FROM siswa s JOIN kelas k ON s.id_kelas = k.id_kelas WHERE s.nisn = '$nisn'");
     $d_siswa = mysqli_fetch_assoc($q_siswa);
     if (!$d_siswa) {
@@ -604,13 +640,12 @@ function cek_tagihan_tunggakan($koneksi, $nisn, $tahun_ajaran = null) {
     $id_kelas_siswa = $d_siswa['id_kelas'];
     $nama_kelas_siswa = $d_siswa['nama_kelas'];
     
-    // Daftar bulan akademik
     $months = ['Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni'];
     $limit_index = limit_index_bulan_tahun_ajaran($koneksi, $tahun_ajaran);
+    $min_index = get_bulan_masuk_siswa($koneksi, $nisn, $tahun_ajaran);
     
     $tagihan_tunggakan = [];
     
-    // Dapatkan semua jenis pembayaran aktif
     $q_jenis = mysqli_query($koneksi, "SELECT * FROM jenis_bayar WHERE status = 'Aktif' ORDER BY tipe_bayar ASC");
     
     while ($jb = mysqli_fetch_assoc($q_jenis)) {
@@ -620,13 +655,12 @@ function cek_tagihan_tunggakan($koneksi, $nisn, $tahun_ajaran = null) {
             $sisa = 0;
             
             if ($jb['tipe_bayar'] == 'Bulanan') {
-                // Dapatkan bulan yang sudah dibayar
                 $paid_months = ambil_bulan_bayar_tersimpan($koneksi, $nisn, $jb['id_jenis_bayar'], $tahun_ajaran);
                 
-                // Periksa bulan yang sudah jatuh tempo pada tahun ajaran ini.
                 foreach ($months as $index => $m) {
                     if ($limit_index < 0) continue;
                     if ($index > $limit_index) continue;
+                    if ($index < $min_index) continue;
                     
                     if (!in_array($m, $paid_months)) {
                         $unpaid_details[] = $m;
@@ -638,7 +672,6 @@ function cek_tagihan_tunggakan($koneksi, $nisn, $tahun_ajaran = null) {
                     $is_fully_paid = true;
                 }
             } else {
-                // Cicilan / Bebas
                 $total_bayar = ambil_total_bayar_tersimpan($koneksi, $nisn, $jb['id_jenis_bayar'], $tahun_ajaran);
                 $sisa = $jb['nominal'] - $total_bayar;
                 

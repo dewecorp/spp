@@ -11,6 +11,7 @@ if (!isset($_GET['nisn']) || !isset($_GET['id_kelas'])) {
 $nisn = $_GET['nisn'];
 $id_kelas = $_GET['id_kelas'];
 ensure_pembayaran_tahun_ajaran_column($koneksi);
+ensure_siswa_tanggal_masuk_column($koneksi);
 $tahun_ajaran = isset($_GET['tahun_ajaran']) && trim((string)$_GET['tahun_ajaran']) !== ''
     ? trim((string)$_GET['tahun_ajaran'])
     : get_tahun_ajaran_aktif($koneksi);
@@ -37,11 +38,11 @@ $q_jb = mysqli_query($koneksi, "SELECT * FROM jenis_bayar WHERE status = 'Aktif'
                     <span class="app-badge app-badge-info">Tahun Ajaran <?= htmlspecialchars($tahun_ajaran, ENT_QUOTES, 'UTF-8') ?></span>
                 </div>
                 <div class="flex items-center gap-2">
-                    <?php if (!$is_tahun_ajaran_aktif): ?>
+                    <?php if (!$is_tahun_ajaran_aktif && !in_array(trim($nama_kelas), ['1', 'I'])): ?>
                         <a href="bayar_tagihan.php?nisn=<?= $nisn ?>&id_kelas=<?= $id_kelas ?>&tahun_ajaran=<?= urlencode($tahun_ajaran) ?>" class="inline-flex h-10 w-auto px-4 items-center justify-center rounded-lg bg-success text-white shadow-sm transition hover:bg-success-600">
                             <i class="mdi mdi-cash mr-2"></i> Bayar Tagihan
                         </a>
-                    <?php else: ?>
+                    <?php elseif ($is_tahun_ajaran_aktif): ?>
                         <span class="app-badge app-badge-warning">Pembayaran tahun berjalan lewat menu Transaksi</span>
                     <?php endif; ?>
                     <a href="export_excel.php?nisn=<?= $nisn ?>&id_kelas=<?= $id_kelas ?>" 

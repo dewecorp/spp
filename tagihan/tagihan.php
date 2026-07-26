@@ -42,6 +42,7 @@ if (isset($_GET['id_kelas'])) {
     $id_kelas = $_GET['id_kelas'];
     ensure_pembayaran_tahun_ajaran_column($koneksi);
     ensure_pembayaran_arsip_table($koneksi);
+    ensure_siswa_tanggal_masuk_column($koneksi);
     $d_kelas = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT nama_kelas FROM kelas WHERE id_kelas = '$id_kelas'"));
     $is_kelas_alumni = kelas_adalah_alumni($d_kelas['nama_kelas'] ?? '');
     $tahun_ajaran_aktif = get_tahun_ajaran_aktif($koneksi);
@@ -52,20 +53,23 @@ if (isset($_GET['id_kelas'])) {
     }
     $alumni_lunas_tagihan = $is_kelas_alumni ? daftar_siswa_alumni_lunas($koneksi, $tahun_ajaran_aktif) : [];
     $tahun_aktif_boleh_ditagihkan = tahun_ajaran_boleh_ditagihkan($koneksi, $tahun_ajaran_aktif);
+    $is_kelas_satu = in_array(trim($d_kelas['nama_kelas'] ?? ''), ['1', 'I'], true);
     $tahun_ajaran_opsi = (!$is_kelas_alumni && $tahun_aktif_boleh_ditagihkan) ? [$tahun_ajaran_aktif] : [];
-    if ($tahun_ajaran_sebelumnya !== '') {
+    if ($tahun_ajaran_sebelumnya !== '' && !$is_kelas_satu) {
         $tahun_ajaran_opsi[] = $tahun_ajaran_sebelumnya;
     }
     $tahun_queries = [
         "SELECT DISTINCT tahun_ajaran FROM pembayaran WHERE tahun_ajaran IS NOT NULL AND tahun_ajaran <> ''",
         "SELECT DISTINCT tahun_ajaran FROM pembayaran_arsip WHERE tahun_ajaran IS NOT NULL AND tahun_ajaran <> ''",
     ];
-    foreach ($tahun_queries as $tahun_sql) {
-        $q_tahun_pembayaran = mysqli_query($koneksi, $tahun_sql);
-        while ($row_tahun = $q_tahun_pembayaran ? mysqli_fetch_assoc($q_tahun_pembayaran) : null) {
-            $tahun_row = trim((string)($row_tahun['tahun_ajaran'] ?? ''));
-            if ($tahun_row !== '' && (!$is_kelas_alumni || $tahun_row !== $tahun_ajaran_aktif)) {
-                $tahun_ajaran_opsi[] = $tahun_row;
+    if (!$is_kelas_satu) {
+        foreach ($tahun_queries as $tahun_sql) {
+            $q_tahun_pembayaran = mysqli_query($koneksi, $tahun_sql);
+            while ($row_tahun = $q_tahun_pembayaran ? mysqli_fetch_assoc($q_tahun_pembayaran) : null) {
+                $tahun_row = trim((string)($row_tahun['tahun_ajaran'] ?? ''));
+                if ($tahun_row !== '' && (!$is_kelas_alumni || $tahun_row !== $tahun_ajaran_aktif)) {
+                    $tahun_ajaran_opsi[] = $tahun_row;
+                }
             }
         }
     }

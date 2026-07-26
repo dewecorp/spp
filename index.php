@@ -84,7 +84,8 @@ while ($row = mysqli_fetch_assoc($q_jenis_total)) {
     $jenis_totals[] = $row;
 }
 
-$total_tagihan = 0;
+$total_tagihan_aktif = 0;
+$total_tunggakan = 0;
 $kelas_tunggakan = [];
 $q_kelas_dashboard = mysqli_query($koneksi, "SELECT id_kelas, nama_kelas FROM kelas ORDER BY nama_kelas ASC");
 while ($kelas_dashboard = mysqli_fetch_assoc($q_kelas_dashboard)) {
@@ -95,6 +96,7 @@ while ($kelas_dashboard = mysqli_fetch_assoc($q_kelas_dashboard)) {
         'total_siswa' => 0,
         'siswa_tunggakan' => 0,
         'total_tagihan' => 0,
+        'total_tagihan_aktif' => 0,
         'siswa' => [],
     ];
 }
@@ -114,11 +116,25 @@ while ($siswa_tagihan = mysqli_fetch_assoc($q_siswa_tagihan)) {
             'total_siswa' => 0,
             'siswa_tunggakan' => 0,
             'total_tagihan' => 0,
+            'total_tagihan_aktif' => 0,
             'siswa' => [],
         ];
     }
 
     $kelas_tunggakan[$id_kelas_dashboard]['total_siswa']++;
+
+    // Tagihan tahun aktif
+    $tagihan_aktif = cek_tagihan_tunggakan($koneksi, $siswa_tagihan['nisn'], $tahun_ajaran_aktif_dashboard);
+    if ($tagihan_aktif) {
+        $total_siswa_aktif = 0;
+        foreach ($tagihan_aktif as $item) {
+            $total_siswa_aktif += (int) ($item['sisa'] ?? 0);
+        }
+        $total_tagihan_aktif += $total_siswa_aktif;
+        $kelas_tunggakan[$id_kelas_dashboard]['total_tagihan_aktif'] += $total_siswa_aktif;
+    }
+
+    // Tunggakan tahun lampau
     $tagihan_siswa_per_tahun = cek_tunggakan_tahun_ajaran_lama($koneksi, $siswa_tagihan['nisn'], $tahun_ajaran_aktif_dashboard);
     if (!$tagihan_siswa_per_tahun) {
         continue;
@@ -137,7 +153,7 @@ while ($siswa_tagihan = mysqli_fetch_assoc($q_siswa_tagihan)) {
         continue;
     }
 
-    $total_tagihan += $total_tagihan_siswa;
+    $total_tunggakan += $total_tagihan_siswa;
     $kelas_tunggakan[$id_kelas_dashboard]['siswa_tunggakan']++;
     $kelas_tunggakan[$id_kelas_dashboard]['total_tagihan'] += $total_tagihan_siswa;
     $kelas_tunggakan[$id_kelas_dashboard]['siswa'][] = [
@@ -204,7 +220,7 @@ $q_aktivitas = mysqli_query($koneksi, "
         ['label' => 'Jumlah Siswa', 'value' => number_format($jml_siswa), 'icon' => 'mdi-account-multiple', 'tone' => 'emerald'],
         ['label' => 'Jenis Bayar Aktif', 'value' => number_format($jml_jenis), 'icon' => 'mdi-receipt-text', 'tone' => 'sky'],
         ['label' => 'Total Pembayaran', 'value' => 'Rp ' . number_format($total_bayar, 0, ',', '.'), 'icon' => 'mdi-cash-multiple', 'tone' => 'violet'],
-        ['label' => 'Total Tagihan', 'value' => 'Rp ' . number_format($total_tagihan, 0, ',', '.'), 'icon' => 'mdi-file-document-alert', 'tone' => 'amber'],
+        ['label' => 'Total Tagihan (Thn Aktif)', 'value' => 'Rp ' . number_format($total_tagihan_aktif, 0, ',', '.'), 'icon' => 'mdi-file-document-alert', 'tone' => 'amber'],
     ];
     foreach ($summary_cards as $card) :
         $tone_class = [
@@ -274,7 +290,7 @@ $q_aktivitas = mysqli_query($koneksi, "
         </div>
         <div class="inline-flex w-fit items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-bold text-amber-700">
             <i class="mdi mdi-file-document-alert"></i>
-            Tunggakan: Rp <?= number_format($total_tagihan, 0, ',', '.') ?>
+            Tunggakan: Rp <?= number_format($total_tunggakan, 0, ',', '.') ?>
         </div>
     </div>
 
