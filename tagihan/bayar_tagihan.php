@@ -64,8 +64,8 @@ if (isset($_POST['bayar_tagihan'])) {
                     $success_count++;
                 }
                 
-                mysqli_commit($koneksi);
                 logActivity($koneksi, 'Create', "Membayar tagihan tunggakan NISN: $nisn, Tahun Ajaran: $tahun_ajaran, No Transaksi: $no_transaksi");
+                mysqli_commit($koneksi);
                 echo "<script>
                     Swal.fire({
                         title: 'Berhasil',

@@ -671,14 +671,13 @@ if ($action === 'simpan_pembayaran' || $action === 'bayar' || $action === 'poton
         }
 
         $id_pembayaran = mysqli_insert_id($koneksi);
+        if (function_exists('logActivity')) {
+            logActivity($koneksi, 'Create', "Menerima pembayaran ETAB No: $no_transaksi NISN: $nisn");
+        }
         mysqli_commit($koneksi);
     } catch (Exception $e) {
         mysqli_rollback($koneksi);
         etab_output(['status' => 'error', 'message' => $e->getMessage()], 500);
-    }
-
-    if (function_exists('logActivity')) {
-        logActivity($koneksi, 'Create', "Menerima pembayaran ETAB No: $no_transaksi NISN: $nisn");
     }
 
     etab_output([

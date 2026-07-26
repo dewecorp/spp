@@ -486,6 +486,7 @@ if (isset($_POST['tambah'])) {
                 throw new Exception('Tidak ada item pembayaran yang valid untuk disimpan.');
             }
 
+            logActivity($koneksi, 'Create', "Menambah $success_count transaksi pembayaran NISN: $nisn");
             mysqli_commit($koneksi);
             mysqli_stmt_close($stmt_kelas_siswa);
             mysqli_stmt_close($stmt_cek_jb);
@@ -497,7 +498,6 @@ if (isset($_POST['tambah'])) {
     }
 
     if ($success_count > 0 && $error_tambah === '') {
-        logActivity($koneksi, 'Create', "Menambah $success_count transaksi pembayaran NISN: $nisn");
         echo "<script>
             Swal.fire({
                 title: 'Berhasil',
