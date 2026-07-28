@@ -1,9 +1,26 @@
 <?php
 $title = 'Backup & Restore';
+$backup_dir = "../backup_db/";
+
+// Handler Download - harus sebelum output HTML
+if (isset($_GET['aksi']) && $_GET['aksi'] == 'download' && isset($_GET['file'])) {
+    $file = $_GET['file'];
+    $filepath = $backup_dir . $file;
+    if (file_exists($filepath)) {
+        header('Content-Description: File Transfer');
+        header('Content-Type: application/octet-stream');
+        header('Content-Disposition: attachment; filename="'.basename($filepath).'"');
+        header('Expires: 0');
+        header('Cache-Control: must-revalidate');
+        header('Pragma: public');
+        header('Content-Length: ' . filesize($filepath));
+        readfile($filepath);
+        exit;
+    }
+}
+
 include '../template/header.php';
 include '../template/sidebar.php';
-
-$backup_dir = "../backup_db/";
 
 // Handler Hapus
 if (isset($_GET['aksi']) && $_GET['aksi'] == 'hapus' && isset($_GET['file'])) {
@@ -22,23 +39,6 @@ if (isset($_GET['aksi']) && $_GET['aksi'] == 'hapus' && isset($_GET['file'])) {
                 window.location = 'backup_restore.php';
             });
         </script>";
-    }
-}
-
-// Handler Download
-if (isset($_GET['aksi']) && $_GET['aksi'] == 'download' && isset($_GET['file'])) {
-    $file = $_GET['file'];
-    $filepath = $backup_dir . $file;
-    if (file_exists($filepath)) {
-        header('Content-Description: File Transfer');
-        header('Content-Type: application/octet-stream');
-        header('Content-Disposition: attachment; filename="'.basename($filepath).'"');
-        header('Expires: 0');
-        header('Cache-Control: must-revalidate');
-        header('Pragma: public');
-        header('Content-Length: ' . filesize($filepath));
-        readfile($filepath);
-        exit;
     }
 }
 
@@ -127,24 +127,62 @@ if (isset($_POST['restore'])) {
             
             echo "<script>
                 Swal.fire({
-                    title: 'Berhasil!',
-                    text: 'Database berhasil direstore.',
-                    icon: 'success',
-                    timer: 1500,
-                    showConfirmButton: false
-                }).then(() => {
-                    window.location = 'backup_restore.php';
+                    title: 'Proses Restore...',
+                    text: 'Sedang merestore database',
+                    icon: 'info',
+                    timer: 800,
+                    showConfirmButton: false,
+                    willClose: () => {
+                        Swal.fire({
+                            title: 'Berhasil!',
+                            text: 'Database berhasil direstore.',
+                            icon: 'success',
+                            timer: 1500,
+                            showConfirmButton: false
+                        }).then(() => {
+                            window.location = 'backup_restore.php';
+                        });
+                    }
                 });
             </script>";
         } else {
-             echo "<script>
+            echo "<script>
                 Swal.fire({
-                    title: 'Gagal!',
-                    text: 'Terjadi kesalahan saat restore: " . mysqli_error($koneksi) . "',
-                    icon: 'error'
+                    title: 'Proses Restore...',
+                    text: 'Sedang merestore database',
+                    icon: 'info',
+                    timer: 800,
+                    showConfirmButton: false,
+                    willClose: () => {
+                        Swal.fire({
+                            title: 'Gagal!',
+                            text: 'Terjadi kesalahan saat restore: " . mysqli_error($koneksi) . "',
+                            icon: 'error'
+                        });
+                    }
                 });
             </script>";
         }
+    } else {
+        $error_msg = '';
+        switch ($_FILES['file_sql']['error']) {
+            case UPLOAD_ERR_INI_SIZE:
+            case UPLOAD_ERR_FORM_SIZE:
+                $error_msg = 'Ukuran file terlalu besar.';
+                break;
+            case UPLOAD_ERR_NO_FILE:
+                $error_msg = 'Tidak ada file yang diupload.';
+                break;
+            default:
+                $error_msg = 'Gagal upload file (error ' . $_FILES['file_sql']['error'] . ').';
+        }
+        echo "<script>
+            Swal.fire({
+                title: 'Gagal!',
+                text: '$error_msg',
+                icon: 'error'
+            });
+        </script>";
     }
 }
 ?>
