@@ -27,6 +27,13 @@ foreach ($columns_to_add as $col => $type) {
     }
 }
 
+// Auto-migrate tahun_masuk column
+$check_tahun_masuk = mysqli_query($koneksi, "SHOW COLUMNS FROM siswa LIKE 'tahun_masuk'");
+if (mysqli_num_rows($check_tahun_masuk) == 0) {
+    mysqli_query($koneksi, "ALTER TABLE siswa ADD tahun_masuk VARCHAR(10) DEFAULT '' AFTER nama_wali");
+}
+// tahun_masuk kosong = murid lama, diisi manual via modal
+
 function pastikan_kelas_alumni($koneksi) {
     $q_alumni = mysqli_query($koneksi, "SELECT id_kelas FROM kelas WHERE LOWER(nama_kelas) = 'alumni' LIMIT 1");
     if ($q_alumni && mysqli_num_rows($q_alumni) > 0) {
@@ -91,6 +98,9 @@ if (isset($_POST['import'])) {
                 if ($gender !== 'L' && $gender !== 'P') $gender = '-';
                 if (empty($tgl)) $tgl = '1900-01-01';
 
+                // Tahun masuk dari kolom H (index 7) di template
+                $tahun_masuk = mysqli_real_escape_string($koneksi, trim($row[7] ?? ''));
+
                 $q_kelas = mysqli_query($koneksi, "SELECT id_kelas FROM kelas WHERE nama_kelas = '$nama_kelas'");
                 if (mysqli_num_rows($q_kelas) > 0) {
                     $d_kelas = mysqli_fetch_assoc($q_kelas);
@@ -98,8 +108,8 @@ if (isset($_POST['import'])) {
 
                     $cek = mysqli_query($koneksi, "SELECT nisn FROM siswa WHERE nisn = '$nisn'");
                     if (mysqli_num_rows($cek) == 0) {
-                        $insert = mysqli_query($koneksi, "INSERT INTO siswa (nisn, nama, id_kelas, alamat, no_telp, jenis_kelamin, tempat_lahir, tgl_lahir, nama_wali, tanggal_masuk)
-                            VALUES ('$nisn', '$nama', '$id_kelas', '-', '$no_telp', '$gender', '$tempat', '$tgl', '$wali', CURDATE())");
+                        $insert = mysqli_query($koneksi, "INSERT INTO siswa (nisn, nama, id_kelas, alamat, no_telp, jenis_kelamin, tempat_lahir, tgl_lahir, nama_wali, tahun_masuk)
+                            VALUES ('$nisn', '$nama', '$id_kelas', '-', '$no_telp', '$gender', '$tempat', '$tgl', '$wali', '$tahun_masuk')");
                         if ($insert) {
                             $success_count++;
                         } else {
@@ -151,6 +161,7 @@ if (isset($_POST['tambah'])) {
     $tempat = $_POST['tempat_lahir'];
     $tgl = $_POST['tgl_lahir'];
     $wali = $_POST['nama_wali'];
+    $tahun_masuk = ''; // Diisi oleh sinkron SIMAD
     $alamat = '-'; // Default
     $no_telp = ''; // Default
 
@@ -159,8 +170,8 @@ if (isset($_POST['tambah'])) {
     if (mysqli_num_rows($cek) > 0) {
          echo "<script>Swal.fire('Gagal', 'NISN sudah ada!', 'error');</script>";
     } else {
-        $query = mysqli_query($koneksi, "INSERT INTO siswa (nisn, nama, id_kelas, alamat, no_telp, jenis_kelamin, tempat_lahir, tgl_lahir, nama_wali, tanggal_masuk)
-            VALUES ('$nisn', '$nama', '$id_kelas', '$alamat', '$no_telp', '$gender', '$tempat', '$tgl', '$wali', CURDATE())");
+        $query = mysqli_query($koneksi, "INSERT INTO siswa (nisn, nama, id_kelas, alamat, no_telp, jenis_kelamin, tempat_lahir, tgl_lahir, nama_wali, tahun_masuk)
+            VALUES ('$nisn', '$nama', '$id_kelas', '$alamat', '$no_telp', '$gender', '$tempat', '$tgl', '$wali', '$tahun_masuk')");
         if ($query) {
             logActivity($koneksi, 'Create', "Menambah data siswa baru: $nama ($nisn)");
             echo "<script>
@@ -467,8 +478,9 @@ $jumlah_siswa = mysqli_num_rows($query_siswa);
                                 <th>Nama</th>
                                 <th>L/P</th>
                                 <th>Kelas</th>
-                                <th>Wali</th>
-                                <th class="aksi-col dt-nowrap text-right" style="min-width:110px;">Aksi</th>
+                                    <th>Wali</th>
+                                    <th>Tanggal Masuk</th>
+                                    <th class="aksi-col dt-nowrap text-right" style="min-width:110px;">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -491,6 +503,7 @@ $jumlah_siswa = mysqli_num_rows($query_siswa);
                                     <td><?= $row['jenis_kelamin'] ?></td>
                                     <td><?= $row['nama_kelas'] ?></td>
                                     <td><?= $row['nama_wali'] ?></td>
+                                    <td><?= !empty($row['tanggal_masuk']) && $row['tanggal_masuk'] != '0000-00-00' ? date('d-m-Y', strtotime($row['tanggal_masuk'])) : '-' ?></td>
                                     <td class="aksi-col dt-nowrap text-right">
                                         <button type="button" class="app-button app-button-warning app-button-sm" data-tailwind-modal-target="#modalEdit<?= $row['nisn'] ?>">
                                             <i class="mdi mdi-pencil"></i>
@@ -559,11 +572,11 @@ $jumlah_siswa = mysqli_num_rows($query_siswa);
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <div class="app-field">
-                                                        <label>Nama Wali</label>
-                                                        <input type="text" name="nama_wali" class="app-control" value="<?= $row['nama_wali'] ?>">
-                                                    </div>
+                                                <div class="app-field">
+                                                    <label>Nama Wali</label>
+                                                    <input type="text" name="nama_wali" class="app-control" value="<?= $row['nama_wali'] ?>">
                                                 </div>
+                                            </div>
                                                 <div class="flex shrink-0 items-center justify-end gap-3 border-t border-slate-200 px-6 py-4">
                                                     <button type="button" class="app-button app-button-secondary" data-tailwind-modal-close>Batal</button>
                                                     <button type="submit" name="edit" class="app-button app-button-primary">Simpan</button>

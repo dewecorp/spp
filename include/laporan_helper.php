@@ -593,23 +593,37 @@ function ensure_siswa_tanggal_masuk_column($koneksi) {
     if (!$col || mysqli_num_rows($col) == 0) {
         mysqli_query($koneksi, "ALTER TABLE siswa ADD tanggal_masuk DATE NULL AFTER nama_wali");
     }
-    mysqli_query($koneksi, "UPDATE siswa s JOIN (SELECT nisn, MIN(tgl_bayar) AS tgl_awal FROM pembayaran GROUP BY nisn) p ON s.nisn = p.nisn SET s.tanggal_masuk = p.tgl_awal WHERE s.tanggal_masuk IS NULL");
-    mysqli_query($koneksi, "UPDATE siswa SET tanggal_masuk = CURDATE() WHERE tanggal_masuk IS NULL");
+
+    $col_tm = mysqli_query($koneksi, "SHOW COLUMNS FROM siswa LIKE 'tahun_masuk'");
+    if (!$col_tm || mysqli_num_rows($col_tm) == 0) {
+        mysqli_query($koneksi, "ALTER TABLE siswa ADD tahun_masuk VARCHAR(10) DEFAULT '' AFTER nama_wali");
+    }
 }
 
 function get_bulan_masuk_siswa($koneksi, $nisn, $tahun_ajaran) {
     $nisn_esc = mysqli_real_escape_string($koneksi, $nisn);
-    $q = mysqli_query($koneksi, "SELECT tanggal_masuk FROM siswa WHERE nisn = '$nisn_esc' LIMIT 1");
+    $q = mysqli_query($koneksi, "SELECT tahun_masuk, tanggal_masuk FROM siswa WHERE nisn = '$nisn_esc' LIMIT 1");
     if (!$q || !($row = mysqli_fetch_assoc($q))) return 0;
-    $tanggal_masuk = trim($row['tanggal_masuk'] ?? '');
-    if (empty($tanggal_masuk)) return 0;
     if (!preg_match('/^(\d{4})\s*\/\s*(\d{4})$/', $tahun_ajaran, $m)) return 0;
     $tahun_mulai = (int)$m[1];
+
+    // Prioritaskan tahun_masuk (diisi manual)
+    $tahun_masuk = trim($row['tahun_masuk'] ?? '');
+    if ($tahun_masuk !== '' && ctype_digit($tahun_masuk)) {
+        $tahun_masuk_int = (int)$tahun_masuk;
+        $diff = ($tahun_masuk_int - $tahun_mulai) * 12;
+        if ($diff >= 12) return 12;
+        return max(0, $diff);
+    }
+
+    // Fallback: hitung dari tanggal_masuk
+    $tanggal_masuk = trim($row['tanggal_masuk'] ?? '');
+    if (empty($tanggal_masuk)) return 0;
     $masuk = DateTime::createFromFormat('Y-m-d', $tanggal_masuk);
     if (!$masuk) return 0;
     $bulan_masuk = (int)$masuk->format('n');
-    $tahun_masuk = (int)$masuk->format('Y');
-    $diff = ($tahun_masuk - $tahun_mulai) * 12 + ($bulan_masuk - 7);
+    $tahun_masuk_int = (int)$masuk->format('Y');
+    $diff = ($tahun_masuk_int - $tahun_mulai) * 12 + ($bulan_masuk - 7);
     if ($diff >= 12) return 12;
     return max(0, $diff);
 }
