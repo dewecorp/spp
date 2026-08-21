@@ -258,6 +258,23 @@ function limit_index_bulan_tahun_ajaran($koneksi, $tahun_ajaran) {
     return max(0, min(11, $index));
 }
 
+/**
+ * Daftar bulan yang ditampilkan pada cetak tagihan.
+ * Semua bulan yang sudah berjalan (awal tahun ajaran s/d bulan sekarang).
+ * Tahun ajaran lampau (tunggakan): semua bulan.
+ */
+function daftar_bulan_tagihan_tampil($koneksi, $tahun_ajaran) {
+    $months = bulan_akademik_list();
+    $limit_index = limit_index_bulan_tahun_ajaran($koneksi, $tahun_ajaran);
+
+    if ($limit_index < 0) {
+        return [];
+    }
+
+    // Tampilkan semua bulan yang sudah berjalan
+    return array_slice($months, 0, $limit_index + 1);
+}
+
 function tahun_ajaran_sebelumnya($tahun_ajaran) {
     if (preg_match('/^(\d{4})\s*\/\s*(\d{4})$/', trim((string) $tahun_ajaran), $m)) {
         return ((int) $m[1] - 1) . '/' . ((int) $m[2] - 1);

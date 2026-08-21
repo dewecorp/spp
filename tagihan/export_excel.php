@@ -89,7 +89,9 @@ $no = 1;
 $total_tagihan = 0;
 
 $q_jb = mysqli_query($koneksi, "SELECT * FROM jenis_bayar WHERE status = 'Aktif' ORDER BY tipe_bayar ASC, nama_pembayaran ASC");
-$months = ['Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni'];
+
+// Bulan yang ditampilkan: bulan berjalan saja utk tahun ajaran aktif
+$months = daftar_bulan_tagihan_tampil($koneksi, $tahun_ajaran);
 
 // Calculate current month index (relative to school year starting July)
 $limit_index = limit_index_bulan_tahun_ajaran($koneksi, $tahun_ajaran);
@@ -125,9 +127,7 @@ while ($jb = mysqli_fetch_assoc($q_jb)) {
         }
         
         $status_parts = [];
-        foreach ($months as $index => $m) {
-            if ($index > $limit_index) continue; // Skip future months
-
+        foreach ($months as $m) {
             $is_paid = in_array($m, $paid_months);
             
             if (!$is_paid) {

@@ -122,7 +122,10 @@ $boleh_ditagihkan = tahun_ajaran_boleh_ditagihkan($koneksi, $tahun_ajaran);
             <?php
             $no = 1;
             $total_tagihan = 0;
-            
+
+            // Bulan yang ditampilkan: bulan berjalan saja utk tahun ajaran aktif
+            $months = daftar_bulan_tagihan_tampil($koneksi, $tahun_ajaran);
+
             // Calculate current month index (relative to school year starting July)
             $limit_index = limit_index_bulan_tahun_ajaran($koneksi, $tahun_ajaran);
             
@@ -156,8 +159,7 @@ $boleh_ditagihkan = tahun_ajaran_boleh_ditagihkan($koneksi, $tahun_ajaran);
                     
                     $is_extracurricular = stripos($jb['nama_pembayaran'], 'ekstrakurikuler') !== false;
                     $has_unpaid = false;
-                    foreach ($months as $index => $m) {
-                        if (!$is_extracurricular && $index > $limit_index) continue;
+                    foreach ($months as $m) {
                         if (!in_array($m, $paid_months)) {
                             $has_unpaid = true;
                             break;
@@ -191,7 +193,7 @@ $boleh_ditagihkan = tahun_ajaran_boleh_ditagihkan($koneksi, $tahun_ajaran);
                 echo "Rp " . number_format($jb['nominal'], 0, ',', '.');
                 if ($jb['tipe_bayar'] == 'Bulanan' && stripos($jb['nama_pembayaran'], 'ekstrakurikuler') !== false) {
                     $unpaid_count_nominal = 0;
-                    foreach ($months as $index_nominal => $month_nominal) {
+                    foreach ($months as $month_nominal) {
                         if (!in_array($month_nominal, $paid_months)) {
                             $unpaid_count_nominal++;
                         }
@@ -208,9 +210,7 @@ $boleh_ditagihkan = tahun_ajaran_boleh_ditagihkan($koneksi, $tahun_ajaran);
                     echo '<div style="display: table; width: 100%;">';
                     $counter = 0;
                     echo '<div style="display: table-row;">';
-                    foreach ($months as $index => $m) {
-                        if (!$is_extracurricular && $index > $limit_index) continue; // Skip future months for non-ekskul
-
+                    foreach ($months as $m) {
                         $is_paid = in_array($m, $paid_months);
                         $symbol = $is_paid ? '&#10004;' : '&#10006;';
                         $color = $is_paid ? 'green' : 'red';

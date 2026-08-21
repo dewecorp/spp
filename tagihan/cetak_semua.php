@@ -179,7 +179,16 @@ while ($d_siswa = mysqli_fetch_assoc($q_siswa)) {
     $displayed_bills = 0;
     
     if ($tagihan_siswa) {
+    // Bulan yang ditampilkan: bulan berjalan saja utk tahun ajaran aktif
+    $bulan_tampil = daftar_bulan_tagihan_tampil($koneksi, $tahun_ajaran_cetak);
     foreach ($tagihan_siswa as $tagihan) {
+        $unpaid_details = $tagihan['unpaid_details'];
+        if ($tagihan['tipe_bayar'] == 'Bulanan' && !empty($bulan_tampil)) {
+            $unpaid_details = array_values(array_intersect($unpaid_details, $bulan_tampil));
+            if (empty($unpaid_details)) {
+                continue;
+            }
+        }
         $displayed_bills++;
         
         echo "<tr>";
@@ -194,19 +203,22 @@ while ($d_siswa = mysqli_fetch_assoc($q_siswa)) {
             echo '<div style="display: table; width: 100%;">';
             $month_counter = 0;
             echo '<div style="display: table-row;">';
-            foreach ($tagihan['unpaid_details'] as $m) {
+            foreach ($unpaid_details as $m) {
                 echo '<div style="display: table-cell; width: 50%; padding-bottom: 1px; font-size: 10pt;">';
                 echo '<span style="color: red;">&#10006;</span> ' . $m;
                 echo '</div>';
-                
+
                 $month_counter++;
-                if ($month_counter % 2 == 0 && $month_counter < count($tagihan['unpaid_details'])) {
+                if ($month_counter % 2 == 0 && $month_counter < count($unpaid_details)) {
                     echo '</div><div style="display: table-row;">';
                 }
             }
             echo '</div></div>';
-            $total_tagihan += (int)$tagihan['sisa'];
-            echo '<div class="text-danger" style="margin-top:3px;">Jumlah Tagihan: Rp ' . number_format($tagihan['sisa'], 0, ',', '.') . '</div>';
+            $sisa_tampil = array_sum(array_map(static function ($bulan) use ($tagihan) {
+                return (int)$tagihan['nominal'];
+            }, $unpaid_details));
+            $total_tagihan += $sisa_tampil;
+            echo '<div class="text-danger" style="margin-top:3px;">Jumlah Tagihan: Rp ' . number_format($sisa_tampil, 0, ',', '.') . '</div>';
             
         } else {
             $total_tagihan += (int)$tagihan['sisa'];

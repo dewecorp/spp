@@ -70,8 +70,8 @@ $q_jb = mysqli_query($koneksi, "SELECT * FROM jenis_bayar WHERE status = 'Aktif'
                     <tbody>
                             <?php
                             $no = 1;
-                            $months = ['Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni'];
-                            
+                            $months = daftar_bulan_tagihan_tampil($koneksi, $tahun_ajaran);
+
                             // Calculate current month index (relative to school year starting July)
                             $limit_index = limit_index_bulan_tahun_ajaran($koneksi, $tahun_ajaran);
                             $boleh_ditagihkan = tahun_ajaran_boleh_ditagihkan($koneksi, $tahun_ajaran);
@@ -102,9 +102,7 @@ $q_jb = mysqli_query($koneksi, "SELECT * FROM jenis_bayar WHERE status = 'Aktif'
 
                                     // Check if there are any due unpaid months to display
                                     $has_unpaid = false;
-                                    foreach ($months as $index => $m) {
-                                        if ($limit_index < 0) continue;
-                                        if ($index > $limit_index) continue;
+                                    foreach ($months as $m) {
                                         if (!in_array($m, $paid_months)) {
                                             $has_unpaid = true;
                                             break;
@@ -140,13 +138,12 @@ $q_jb = mysqli_query($koneksi, "SELECT * FROM jenis_bayar WHERE status = 'Aktif'
 
                                 if ($jb['tipe_bayar'] == 'Bulanan') {
                                     echo '<div class="flex flex-wrap gap-3">';
-                                    foreach ($months as $index => $m) {
-                                        if ($limit_index < 0) continue;
-                                        if ($index > $limit_index) continue; // Skip future months
-                                        if (in_array($m, $paid_months)) continue; // Skip paid months
+                                    foreach ($months as $m) {
+                                        $is_paid = in_array($m, $paid_months);
+                                        $icon = $is_paid
+                                            ? '<i class="mdi mdi-check-circle text-green-500" style="font-size: 1.2em;"></i>'
+                                            : '<i class="mdi mdi-close-circle text-red-500" style="font-size: 1.2em;"></i>';
 
-                                        $icon = '<i class="mdi mdi-close-circle text-red-500" style="font-size: 1.2em;"></i>';
-                                        
                                         echo '<div class="inline-flex items-center gap-2">';
                                         echo '<span>' . $icon . '</span>';
                                         echo '<span>' . $m . '</span>';
