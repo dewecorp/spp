@@ -17,9 +17,14 @@ if (isset($_GET['action']) && $_GET['action'] === 'test_connection') {
         exit;
     }
 
-    $baseUrl = trim($ep['base_url']);
-    $apiKey  = trim($ep['api_key']);
+    $baseUrl = isset($_GET['base_url']) && trim($_GET['base_url']) !== '' ? trim($_GET['base_url']) : trim($ep['base_url']);
+    $apiKey  = isset($_GET['api_key']) ? trim($_GET['api_key']) : trim($ep['api_key']);
     $app     = strtolower(trim($ep['aplikasi']));
+
+    // Update URL & API key terkini ke database
+    $url_db_esc = mysqli_real_escape_string($koneksi, $baseUrl);
+    $key_db_esc = mysqli_real_escape_string($koneksi, $apiKey);
+    mysqli_query($koneksi, "UPDATE endpoint_masuk SET base_url = '$url_db_esc', api_key = '$key_db_esc' WHERE id = $id");
 
     if (empty($baseUrl)) {
         $now = date('Y-m-d H:i:s');
@@ -37,71 +42,92 @@ if (isset($_GET['action']) && $_GET['action'] === 'test_connection') {
         exit;
     }
 
-    // Tentukan URL test berdasarkan tipe aplikasi
-    if ($app === 'simad') {
-        $targetUrl = rtrim($baseUrl, '/') . "/api/v1/students.php?api_key=" . urlencode($apiKey);
-    } elseif ($app === 'etab') {
-        $targetUrl = rtrim($baseUrl, '/') . "/api/etab.php?action=check&api_key=" . urlencode($apiKey);
-    } else {
-        $targetUrl = rtrim($baseUrl, '/') . "/api/v1.php?action=health&api_key=" . urlencode($apiKey);
+    // Susun daftar kandidat URL untuk dites koneksi secara cerdas
+    $urlsToTest = [];
+    
+    // 1. Base URL persis seperti yang diinput user
+    $urlsToTest[] = $baseUrl;
+
+    // 2. Base URL + query api_key
+    if (strpos($baseUrl, 'api_key=') === false && !empty($apiKey)) {
+        $sep = (strpos($baseUrl, '?') !== false) ? '&' : '?';
+        $urlsToTest[] = $baseUrl . $sep . "api_key=" . urlencode($apiKey);
     }
 
-    $startTime = microtime(true);
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $targetUrl);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
-    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-    curl_setopt($ch, CURLOPT_USERAGENT, 'Sibayar-Integration-Tester/1.0');
-    
-    $response = curl_exec($ch);
-    $latency  = round((microtime(true) - $startTime) * 1000);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $curlErr  = curl_error($ch);
-    curl_close($ch);
+    // Extrak Root Domain (scheme://host:port)
+    $parsed = parse_url($baseUrl);
+    $scheme = $parsed['scheme'] ?? 'http';
+    $host   = $parsed['host'] ?? '';
+    $port   = isset($parsed['port']) ? ':' . $parsed['port'] : '';
+    $rootUrl = (!empty($host)) ? "$scheme://$host$port" : rtrim($baseUrl, '/');
 
-    // If initial endpoint gave 404/405, attempt fallback root ping
-    if ($httpCode === 404 || $httpCode === 405 || ($httpCode === 0 && !empty($curlErr))) {
-        $fallbackUrl = rtrim($baseUrl, '/');
+    // 3. Endpoint standar sesuai aplikasi
+    if ($app === 'simad') {
+        $urlsToTest[] = rtrim($rootUrl, '/') . "/api/v1/students.php?api_key=" . urlencode($apiKey);
+        $urlsToTest[] = rtrim($rootUrl, '/') . "/api/v1/students.php";
+    } elseif ($app === 'etab') {
+        $urlsToTest[] = rtrim($rootUrl, '/') . "/api/etab.php?action=check&api_key=" . urlencode($apiKey);
+        $urlsToTest[] = rtrim($rootUrl, '/') . "/api/etab.php";
+        $urlsToTest[] = rtrim($rootUrl, '/') . "/api/payment.php";
+    } else {
+        $urlsToTest[] = rtrim($rootUrl, '/') . "/api/v1.php?action=health&api_key=" . urlencode($apiKey);
+    }
+
+    // 4. Root URL domain fallback
+    $urlsToTest[] = $rootUrl;
+
+    $urlsToTest = array_values(array_unique(array_filter($urlsToTest)));
+
+    $isOk = false;
+    $lastHttpCode = 0;
+    $lastCurlErr  = '';
+    $lastLatency  = 0;
+
+    foreach ($urlsToTest as $targetUrl) {
+        $startTime = microtime(true);
         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $fallbackUrl);
+        curl_setopt($ch, CURLOPT_URL, $targetUrl);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 6);
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
         curl_setopt($ch, CURLOPT_USERAGENT, 'Sibayar-Integration-Tester/1.0');
-        $res2 = curl_exec($ch);
-        $code2 = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+        $response = curl_exec($ch);
+        $latency  = round((microtime(true) - $startTime) * 1000);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlErr  = curl_error($ch);
         curl_close($ch);
-        if ($code2 >= 200 && $code2 < 400) {
-            $httpCode = $code2;
-            $response = $res2;
+
+        $lastHttpCode = $httpCode;
+        $lastCurlErr  = $curlErr;
+        $lastLatency  = $latency;
+
+        if ($httpCode >= 200 && $httpCode < 400 && $response !== false) {
+            $isOk = true;
+            break;
         }
     }
 
     $now = date('Y-m-d H:i:s');
-    $isOk = ($httpCode >= 200 && $httpCode < 400 && $response !== false);
 
     if ($isOk) {
         $status_txt = 'OK';
-        $detail_txt = "$now\nHTTP $httpCode OK\n{$latency}ms";
+        $detail_txt = "$now\nHTTP $lastHttpCode OK\n{$lastLatency}ms";
         $detail_esc = mysqli_real_escape_string($koneksi, $detail_txt);
         mysqli_query($koneksi, "UPDATE endpoint_masuk SET tes_terakhir_status = '$status_txt', tes_terakhir_detail = '$detail_esc' WHERE id = $id");
 
-        $badge_html = '<div class="text-xs text-center font-medium"><span class="font-bold text-emerald-600 block">OK</span><span class="text-[11px] text-slate-500 block leading-tight mt-0.5">' . $now . '<br>HTTP ' . $httpCode . ' OK<br>' . $latency . 'ms</span></div>';
+        $badge_html = '<div class="text-xs text-center font-medium"><span class="font-bold text-emerald-600 block">OK</span><span class="text-[11px] text-slate-500 block leading-tight mt-0.5">' . $now . '<br>HTTP ' . $lastHttpCode . ' OK<br>' . $lastLatency . 'ms</span></div>';
         echo json_encode([
             'status' => 'success',
-            'message' => "Koneksi Berhasil! HTTP $httpCode OK ({$latency}ms)",
+            'message' => "Koneksi Berhasil! HTTP $lastHttpCode OK ({$lastLatency}ms)",
             'badge_html' => $badge_html
         ]);
     } else {
         $status_txt = 'GAGAL';
-        $reason = !empty($curlErr) ? "Err: $curlErr" : "HTTP $httpCode";
+        $reason = !empty($lastCurlErr) ? "Err: $lastCurlErr" : "HTTP $lastHttpCode";
         $detail_txt = "$now\n$reason";
         $detail_esc = mysqli_real_escape_string($koneksi, $detail_txt);
         mysqli_query($koneksi, "UPDATE endpoint_masuk SET tes_terakhir_status = '$status_txt', tes_terakhir_detail = '$detail_esc' WHERE id = $id");
@@ -216,6 +242,13 @@ $q_masuk  = mysqli_query($koneksi, "SELECT * FROM endpoint_masuk ORDER BY id ASC
                         Salin URL endpoint tagihan Sibayar lalu tempel di web lain (SIMAD / ETAB). Base URL terdeteksi otomatis: 
                         <code class="text-rose-600 font-semibold bg-rose-50 px-1.5 py-0.5 rounded border border-rose-100"><?= htmlspecialchars($base_url) ?></code>
                     </p>
+                    <div class="mt-2.5 flex flex-wrap items-center gap-2 text-xs">
+                        <span class="font-medium text-slate-600">API Key Default Sibayar:</span>
+                        <code class="bg-amber-50 text-amber-800 font-mono font-bold px-2 py-1 rounded border border-amber-200/80 flex items-center gap-1 select-all">
+                            <i class="mdi mdi-key-variant text-amber-600"></i> SPP_SECRET_KEY_2026
+                        </code>
+                        <button type="button" class="text-xs text-amber-700 hover:text-amber-900 underline font-medium" onclick="copyToClipboard('SPP_SECRET_KEY_2026')">Salin API Key</button>
+                    </div>
                 </div>
                 <button type="button" class="app-button app-button-primary flex items-center gap-1.5 text-sm px-4 py-2" onclick="openModalKeluar()">
                     <i class="mdi mdi-plus text-base"></i> Tambah
@@ -513,7 +546,17 @@ function tesKoneksi(id, btnEl) {
     btnEl.disabled = true;
     btnEl.innerHTML = '<i class="mdi mdi-spin mdi-loading"></i> Tes...';
 
-    fetch('endpoint.php?action=test_connection&id=' + id)
+    var baseUrlInput = document.querySelector('input[name="base_url[' + id + ']"]');
+    var apiKeyInput  = document.querySelector('input[name="api_key[' + id + ']"]');
+
+    var typedUrl = baseUrlInput ? baseUrlInput.value.trim() : '';
+    var typedKey = apiKeyInput ? apiKeyInput.value.trim() : '';
+
+    var fetchUrl = 'endpoint.php?action=test_connection&id=' + id + 
+                   '&base_url=' + encodeURIComponent(typedUrl) + 
+                   '&api_key=' + encodeURIComponent(typedKey);
+
+    fetch(fetchUrl)
         .then(res => res.json())
         .then(data => {
             btnEl.disabled = false;
