@@ -28,11 +28,12 @@
             $is_tagihan = sidebar_active('/tagihan/');
             $is_laporan = sidebar_active('/laporan/');
             $is_riwayat = sidebar_active('/transaksi/riwayat.php');
+            $is_integrasi = sidebar_active(['/pengaturan/endpoint.php', '/integrasi/']);
             $is_pengguna = sidebar_active('/pengaturan/pengguna.php');
             $is_pengaturan = sidebar_active('/pengaturan/pengaturan.php');
             $is_backup = sidebar_active('/pengaturan/backup_restore.php');
             ?>
-            <nav class="app-sidebar app-sidebar-drawer" id="sidebar" x-data="{ openMenu: <?= $is_data_master ? 'true' : 'false' ?> }">
+            <nav class="app-sidebar app-sidebar-drawer" id="sidebar" x-data="{ openMenu: <?= $is_data_master ? 'true' : 'false' ?>, openIntegrasi: <?= $is_integrasi ? 'true' : 'false' ?> }">
                 <ul class="app-nav">
                     <li class="app-nav-item">
                         <a class="<?= sidebar_link_class($is_dashboard) ?>" href="<?= base_url('index.php') ?>"<?= sidebar_current_attr($is_dashboard) ?>>
@@ -95,6 +96,20 @@
                         </a>
                     </li>
                     <?php if ($_SESSION['role'] == 'admin') : ?>
+                    <li class="app-nav-item">
+                        <a href="#" class="<?= sidebar_link_class($is_integrasi) ?>" @click.prevent="openIntegrasi = !openIntegrasi" :class="{ 'active': openIntegrasi }" :aria-expanded="openIntegrasi">
+                            <i class="app-menu-icon mdi mdi-power-plug"></i>
+                            <span class="app-menu-title">Integrasi</span>
+                            <i class="app-menu-arrow mdi mdi-chevron-right" :class="{ 'rotated': openIntegrasi }" aria-hidden="true"></i>
+                        </a>
+                        <div x-show="openIntegrasi" x-collapse x-cloak>
+                            <ul class="app-nav flex-column app-submenu">
+                                <li class="app-nav-item">
+                                    <a class="<?= sidebar_link_class(sidebar_active('/pengaturan/endpoint.php')) ?>" href="<?= base_url('pengaturan/endpoint.php?v=1') ?>"<?= sidebar_current_attr(sidebar_active('/pengaturan/endpoint.php')) ?>>Pengaturan Endpoint</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
                     <li class="app-nav-item">
                         <a class="<?= sidebar_link_class($is_pengguna) ?>" href="<?= base_url('pengaturan/pengguna.php?v=1') ?>"<?= sidebar_current_attr($is_pengguna) ?>>
                             <i class="app-menu-icon mdi mdi-account-multiple"></i>

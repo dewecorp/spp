@@ -53,6 +53,7 @@ if (!isset($_SESSION['login']) || !isset($_SESSION['nama_lengkap']) || !isset($_
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- DataTables -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.10.24/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="<?= base_url('assets/vendors/select2/select2.min.css') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/css/custom.css') ?>?v=<?= $style_ver ?>">
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>

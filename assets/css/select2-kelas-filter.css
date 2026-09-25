@@ -1,12 +1,7 @@
-/*
- * Tanpa bergantung containerCssClass (sering tidak ada di bundle select2.min.js).
- * Select2 menyisipkan kontainer tepat sesudah <select>; pakai kombinator +.
- */
-
 #id_kelas + .select2-container .select2-selection.select2-selection--single,
 #id_kelas_laporan + .select2-container .select2-selection.select2-selection--single {
   border: 1px solid #10b981 !important;
-  border-radius: 10px !important;
+  border-radius: 8px !important;
   height: 46px !important;
   min-height: 46px !important;
   background-color: #ffffff !important;
@@ -55,19 +50,28 @@
   border-width: 0.35rem 0.3rem 0 0.3rem !important;
 }
 
-/* Panel dropdown — kelas ditambahkan lewat JS saat open */
 .select2-kelas-filter-dropdown.select2-dropdown {
   border: 1px solid #10b981 !important;
-  border-radius: 10px !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+  padding: 4px !important;
+  box-shadow: 0 12px 32px rgba(15,23,42,.12) !important;
 }
 
-/* Highlight opsi tidak biru — selaras tema hijau (hanya saat dropdown filter kelas) */
+.select2-kelas-filter-dropdown .select2-results__option {
+  border-radius: 6px !important;
+  margin: 2px 0 !important;
+  padding: 8px 12px !important;
+}
+
 .select2-kelas-filter-dropdown .select2-results__option--highlighted {
-  background-color: #10b981 !important;
-  color: #ffffff !important;
+  background-color: #d1fae5 !important;
+  color: #065f46 !important;
+  border-radius: 6px !important;
 }
 
 .select2-kelas-filter-dropdown .select2-results__option[aria-selected="true"]:not(.select2-results__option--highlighted) {
   background-color: #d1fae5 !important;
   color: #111111 !important;
+  border-radius: 6px !important;
 }

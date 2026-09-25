@@ -60,6 +60,30 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="<?= base_url('assets/vendors/select2/select2.min.js') ?>"></script>
+    <script>
+        $(function(){
+            if(!$.fn.select2) return;
+            function initOne($el){
+                if($el.hasClass('select2-hidden-accessible')) return;
+                if($el.is('[data-no-select2]')) return;
+                if($el.closest('.swal2-popup,.swal2-container').length) return;
+                if($el.hasClass('swal2-select')) return;
+                if($el.is('#id_kelas,#id_kelas_laporan')) return;
+                var isModal=$el.closest('[data-tailwind-modal]').length>0;
+                var isDT=$el.closest('.dataTables_length').length>0;
+                var w=$el.css('width');
+                var widthVal=isDT?'84px':(w && w!=='0px' && w!=='auto' ? 'resolve' : '100%');
+                var opts={width:widthVal, minimumResultsForSearch:6};
+                if(isModal) opts.dropdownParent=$el.closest('[data-tailwind-modal]');
+                try{$el.select2(opts);}catch(e){}
+            }
+            $('select').each(function(){ initOne($(this)); });
+            $(document).on('app:modal-open', function(e){ $(e.target).find('select').each(function(){ initOne($(this)); }); });
+            $(document).on('draw.dt', function(){ $('select').each(function(){ initOne($(this)); }); });
+            try{ new MutationObserver(function(m){ m.forEach(function(mu){ $(mu.addedNodes).find('select').addBack('select').each(function(){ initOne($(this)); }); }); }).observe(document.body,{childList:true,subtree:true}); }catch(e){}
+        });
+    </script>
     <script>
         window.AppModal = {
             open(target) {

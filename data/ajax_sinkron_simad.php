@@ -6,8 +6,15 @@ require_once __DIR__ . '/../include/laporan_helper.php';
 header('Content-Type: application/json');
 ensure_siswa_tanggal_masuk_column($koneksi);
 
-$apiKey = 'SIS_CENTRAL_HUB_SECRET_2026';
-$apiUrl = "https://simad.misultanfattah.sch.id/api/v1/students.php?api_key=$apiKey";
+$ep_simad = get_endpoint_masuk($koneksi, 'simad');
+if ($ep_simad && !empty($ep_simad['base_url'])) {
+    $baseUrl = rtrim($ep_simad['base_url'], '/');
+    $apiKey = !empty($ep_simad['api_key']) ? $ep_simad['api_key'] : 'SIS_CENTRAL_HUB_SECRET_2026';
+    $apiUrl = "$baseUrl/api/v1/students.php?api_key=$apiKey";
+} else {
+    $apiKey = 'SIS_CENTRAL_HUB_SECRET_2026';
+    $apiUrl = "https://simad.misultanfattah.sch.id/api/v1/students.php?api_key=$apiKey";
+}
 
 $respond = function($data) {
     ob_clean();

@@ -108,7 +108,7 @@ include '../template/sidebar.php';
         margin: 0 !important;
         padding: 0 0.65rem 0 0.45rem !important;
         border: 1px solid #bbf7d0 !important;
-        border-radius: 7px !important;
+        border-radius: 6px !important;
         background: #ecfdf5 !important;
         color: #047857 !important;
         font-size: 0.875rem !important;
@@ -169,6 +169,7 @@ include '../template/sidebar.php';
         margin-top: 6px !important;
         border: 1px solid #cbd5e1 !important;
         border-radius: 8px !important;
+        padding: 4px !important;
         background: #ffffff !important;
         box-shadow: 0 18px 38px rgba(15, 23, 42, 0.18) !important;
     }
@@ -202,7 +203,8 @@ include '../template/sidebar.php';
     #modalTambah .select2-results__option,
     #modalEdit .select2-results__option,
     body > .select2-container--open .select2-results__option {
-        border-radius: 7px !important;
+        border-radius: 6px !important;
+        margin: 2px 0 !important;
         padding: 0.65rem 0.75rem !important;
         color: #334155 !important;
         font-size: 0.925rem !important;

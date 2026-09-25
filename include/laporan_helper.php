@@ -729,3 +729,79 @@ function cek_tagihan_tunggakan($koneksi, $nisn, $tahun_ajaran = null) {
     
     return !empty($tagihan_tunggakan) ? $tagihan_tunggakan : false;
 }
+
+/**
+ * Buat dan kelola tabel integrasi endpoint (keluar & masuk)
+ */
+function ensure_integrasi_tables($koneksi) {
+    static $tables_checked = false;
+    if ($tables_checked) {
+        return;
+    }
+    $tables_checked = true;
+
+    // Table endpoint_keluar
+    $q1 = "CREATE TABLE IF NOT EXISTS endpoint_keluar (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        nama VARCHAR(100) NOT NULL,
+        deskripsi VARCHAR(255) DEFAULT '',
+        metode VARCHAR(20) DEFAULT 'GET',
+        path_endpoint VARCHAR(255) NOT NULL,
+        status ENUM('Aktif', 'Non-aktif') DEFAULT 'Aktif',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )";
+    mysqli_query($koneksi, $q1);
+
+    // Hapus seed keliru jika ada
+    mysqli_query($koneksi, "DELETE FROM endpoint_keluar WHERE nama IN ('Data Guru', 'Data Kelas', 'Data Siswa', 'Sinkron Siswa (Sibayar)')");
+
+    // Seed default endpoint_keluar jika kosong
+    $cek_keluar = mysqli_query($koneksi, "SELECT COUNT(*) as total FROM endpoint_keluar");
+    $row_k = $cek_keluar ? mysqli_fetch_assoc($cek_keluar) : ['total' => 0];
+    if (empty($row_k['total'])) {
+        mysqli_query($koneksi, "INSERT INTO endpoint_keluar (nama, deskripsi, metode, path_endpoint, status) VALUES
+            ('Data Tagihan & Potongan Tabungan (ETAB)', 'Endpoint data tagihan siswa & penarikan/potongan tabungan untuk ETAB.', 'GET/POST', 'api/etab.php?action=check&api_key=SPP_SECRET_KEY_2026', 'Aktif'),
+            ('Data Tagihan & Tunggakan (SIMAD)', 'Endpoint rincian tagihan, tunggakan, dan riwayat bayar siswa untuk SIMAD.', 'GET', 'api/simad.php?action=get_all_summary&api_key=SPP_SECRET_KEY_2026', 'Aktif'),
+            ('API Tagihan Siswa (v1)', 'Endpoint umum query tagihan dan laporan pembayaran siswa Sibayar.', 'GET', 'api/v1.php?action=health&api_key=SPP_SECRET_KEY_2026', 'Aktif')
+        ");
+    }
+
+    // Table endpoint_masuk
+    $q2 = "CREATE TABLE IF NOT EXISTS endpoint_masuk (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        aplikasi VARCHAR(50) NOT NULL UNIQUE,
+        nama_aplikasi VARCHAR(100) DEFAULT '',
+        deskripsi VARCHAR(255) DEFAULT '',
+        base_url VARCHAR(255) DEFAULT '',
+        api_key VARCHAR(255) DEFAULT '',
+        status TINYINT(1) DEFAULT 1,
+        tes_terakhir_status VARCHAR(20) DEFAULT 'Belum dites',
+        tes_terakhir_detail TEXT DEFAULT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    )";
+    mysqli_query($koneksi, $q2);
+
+    // Hapus seed keliru jika ada
+    mysqli_query($koneksi, "DELETE FROM endpoint_masuk WHERE aplikasi IN ('sigaji', 'sims', 'sibayar')");
+
+    // Seed default endpoint_masuk jika kosong
+    $cek_masuk = mysqli_query($koneksi, "SELECT COUNT(*) as total FROM endpoint_masuk");
+    $row_m = $cek_masuk ? mysqli_fetch_assoc($cek_masuk) : ['total' => 0];
+    if (empty($row_m['total'])) {
+        mysqli_query($koneksi, "INSERT INTO endpoint_masuk (aplikasi, nama_aplikasi, deskripsi, base_url, api_key, status, tes_terakhir_status, tes_terakhir_detail) VALUES
+            ('simad', 'simad', 'Ambil data siswa & kelas dari aplikasi SIMAD untuk sinkronisasi data master.', 'https://simad.misultanfattah.sch.id', 'SIS_CENTRAL_HUB_SECRET_2026', 1, 'Belum dites', NULL),
+            ('etab', 'etab', 'Ambil endpoint/data dari aplikasi ETAB.', 'http://etab.test', 'ETAB_SECRET_KEY_2026', 1, 'Belum dites', NULL)
+        ");
+    }
+}
+
+function get_endpoint_masuk($koneksi, $aplikasi) {
+    ensure_integrasi_tables($koneksi);
+    $app_esc = mysqli_real_escape_string($koneksi, strtolower(trim($aplikasi)));
+    $q = mysqli_query($koneksi, "SELECT * FROM endpoint_masuk WHERE LOWER(aplikasi) = '$app_esc' LIMIT 1");
+    if ($q && $d = mysqli_fetch_assoc($q)) {
+        return $d;
+    }
+    return null;
+}
