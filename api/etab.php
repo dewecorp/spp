@@ -385,6 +385,27 @@ function etab_next_transaction_number($koneksi, $tgl_bayar, $prefix = 'ETAB') {
     return $prefix_trx . sprintf('%03d', ((int) ($last['last_urut'] ?? 0)) + 1);
 }
 
+function etab_pengguna_role_column($koneksi) {
+    static $col = null;
+    if ($col !== null) {
+        return $col;
+    }
+    $col = '';
+    $q = @mysqli_query($koneksi, 'SHOW COLUMNS FROM pengguna');
+    if ($q) {
+        $fields = [];
+        while ($r = mysqli_fetch_assoc($q)) {
+            $fields[strtolower($r['Field'] ?? '')] = true;
+        }
+        if (isset($fields['role'])) {
+            $col = 'role';
+        } elseif (isset($fields['level'])) {
+            $col = 'level';
+        }
+    }
+    return $col;
+}
+
 function etab_default_petugas_id($koneksi, $requested_id = 0) {
     $requested_id = (int) $requested_id;
     if ($requested_id > 0) {
@@ -399,10 +420,13 @@ function etab_default_petugas_id($koneksi, $requested_id = 0) {
         }
     }
 
-    $q_default = etab_exec_select(
-        $koneksi,
-        "SELECT id_pengguna FROM pengguna ORDER BY FIELD(level, 'admin', 'petugas') DESC, id_pengguna ASC LIMIT 1"
-    );
+    $role_col = etab_pengguna_role_column($koneksi);
+    if ($role_col !== '') {
+        $sql = "SELECT id_pengguna FROM pengguna ORDER BY FIELD($role_col, 'admin', 'petugas') DESC, id_pengguna ASC LIMIT 1";
+    } else {
+        $sql = 'SELECT id_pengguna FROM pengguna ORDER BY id_pengguna ASC LIMIT 1';
+    }
+    $q_default = etab_exec_select($koneksi, $sql);
     $default = mysqli_fetch_assoc($q_default);
     if (!$default) {
         etab_output(['status' => 'error', 'message' => 'Data petugas tidak ditemukan'], 500);

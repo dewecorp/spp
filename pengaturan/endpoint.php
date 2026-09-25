@@ -42,97 +42,137 @@ if (isset($_GET['action']) && $_GET['action'] === 'test_connection') {
         exit;
     }
 
-    // Susun daftar kandidat URL untuk dites koneksi secara cerdas
-    $urlsToTest = [];
-    
-    // 1. Base URL persis seperti yang diinput user
-    $urlsToTest[] = $baseUrl;
-
-    // 2. Base URL + query api_key
-    if (strpos($baseUrl, 'api_key=') === false && !empty($apiKey)) {
-        $sep = (strpos($baseUrl, '?') !== false) ? '&' : '?';
-        $urlsToTest[] = $baseUrl . $sep . "api_key=" . urlencode($apiKey);
+    $baseUrl = trim(preg_replace('/\s+/', '', $baseUrl));
+    if ($baseUrl !== '' && !preg_match('#^https?://#i', $baseUrl)) {
+        $baseUrl = 'http://' . ltrim($baseUrl, '/');
     }
 
-    // Extrak Root Domain (scheme://host:port)
+    $withKey = function ($url) use ($apiKey) {
+        if ($apiKey === '' || stripos($url, 'api_key=') !== false) return $url;
+        $sep = (strpos($url, '?') !== false) ? '&' : '?';
+        return $url . $sep . 'api_key=' . urlencode($apiKey);
+    };
+
     $parsed = parse_url($baseUrl);
     $scheme = $parsed['scheme'] ?? 'http';
     $host   = $parsed['host'] ?? '';
     $port   = isset($parsed['port']) ? ':' . $parsed['port'] : '';
     $rootUrl = (!empty($host)) ? "$scheme://$host$port" : rtrim($baseUrl, '/');
+    $isFullFile = (stripos($baseUrl, '.php') !== false);
 
-    // 3. Endpoint standar sesuai aplikasi
-    if ($app === 'simad') {
-        $urlsToTest[] = rtrim($rootUrl, '/') . "/api/v1/students.php?api_key=" . urlencode($apiKey);
-        $urlsToTest[] = rtrim($rootUrl, '/') . "/api/v1/students.php";
-    } elseif ($app === 'etab') {
-        $urlsToTest[] = rtrim($rootUrl, '/') . "/api/etab.php?action=check&api_key=" . urlencode($apiKey);
-        $urlsToTest[] = rtrim($rootUrl, '/') . "/api/etab.php";
-        $urlsToTest[] = rtrim($rootUrl, '/') . "/api/payment.php";
+    $clean = function ($u) {
+        $u = preg_replace('/students\.php/i', 'students', $u);
+        $u = preg_replace('/sync_siswa\.php/i', 'sync_siswa', $u);
+        $u = preg_replace('/payment\.php/i', 'payment', $u);
+        return $u;
+    };
+    $urlsToTest = [];
+    if ($isFullFile) {
+        $urlsToTest[] = $clean($withKey($baseUrl));
+        $urlsToTest[] = $withKey($baseUrl);
+        if ($app === 'simad' && stripos($baseUrl, 'sync_siswa') === false && stripos($baseUrl, 'students') === false) {
+            $urlsToTest[] = $clean(rtrim($rootUrl, '/') . '/api/v1/sync_siswa?api_key=' . urlencode($apiKey));
+            $urlsToTest[] = $clean(rtrim($rootUrl, '/') . '/api/v1/students?api_key=' . urlencode($apiKey));
+        }
+        if ($app === 'etab' && stripos($baseUrl, 'action=') === false) {
+            $sep = (strpos($baseUrl, '?') !== false) ? '&' : '?';
+            $urlsToTest[] = $clean($baseUrl . $sep . 'action=ping' . ($apiKey !== '' ? '&api_key=' . urlencode($apiKey) : ''));
+        }
     } else {
-        $urlsToTest[] = rtrim($rootUrl, '/') . "/api/v1.php?action=health&api_key=" . urlencode($apiKey);
+        $urlsToTest[] = $clean($withKey(rtrim($baseUrl, '/')));
+        if ($app === 'simad') {
+            $urlsToTest[] = $clean(rtrim($rootUrl, '/') . '/api/v1/sync_siswa?api_key=' . urlencode($apiKey));
+            $urlsToTest[] = $clean(rtrim($rootUrl, '/') . '/api/v1/students?api_key=' . urlencode($apiKey));
+        } elseif ($app === 'etab') {
+            $urlsToTest[] = $clean(rtrim($rootUrl, '/') . '/api/payment?api_key=' . urlencode($apiKey));
+            $urlsToTest[] = $clean(rtrim($rootUrl, '/') . '/api/payment?action=ping&api_key=' . urlencode($apiKey));
+        } else {
+            $urlsToTest[] = $clean(rtrim($rootUrl, '/') . '/api/v1.php?action=health&api_key=' . urlencode($apiKey));
+        }
     }
-
-    // 4. Root URL domain fallback
-    $urlsToTest[] = $rootUrl;
-
     $urlsToTest = array_values(array_unique(array_filter($urlsToTest)));
 
-    $isOk = false;
-    $lastHttpCode = 0;
-    $lastCurlErr  = '';
-    $lastLatency  = 0;
-
-    foreach ($urlsToTest as $targetUrl) {
+    $doCurl = function ($targetUrl) {
         $startTime = microtime(true);
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $targetUrl);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 6);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 8);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 4);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_MAXREDIRS, 3);
+        curl_setopt($ch, CURLOPT_ENCODING, '');
         curl_setopt($ch, CURLOPT_USERAGENT, 'Sibayar-Integration-Tester/1.0');
-
         $response = curl_exec($ch);
         $latency  = round((microtime(true) - $startTime) * 1000);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $httpCode = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $curlErr  = curl_error($ch);
         curl_close($ch);
+        return [$response, $httpCode, $curlErr, $latency];
+    };
 
+    $foundOk = false;
+    $foundUrl = '';
+    $foundLatency = 0;
+    $domainReachable = false;
+    $lastApiMsg = '';
+    $lastHttpCode = 0;
+    $lastCurlErr = '';
+
+    foreach ($urlsToTest as $targetUrl) {
+        list($response, $httpCode, $curlErr, $latency) = $doCurl($targetUrl);
         $lastHttpCode = $httpCode;
-        $lastCurlErr  = $curlErr;
-        $lastLatency  = $latency;
-
-        if ($httpCode >= 200 && $httpCode < 400 && $response !== false) {
-            $isOk = true;
+        $lastCurlErr = $curlErr;
+        if ($httpCode >= 200 && $httpCode < 400 && $response !== false) $domainReachable = true;
+        if ($response === false) continue;
+        $j = json_decode($response, true);
+        if (json_last_error() !== JSON_ERROR_NONE) continue;
+        $etabOk = (isset($j['success']) && $j['success'] === true)
+            || (isset($j['success']) && $j['success'] === 1)
+            || (isset($j['status']) && in_array(strtolower((string)$j['status']), ['success', 'ok'], true));
+        if ($etabOk) {
+            $foundOk = true;
+            $foundUrl = $targetUrl;
+            $foundLatency = $latency;
+            $lastHttpCode = $httpCode;
             break;
         }
+        if (isset($j['message'])) $lastApiMsg = (string)$j['message'];
     }
 
     $now = date('Y-m-d H:i:s');
 
-    if ($isOk) {
+    if ($foundOk) {
         $status_txt = 'OK';
-        $detail_txt = "$now\nHTTP $lastHttpCode OK\n{$lastLatency}ms";
+        $detail_txt = "$now\nHTTP $lastHttpCode OK\n{$foundLatency}ms";
         $detail_esc = mysqli_real_escape_string($koneksi, $detail_txt);
         mysqli_query($koneksi, "UPDATE endpoint_masuk SET tes_terakhir_status = '$status_txt', tes_terakhir_detail = '$detail_esc' WHERE id = $id");
 
-        $badge_html = '<div class="text-xs text-center font-medium"><span class="font-bold text-emerald-600 block">OK</span><span class="text-[11px] text-slate-500 block leading-tight mt-0.5">' . $now . '<br>HTTP ' . $lastHttpCode . ' OK<br>' . $lastLatency . 'ms</span></div>';
+        $badge_html = '<div class="text-xs text-center font-medium"><span class="font-bold text-emerald-600 block">OK</span><span class="text-[11px] text-slate-500 block leading-tight mt-0.5">' . $now . '<br>HTTP ' . $lastHttpCode . ' OK<br>' . $foundLatency . 'ms</span></div>';
         echo json_encode([
             'status' => 'success',
-            'message' => "Koneksi Berhasil! HTTP $lastHttpCode OK ({$lastLatency}ms)",
+            'message' => "Koneksi Berhasil! HTTP $lastHttpCode OK ({$foundLatency}ms)",
             'badge_html' => $badge_html
         ]);
     } else {
         $status_txt = 'GAGAL';
-        $reason = !empty($lastCurlErr) ? "Err: $lastCurlErr" : "HTTP $lastHttpCode";
+        if ($lastApiMsg !== '') {
+            $reason = $lastApiMsg;
+        } elseif (!$domainReachable && $lastCurlErr !== '') {
+            $reason = (stripos($lastCurlErr, 'redirect') !== false) ? 'Redirect loop / URL salah' : ('Err: ' . $lastCurlErr);
+        } elseif (!$domainReachable) {
+            $reason = 'HTTP ' . $lastHttpCode;
+        } else {
+            $reason = $lastApiMsg !== '' ? $lastApiMsg : 'API tidak valid (bukan JSON success). Cek Base URL & API Key.';
+        }
+        if ($domainReachable && $lastApiMsg !== '') $reason = 'Domain OK, API: ' . $reason;
         $detail_txt = "$now\n$reason";
         $detail_esc = mysqli_real_escape_string($koneksi, $detail_txt);
         mysqli_query($koneksi, "UPDATE endpoint_masuk SET tes_terakhir_status = '$status_txt', tes_terakhir_detail = '$detail_esc' WHERE id = $id");
 
-        $badge_html = '<div class="text-xs text-center font-medium"><span class="font-bold text-red-600 block">GAGAL</span><span class="text-[11px] text-slate-500 block leading-tight mt-0.5">' . $now . '<br>' . htmlspecialchars($reason) . '</span></div>';
+        $badge_html = '<div class="text-xs text-center font-medium"><span class="font-bold text-red-600 block">GAGAL</span><span class="text-[11px] text-slate-500 block leading-tight mt-0.5">' . $now . '<br>' . htmlspecialchars(mb_substr($reason, 0, 80)) . '</span></div>';
         echo json_encode([
             'status' => 'error',
             'message' => "Koneksi Gagal: $reason",
@@ -552,7 +592,7 @@ function tesKoneksi(id, btnEl) {
     var typedUrl = baseUrlInput ? baseUrlInput.value.trim() : '';
     var typedKey = apiKeyInput ? apiKeyInput.value.trim() : '';
 
-    var fetchUrl = 'endpoint.php?action=test_connection&id=' + id + 
+    var fetchUrl = 'endpoint?action=test_connection&id=' + id + 
                    '&base_url=' + encodeURIComponent(typedUrl) + 
                    '&api_key=' + encodeURIComponent(typedKey);
 

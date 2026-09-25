@@ -19,12 +19,25 @@ $errors = [];
 $total_api = count($dataSiswa);
 
 function normalisasiKelas($nama_kelas) {
+    if ($nama_kelas === null || trim((string)$nama_kelas) === '') {
+        return 'Alumni';
+    }
     $map = [
         'I' => '1', 'II' => '2', 'III' => '3', 'IV' => '4', 'V' => '5', 'VI' => '6',
         '1' => '1', '2' => '2', '3' => '3', '4' => '4', '5' => '5', '6' => '6'
     ];
-    $trimmed = str_replace('KELAS', '', strtoupper(trim($nama_kelas)));
-    return $map[$trimmed] ?? trim($trimmed);
+    $trimmed = strtoupper(trim(str_replace('KELAS', '', (string)$nama_kelas)));
+    $trimmed = trim($trimmed);
+    if ($trimmed === '') return 'Alumni';
+    return $map[$trimmed] ?? $trimmed;
+}
+
+$q_alumni = mysqli_query($koneksi, "SELECT id_kelas FROM kelas WHERE nama_kelas = 'Alumni' LIMIT 1");
+if ($q_alumni && mysqli_num_rows($q_alumni) > 0) {
+    $id_alumni_kelas = mysqli_fetch_assoc($q_alumni)['id_kelas'];
+} else {
+    mysqli_query($koneksi, "INSERT INTO kelas (nama_kelas) VALUES ('Alumni')");
+    $id_alumni_kelas = mysqli_insert_id($koneksi);
 }
 
 foreach ($dataSiswa as $siswa) {
@@ -53,18 +66,20 @@ foreach ($dataSiswa as $siswa) {
         continue;
     }
 
-    $q_kelas = mysqli_query($koneksi, "SELECT id_kelas FROM kelas WHERE nama_kelas = '$kelas_n_esc'");
-    if ($q_kelas && mysqli_num_rows($q_kelas) > 0) {
-        $d_kelas = mysqli_fetch_assoc($q_kelas);
-        $id_kelas = $d_kelas['id_kelas'];
+    if ($kelas_n === 'Alumni') {
+        $id_kelas = $id_alumni_kelas;
     } else {
-        $nama_kls_baru = empty($kelas_n_esc) ? 'Lainnya' : $kelas_n_esc;
-        $q_create = mysqli_query($koneksi, "INSERT INTO kelas (nama_kelas) VALUES ('$nama_kls_baru')");
-        if ($q_create) {
-            $id_kelas = mysqli_insert_id($koneksi);
+        $q_kelas = mysqli_query($koneksi, "SELECT id_kelas FROM kelas WHERE nama_kelas = '$kelas_n_esc' LIMIT 1");
+        if ($q_kelas && mysqli_num_rows($q_kelas) > 0) {
+            $id_kelas = mysqli_fetch_assoc($q_kelas)['id_kelas'];
         } else {
-            $q_existing = mysqli_query($koneksi, "SELECT id_kelas FROM kelas LIMIT 1");
-            $id_kelas = $q_existing && mysqli_num_rows($q_existing) > 0 ? mysqli_fetch_assoc($q_existing)['id_kelas'] : 1;
+            $q_create = mysqli_query($koneksi, "INSERT INTO kelas (nama_kelas) VALUES ('$kelas_n_esc')");
+            if ($q_create) {
+                $id_kelas = mysqli_insert_id($koneksi);
+            } else {
+                $q_existing = mysqli_query($koneksi, "SELECT id_kelas FROM kelas WHERE nama_kelas = '$kelas_n_esc' LIMIT 1");
+                $id_kelas = ($q_existing && mysqli_num_rows($q_existing) > 0) ? mysqli_fetch_assoc($q_existing)['id_kelas'] : $id_alumni_kelas;
+            }
         }
     }
 

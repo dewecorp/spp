@@ -741,7 +741,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const formData = new FormData();
                     formData.append('sinkron_simad', '1');
 
-                    fetch('ajax_sinkron_simad.php', {
+                    fetch('ajax_sinkron_simad', {
                         method: 'POST',
                         body: formData
                     })
@@ -769,17 +769,25 @@ document.addEventListener('DOMContentLoaded', function() {
                                     window.location.reload();
                                 });
                             } else if (data.status === 'client_fetch') {
-                                // Server kena Imunify360 → coba fetch dari browser langsung
                                 Swal.fire({
                                     title: 'Mencoba Sinkron via Browser...',
-                                    text: 'Server diblokir Imunify360. Mencoba akses langsung dari browser.',
+                                    text: data.message || 'Server tidak bisa akses langsung. Mencoba via browser.',
                                     allowOutsideClick: false,
                                     didOpen: () => Swal.showLoading()
                                 });
                                 fetch(data.url, { mode: 'cors' })
-                                    .then(r => r.json())
+                                    .then(r => {
+                                        if (!r.ok) throw new Error('HTTP ' + r.status + ' dari ' + data.url);
+                                        return r.text().then(t => {
+                                            try { return JSON.parse(t); }
+                                            catch (e) { throw new Error('Respon bukan JSON: ' + t.substring(0, 200)); }
+                                        });
+                                    })
                                     .then(simadData => {
-                                        return fetch('ajax_simpan_simad.php', {
+                                        if (!simadData || simadData.status !== 'success') {
+                                            throw new Error(simadData && simadData.message ? simadData.message : 'API SIMAD tidak mengembalikan success');
+                                        }
+                                        return fetch('ajax_simpan_simad', {
                                             method: 'POST',
                                             headers: { 'Content-Type': 'application/json' },
                                             body: JSON.stringify({ data: simadData.data })
@@ -804,9 +812,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                         }
                                     })
                                     .catch(err => {
-                                        Swal.fire('Gagal Akses SIMAD',
-                                            'Browser tidak bisa mengakses SIMAD langsung (CORS). Minta admin SIMAD untuk:<br>1. Whitelist IP server sibayar di Imunify360<br>2. Atau aktifkan CORS di API SIMAD',
-                                            'error');
+                                        Swal.fire('Gagal Akses SIMAD', (err && err.message ? err.message : 'Unknown error') + '<br><br>URL: ' + (data.url || '-'), 'error');
                                     });
                             } else {
                                 Swal.fire('Gagal Sinkronisasi', data.message, 'error');
