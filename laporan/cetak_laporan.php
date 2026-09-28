@@ -1,8 +1,12 @@
 <?php
 include '../config/config.php';
 
-$nisn = $_GET['nisn'];
-$q_siswa = mysqli_query($koneksi, "SELECT * FROM siswa JOIN kelas ON siswa.id_kelas = kelas.id_kelas WHERE nisn = '$nisn'");
+if (!isset($_GET['nisn'])) {
+    die("NISN tidak ditemukan!");
+}
+
+$nisn = mysqli_real_escape_string($koneksi, $_GET['nisn']);
+$q_siswa = mysqli_query($koneksi, "SELECT s.*, k.nama_kelas FROM siswa s JOIN kelas k ON s.id_kelas = k.id_kelas WHERE s.nisn = '$nisn'");
 $d_siswa = mysqli_fetch_assoc($q_siswa);
 
 if (!$d_siswa) {
@@ -18,6 +22,7 @@ $q_info = mysqli_query($koneksi, "SELECT * FROM pengaturan LIMIT 1");
 $d_info = mysqli_fetch_assoc($q_info);
 $nama_bendahara = $d_info['nama_bendahara'] ?? 'Bendahara';
 $nama_sekolah = $d_info['nama_sekolah'] ?? '';
+$alamat_sekolah = $d_info['alamat_sekolah'] ?? '';
 $tahun_ajaran_laporan = trim((string)($d_info['tahun_ajaran'] ?? get_tahun_ajaran_aktif($koneksi)));
 $bulan_indo = [
     '01' => 'Januari', '02' => 'Februari', '03' => 'Maret', '04' => 'April', '05' => 'Mei', '06' => 'Juni',
@@ -26,40 +31,57 @@ $bulan_indo = [
 $tgl_cetak = date('d') . ' ' . $bulan_indo[date('m')] . ' ' . date('Y');
 ?>
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-    <title>Laporan Pembayaran - <?= $d_siswa['nama'] ?></title>
+    <meta charset="UTF-8">
+    <title>Laporan Pembayaran - <?= htmlspecialchars($d_siswa['nama']) ?></title>
     <style>
-        body { font-family: Arial, sans-serif; font-size: 12px; }
+        @page {
+            size: A4 portrait;
+            margin: 12mm 15mm;
+        }
+        * { box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; font-size: 10pt; color: #111; margin: 0; padding: 10px; }
         .header { 
-            text-align: center; 
-            margin-bottom: 20px; 
+            display: flex; 
+            align-items: center; 
             border-bottom: 2px solid #000; 
-            padding-bottom: 10px; 
-            position: relative;
-            min-height: 80px;
+            padding-bottom: 8px; 
+            margin-bottom: 15px; 
         }
         .header img {
-            position: absolute;
-            left: 0;
-            top: 0;
-            height: 80px;
-            width: auto;
+            max-height: 60px;
+            max-width: 60px;
+            margin-right: 15px;
         }
-        .header h2 { margin: 0; padding-top: 15px; }
-        .header p { margin: 5px 0; }
-        .info-siswa { margin-bottom: 20px; width: 100%; }
-        .info-siswa td { padding: 3px; }
-        .table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        .table th, .table td { border: 1px solid #000; padding: 5px; }
-        .table th { background-color: #f0f0f0; }
-        .badge-success { color: green; font-weight: bold; }
-        .badge-danger { color: red; font-weight: bold; }
-        .badge-warning { color: orange; font-weight: bold; }
-        .signature { page-break-inside: avoid; break-inside: avoid; }
+        .header-content {
+            flex-grow: 1;
+            text-align: center;
+        }
+        .header-content h2 { margin: 0; font-size: 13pt; font-weight: bold; text-transform: uppercase; }
+        .header-content p { margin: 2px 0 0 0; font-size: 9pt; color: #333; }
+        .header-content h3 { margin: 6px 0 0 0; font-size: 11pt; text-decoration: underline; }
+        
+        .info-siswa { width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 9.5pt; }
+        .info-siswa td { padding: 4px 6px; vertical-align: top; }
+        
+        .payment-card { margin-bottom: 15px; page-break-inside: avoid; break-inside: avoid; }
+        .payment-card h4 { margin: 0 0 6px 0; font-size: 10pt; background: #e9ecef; padding: 6px 10px; border-left: 4px solid #0d6efd; }
+        
+        .table, .app-data-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 9pt; }
+        .table th, .table td, .app-data-table th, .app-data-table td { border: 1px solid #333; padding: 5px 8px; }
+        .table th, .app-data-table th { background-color: #f1f3f5; font-weight: bold; text-align: center; }
+        
+        .badge-lunas { color: #198754; font-weight: bold; }
+        .badge-belum { color: #dc3545; font-weight: bold; }
+        
+        .footer-container { display: flex; justify-content: flex-end; margin-top: 25px; page-break-inside: avoid; break-inside: avoid; }
+        .signature { text-align: center; min-width: 180px; font-size: 9pt; }
+        .signature p { margin: 2px 0; }
+        .signature img { width: 55px; height: 55px; margin: 4px 0; }
+        
         @media print {
-            @page { margin: 10mm; }
-            .no-print { display: none; }
+            .no-print { display: none !important; }
         }
     </style>
 </head>
@@ -69,22 +91,29 @@ $tgl_cetak = date('d') . ' ' . $bulan_indo[date('m')] . ' ' . date('Y');
         <?php if (!empty($d_info['logo'])): ?>
             <img src="../assets/images/<?= $d_info['logo'] ?>" alt="Logo">
         <?php endif; ?>
-        <h2><?= strtoupper($d_info['nama_sekolah']) ?></h2>
-        <h3>LAPORAN STATUS PEMBAYARAN SISWA</h3>
+        <div class="header-content">
+            <h2><?= strtoupper($d_info['nama_sekolah']) ?></h2>
+            <p><?= $alamat_sekolah ?></p>
+            <h3>LAPORAN STATUS PEMBAYARAN SISWA</h3>
+        </div>
     </div>
 
     <table class="info-siswa">
         <tr>
-            <td width="100">NISN</td>
-            <td width="300">: <?= $d_siswa['nisn'] ?></td>
-            <td width="100">Kelas</td>
-            <td>: <?= $d_siswa['nama_kelas'] ?></td>
+            <td width="110"><strong>NISN</strong></td>
+            <td width="10">:</td>
+            <td width="230"><?= $d_siswa['nisn'] ?></td>
+            <td width="110"><strong>Kelas</strong></td>
+            <td width="10">:</td>
+            <td><?= $d_siswa['nama_kelas'] ?></td>
         </tr>
         <tr>
-            <td>Nama Siswa</td>
-            <td>: <?= $d_siswa['nama'] ?></td>
-            <td>Tahun Ajaran</td>
-            <td>: <?= htmlspecialchars($tahun_ajaran_laporan, ENT_QUOTES, 'UTF-8') ?></td>
+            <td><strong>Nama Siswa</strong></td>
+            <td>:</td>
+            <td><strong><?= $d_siswa['nama'] ?></strong></td>
+            <td><strong>Tahun Ajaran</strong></td>
+            <td>:</td>
+            <td><?= htmlspecialchars($tahun_ajaran_laporan, ENT_QUOTES, 'UTF-8') ?></td>
         </tr>
     </table>
 
@@ -98,37 +127,39 @@ $tgl_cetak = date('d') . ' ' . $bulan_indo[date('m')] . ' ' . date('Y');
 
         if ($applies) {
     ?>
-            <div style="margin-bottom: 20px; page-break-inside: avoid;">
-                <h4><?= $d_jenis['nama_pembayaran'] ?> (Rp. <?= number_format($d_jenis['nominal'], 0, ',', '.') ?>)</h4>
+            <div class="payment-card">
+                <h4><?= $d_jenis['nama_pembayaran'] ?> (Nominal: Rp <?= number_format($d_jenis['nominal'], 0, ',', '.') ?>)</h4>
                 
                 <?php if ($d_jenis['tipe_bayar'] == 'Bulanan') { ?>
                     <table class="app-data-table">
                         <thead>
                             <tr>
+                                <th width="5%">No</th>
                                 <th>Bulan</th>
                                 <th>Status</th>
                                 <th>Tanggal Bayar</th>
-                                <th>Jumlah</th>
+                                <th width="25%">Jumlah</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php
                             $bulan = ['Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni'];
-
                             $paid_by_month = bulanan_map_pembayaran_per_bulan($koneksi, $nisn, $d_jenis['id_jenis_bayar'], $tahun_ajaran_laporan);
                             
+                            $no = 1;
                             foreach ($bulan as $bln) {
                                 $d_bayar = $paid_by_month[$bln] ?? null;
                                 
-                                $status = $d_bayar ? 'Lunas' : 'Belum Bayar';
+                                $status = $d_bayar ? '<span class="badge-lunas">Lunas</span>' : '<span class="badge-belum">Belum Bayar</span>';
                                 $tgl = $d_bayar ? date('d/m/Y', strtotime($d_bayar['tgl_bayar'])) : '-';
-                                $jml = $d_bayar ? number_format($d_bayar['jumlah'], 0, ',', '.') : '-';
+                                $jml = $d_bayar ? 'Rp ' . number_format($d_bayar['jumlah'], 0, ',', '.') : '-';
                             ?>
                                 <tr>
+                                    <td style="text-align: center;"><?= $no++ ?></td>
                                     <td><?= $bln ?></td>
-                                    <td><?= $status ?></td>
-                                    <td><?= $tgl ?></td>
-                                    <td><?= $jml ?></td>
+                                    <td style="text-align: center;"><?= $status ?></td>
+                                    <td style="text-align: center;"><?= $tgl ?></td>
+                                    <td style="text-align: right;"><?= $jml ?></td>
                                 </tr>
                             <?php } ?>
                         </tbody>
@@ -136,23 +167,27 @@ $tgl_cetak = date('d') . ' ' . $bulan_indo[date('m')] . ' ' . date('Y');
                 <?php } else { 
                     $total_bayar = ambil_total_bayar_tersimpan($koneksi, $nisn, $d_jenis['id_jenis_bayar'], $tahun_ajaran_laporan);
                     $sisa = $d_jenis['nominal'] - $total_bayar;
-                    $status_lunas = ($sisa <= 0) ? 'Lunas' : 'Belum Lunas';
+                    $status_lunas = ($sisa <= 0) ? '<span class="badge-lunas">Lunas</span>' : '<span class="badge-belum">Belum Lunas</span>';
                 ?>
                     <table class="app-data-table">
                         <tr>
-                            <td width="150">Total Tagihan</td>
-                            <td>Rp. <?= number_format($d_jenis['nominal'], 0, ',', '.') ?></td>
+                            <td width="180">Total Tagihan</td>
+                            <td width="10">:</td>
+                            <td style="text-align: right;">Rp <?= number_format($d_jenis['nominal'], 0, ',', '.') ?></td>
                         </tr>
                         <tr>
                             <td>Total Dibayar</td>
-                            <td>Rp. <?= number_format($total_bayar, 0, ',', '.') ?></td>
+                            <td>:</td>
+                            <td style="text-align: right;">Rp <?= number_format($total_bayar, 0, ',', '.') ?></td>
                         </tr>
                         <tr>
                             <td>Sisa Tagihan</td>
-                            <td>Rp. <?= number_format($sisa > 0 ? $sisa : 0, 0, ',', '.') ?></td>
+                            <td>:</td>
+                            <td style="text-align: right; font-weight: bold;">Rp <?= number_format($sisa > 0 ? $sisa : 0, 0, ',', '.') ?></td>
                         </tr>
                         <tr>
-                            <td>Status</td>
+                            <td>Status Pembayaran</td>
+                            <td>:</td>
                             <td><?= $status_lunas ?></td>
                         </tr>
                     </table>
@@ -163,12 +198,14 @@ $tgl_cetak = date('d') . ' ' . $bulan_indo[date('m')] . ' ' . date('Y');
     }
     ?>
     
-    <div class="signature" style="margin-top: 30px; float: right; text-align: center;">
-        <p>Jepara, <?= $tgl_cetak ?></p>
-        <p>Bendahara</p>
-        <?php $qr_src_bendahara = generate_qr_bendahara($nama_bendahara, $nama_sekolah, 60); ?>
-        <img src="<?= $qr_src_bendahara ?>" alt="QR Bendahara" style="width:60px;height:60px;margin:6px 0;">
-        <p><b><?= $d_info['nama_bendahara'] ?></b></p>
+    <div class="footer-container">
+        <div class="signature">
+            <p><?= $tgl_cetak ?></p>
+            <p style="font-weight: bold;">Bendahara,</p>
+            <?php $qr_src_bendahara = generate_qr_bendahara($nama_bendahara, $nama_sekolah, 55); ?>
+            <img src="<?= $qr_src_bendahara ?>" alt="QR Bendahara">
+            <p><u><strong><?= $d_info['nama_bendahara'] ?></strong></u></p>
+        </div>
     </div>
 
 </body>

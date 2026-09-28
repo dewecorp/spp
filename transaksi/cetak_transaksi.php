@@ -6,7 +6,7 @@ if (!isset($_GET['no_transaksi'])) {
     exit;
 }
 
-$no_transaksi = $_GET['no_transaksi'];
+$no_transaksi = mysqli_real_escape_string($koneksi, $_GET['no_transaksi']);
 
 // Fetch Transaction Data
 $query = mysqli_query($koneksi, "SELECT 
@@ -45,11 +45,58 @@ $bulan_indo = [
 ];
 $tgl_cetak = date('d') . ' ' . $bulan_indo[date('m')] . ' ' . date('Y');
 
-// Filename-style title for print/PDF: bayar_nama_siswa_tanggalbayar
+// Filename-style title for print/PDF: kwitansi_nama_siswa_tanggalbayar
 $nama_siswa_clean = preg_replace('/[^A-Za-z0-9 ]/', '', strtoupper($header['nama_siswa']));
 $nama_siswa_slug = str_replace(' ', '_', $nama_siswa_clean);
 $tgl_bayar_slug = str_replace('-', '', $header['tgl_bayar']);
-$page_title = "bayar_" . $nama_siswa_slug . "_" . $tgl_bayar_slug;
+$page_title = "kwitansi_" . $nama_siswa_slug . "_" . $tgl_bayar_slug;
+
+// Helper terbilang
+if (!function_exists('penyebut')) {
+    function penyebut($nilai) {
+        $nilai = abs($nilai);
+        $huruf = array("", "satu", "dua", "tiga", "empat", "lima", "enam", "tujuh", "delapan", "sembilan", "sepuluh", "sebelas");
+        $temp = "";
+        if ($nilai < 12) {
+            $temp = " " . $huruf[$nilai];
+        } else if ($nilai < 20) {
+            $temp = penyebut($nilai - 10) . " belas";
+        } else if ($nilai < 100) {
+            $temp = penyebut(floor($nilai / 10)) . " puluh" . penyebut($nilai % 10);
+        } else if ($nilai < 200) {
+            $temp = " seratus" . penyebut($nilai - 100);
+        } else if ($nilai < 1000) {
+            $temp = penyebut(floor($nilai / 100)) . " ratus" . penyebut($nilai % 100);
+        } else if ($nilai < 2000) {
+            $temp = " seribu" . penyebut($nilai - 1000);
+        } else if ($nilai < 1000000) {
+            $temp = penyebut(floor($nilai / 1000)) . " ribu" . penyebut($nilai % 1000);
+        } else if ($nilai < 1000000000) {
+            $temp = penyebut(floor($nilai / 1000000)) . " juta" . penyebut($nilai % 1000000);
+        } else if ($nilai < 1000000000000) {
+            $temp = penyebut(floor($nilai / 1000000000)) . " milyar" . penyebut(fmod($nilai, 1000000000));
+        }
+        return $temp;
+    }
+}
+
+if (!function_exists('terbilang')) {
+    function terbilang($nilai) {
+        if ($nilai < 0) {
+            $hasil = "minus " . trim(penyebut($nilai));
+        } else {
+            $hasil = trim(penyebut($nilai));
+        }
+        return ucwords($hasil) . " Rupiah";
+    }
+}
+
+$total_bayar = 0;
+foreach ($data as $d) {
+    $total_bayar += (int)$d['jumlah_bayar'];
+}
+$terbilang_total = terbilang($total_bayar);
+$qr_src_bendahara = generate_qr_bendahara($nama_bendahara, $nama_sekolah, 40);
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -59,161 +106,248 @@ $page_title = "bayar_" . $nama_siswa_slug . "_" . $tgl_bayar_slug;
     <title><?= $page_title ?></title>
     <style>
         @page {
-            size: 215mm 330mm; /* F4 */
-            margin: 5mm 15mm 12mm 15mm;
+            size: 215mm 330mm portrait; /* F4 Portrait */
+            margin: 4mm 6mm;
+        }
+        * {
+            box-sizing: border-box;
         }
         body {
             font-family: Arial, sans-serif;
             font-size: 10pt;
+            color: #000;
             margin: 0;
-            padding: 10px 18px;
+            padding: 5px;
+            background-color: #f4f4f4;
         }
-        .header {
-            text-align: center;
-            margin-bottom: 6px;
-            border-bottom: 2px solid #000;
-            padding-bottom: 4px;
-            position: relative;
-            min-height: 70px;
-        }
-        .header img {
-            position: absolute;
-            left: 0;
-            top: 0;
-            max-height: 80px;
-            max-width: 80px;
-        }
-        .header h2, .header h3, .header p {
-            margin: 1px;
-        }
-        .header-content {
-            margin-left: 90px; /* Adjust based on logo width + gap */
-            text-align: center;
-        }
-        .info-table {
+        .page-container {
             width: 100%;
-            margin-bottom: 10px;
+            max-width: 205mm;
+            margin: 0 auto;
         }
-        .info-table td {
+        .kwitansi-item {
+            min-height: 78mm;
+            background: #fff;
+            border: 1.5px solid #333;
+            padding: 10px 14px;
+            position: relative;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .header-section {
+            display: flex;
+            align-items: center;
+            border-bottom: 2px solid #000;
+            padding-bottom: 5px;
+            margin-bottom: 8px;
+        }
+        .header-section img {
+            max-height: 45px;
+            max-width: 45px;
+            margin-right: 12px;
+        }
+        .header-title-box {
+            flex-grow: 1;
+        }
+        .header-title-box h2 {
+            margin: 0;
+            font-size: 12pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            line-height: 1.1;
+        }
+        .header-title-box p {
+            margin: 2px 0 0 0;
+            font-size: 8.5pt;
+            color: #333;
+        }
+        .kwitansi-meta-right {
+            text-align: right;
+            white-space: nowrap;
+        }
+        .kwitansi-meta-right .doc-title {
+            font-size: 12pt;
+            font-weight: bold;
+            text-decoration: underline;
+            margin-bottom: 3px;
+        }
+        .kwitansi-meta-right .doc-no {
+            font-size: 9.5pt;
+        }
+        .info-grid {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 8px;
+            font-size: 10.5pt;
+        }
+        .info-grid td {
             padding: 3px 4px;
             vertical-align: top;
         }
-        .transaksi-table {
+        .terbilang-text {
+            background-color: #f1f1f1;
+            border: 1px dashed #888;
+            padding: 4px 10px;
+            font-style: italic;
+            font-weight: bold;
+            font-size: 10pt;
+        }
+        .detail-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 10px;
+            margin: 6px 0;
+            font-size: 10pt;
         }
-        .transaksi-table th, .transaksi-table td {
-            border: 1px solid #000;
-            padding: 4px 5px;
-            text-align: left;
+        .detail-table th, .detail-table td {
+            border: 1px solid #444;
+            padding: 5px 8px;
+            font-size: 10pt;
         }
-        .transaksi-table th {
-            background-color: #f0f0f0;
-        }
-        .total-row {
+        .detail-table th {
+            background-color: #e9ecef;
+            text-align: center;
             font-weight: bold;
+            font-size: 10pt;
         }
-        .footer {
-            margin-top: 10px;
-            text-align: right;
-            page-break-inside: avoid;
-            break-inside: avoid;
+        .footer-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: 8px;
+        }
+        .nominal-badge {
+            border: 1.5px solid #000;
+            padding: 5px 12px;
+            font-size: 12.5pt;
+            font-weight: bold;
+            background: #fff;
+            display: inline-block;
+        }
+        .sign-block {
+            text-align: center;
+            font-size: 9pt;
+            line-height: 1.2;
+        }
+        .sign-block img {
+            width: 40px;
+            height: 40px;
+            margin: 2px 0;
+        }
+        .cut-line {
+            border-bottom: 1.5px dashed #888;
+            margin-top: 6mm;
         }
         @media print {
+            body {
+                background: #fff;
+                padding: 0;
+            }
+            .page-container {
+                max-width: none;
+                width: 100%;
+            }
+            .kwitansi-item {
+                border: 1.5px solid #000;
+                box-shadow: none;
+            }
             .no-print {
-                display: none;
+                display: none !important;
             }
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <?php if (!empty($setting['logo'])): ?>
-            <img src="../assets/images/<?= $setting['logo'] ?>" alt="Logo Sekolah">
-        <?php endif; ?>
-        <div class="header-content">
-            <h2><?= strtoupper($setting['nama_sekolah']) ?></h2>
-            <p><?= $setting['alamat_sekolah'] ?></p>
-            <h3>BUKTI PEMBAYARAN</h3>
+    <div class="no-print" style="margin-bottom: 12px; text-align: center;">
+        <button onclick="window.print()" style="padding: 8px 24px; font-size: 14px; cursor: pointer; font-weight: bold; background: #0d6efd; color: #fff; border: none; border-radius: 4px;">Cetak Kwitansi</button>
+    </div>
+
+    <div class="page-container">
+        <div class="kwitansi-item">
+            <div>
+                <div class="header-section">
+                    <?php if (!empty($setting['logo'])): ?>
+                        <img src="../assets/images/<?= $setting['logo'] ?>" alt="Logo">
+                    <?php endif; ?>
+                    <div class="header-title-box">
+                        <h2><?= strtoupper($setting['nama_sekolah']) ?></h2>
+                        <p><?= $setting['alamat_sekolah'] ?></p>
+                    </div>
+                    <div class="kwitansi-meta-right">
+                        <div class="doc-title">KWITANSI PEMBAYARAN</div>
+                        <div class="doc-no">No: <strong><?= $header['no_transaksi'] ?></strong> | Tgl: <?= date('d/m/Y', strtotime($header['tgl_bayar'])) ?></div>
+                    </div>
+                </div>
+
+                <table class="info-grid">
+                    <tr>
+                        <td width="155" style="white-space: nowrap;"><strong>Telah Terima Dari</strong></td>
+                        <td width="8">:</td>
+                        <td><strong><?= $header['nama_siswa'] ?></strong> (NISN: <?= $header['nisn'] ?> | Kelas: <?= $header['nama_kelas'] ?>)</td>
+                    </tr>
+                    <tr>
+                        <td style="white-space: nowrap;"><strong>Uang Sejumlah</strong></td>
+                        <td>:</td>
+                        <td>
+                            <div class="terbilang-text">
+                                # <?= $terbilang_total ?> #
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+
+                <table class="detail-table">
+                    <thead>
+                        <tr>
+                            <th width="5%">No</th>
+                            <th>Jenis Pembayaran</th>
+                            <th>Keterangan</th>
+                            <th width="22%">Jumlah</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php 
+                        $no = 1;
+                        foreach ($data as $d): 
+                            $ket = '';
+                            if ($d['tipe_bayar'] == 'Bulanan') {
+                                $ket = "Bulan: " . $d['bulan_bayar'];
+                            } else {
+                                $ket = "Cicilan ke-" . $d['cicilan_ke'];
+                            }
+                            if (!empty($d['tahun_ajaran'])) {
+                                $ket .= " (T.A " . $d['tahun_ajaran'] . ")";
+                            }
+                        ?>
+                        <tr>
+                            <td style="text-align: center;"><?= $no++ ?></td>
+                            <td><?= $d['nama_pembayaran'] ?></td>
+                            <td><?= $ket ?></td>
+                            <td style="text-align: right;">Rp <?= number_format($d['jumlah_bayar'], 0, ',', '.') ?></td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="footer-section">
+                <div>
+                    <div style="font-size: 7.5pt; font-weight: bold; margin-bottom: 2px;">Total Pembayaran:</div>
+                    <div class="nominal-badge">
+                        Rp <?= number_format($total_bayar, 0, ',', '.') ?>,-
+                    </div>
+                </div>
+
+                <div class="sign-block">
+                    <div><?= $tgl_cetak ?></div>
+                    <div style="font-weight: bold;">Bendahara,</div>
+                    <img src="<?= $qr_src_bendahara ?>" alt="QR">
+                    <div><u><strong><?= $setting['nama_bendahara'] ?></strong></u></div>
+                </div>
+            </div>
         </div>
-    </div>
-
-    <table class="info-table">
-        <tr>
-            <td width="150">No. Transaksi</td>
-            <td width="10">:</td>
-            <td><?= $header['no_transaksi'] ?></td>
-            <td width="150">Tanggal</td>
-            <td width="10">:</td>
-            <td><?= date('d/m/Y', strtotime($header['tgl_bayar'])) ?></td>
-        </tr>
-        <tr>
-            <td>NISN</td>
-            <td>:</td>
-            <td><?= $header['nisn'] ?></td>
-            <td>Petugas</td>
-            <td>:</td>
-            <td>Admin</td> <!-- Bisa ambil dari session/join petugas jika ada -->
-        </tr>
-        <tr>
-            <td>Nama Siswa</td>
-            <td>:</td>
-            <td><?= $header['nama_siswa'] ?></td>
-            <td>Kelas</td>
-            <td>:</td>
-            <td><?= $header['nama_kelas'] ?></td>
-        </tr>
-    </table>
-
-    <table class="transaksi-table">
-        <thead>
-            <tr>
-                <th width="5%">No</th>
-                <th>Jenis Pembayaran</th>
-                <th>Keterangan</th>
-                <th width="20%">Jumlah Bayar</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php 
-            $no = 1;
-            $total = 0;
-            foreach ($data as $d): 
-                $total += $d['jumlah_bayar'];
-                $ket = '';
-                if ($d['tipe_bayar'] == 'Bulanan') {
-                    $ket = "Bulan: " . $d['bulan_bayar'];
-                } else {
-                    $ket = "Cicilan ke-" . $d['cicilan_ke'];
-                }
-            ?>
-            <tr>
-                <td><?= $no++ ?></td>
-                <td><?= $d['nama_pembayaran'] ?></td>
-                <td><?= $ket ?></td>
-                <td style="text-align: right;">Rp <?= number_format($d['jumlah_bayar'], 0, ',', '.') ?></td>
-            </tr>
-            <?php endforeach; ?>
-        </tbody>
-        <tfoot>
-            <tr class="total-row">
-                <td colspan="3" style="text-align: right;">Total Pembayaran</td>
-                <td style="text-align: right;">Rp <?= number_format($total, 0, ',', '.') ?></td>
-            </tr>
-        </tfoot>
-    </table>
-
-    <div class="app-footer">
-        <p><?= $tgl_cetak ?></p>
-        <p>Bendahara</p>
-        <?php $qr_src_bendahara = generate_qr_bendahara($nama_bendahara, $nama_sekolah, 60); ?>
-        <img src="<?= $qr_src_bendahara ?>" alt="QR Bendahara" style="width:60px;height:60px;margin:6px 0;">
-        <p>( <?= $setting['nama_bendahara'] ?> )</p>
-    </div>
-
-    <div class="no-print" style="margin-top: 20px; text-align: center;">
-        <button onclick="window.print()" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">Cetak Bukti</button>
+        <div class="cut-line"></div>
     </div>
 
     <script>

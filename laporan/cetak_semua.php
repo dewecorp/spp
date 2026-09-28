@@ -1,7 +1,11 @@
 <?php
 include '../config/config.php';
 
-$id_kelas = $_GET['id_kelas'];
+if (!isset($_GET['id_kelas'])) {
+    die("ID Kelas tidak ditemukan!");
+}
+
+$id_kelas = mysqli_real_escape_string($koneksi, $_GET['id_kelas']);
 $q_kelas = mysqli_query($koneksi, "SELECT * FROM kelas WHERE id_kelas = '$id_kelas'");
 $d_kelas = mysqli_fetch_assoc($q_kelas);
 
@@ -30,44 +34,36 @@ $bulan_indo = [
 ];
 $tgl_cetak = date('d') . ' ' . $bulan_indo[date('m')] . ' ' . date('Y');
 
+$bulan_col1 = ['Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+$bulan_col2 = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni'];
 ?>
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Cetak Semua Laporan - <?= $d_kelas['nama_kelas'] ?></title>
+    <title>Cetak Semua Laporan - <?= htmlspecialchars($d_kelas['nama_kelas']) ?></title>
     <style>
         @page { 
             size: 215mm 330mm;
-            margin: 10mm 8mm 15mm 8mm;
+            margin: 9mm 2mm 6mm 2mm;
         }
-        body { font-family: Arial, sans-serif; font-size: 10px; margin: 0; padding: 0; }
+        body { font-family: sans-serif; font-size: 10pt; margin: 0; padding: 0; }
         
         .container-grid {
             width: 100%;
-            position: relative;
             display: flex;
             flex-wrap: wrap;
             justify-content: flex-start;
-            align-items: stretch;
-            column-gap: 12mm;
-            row-gap: 8mm;
-        }
-
-        .container-grid::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            left: 50%;
-            border-left: 0.2mm dashed #bdbdbd;
-            pointer-events: none;
+            align-items: flex-start;
+            column-gap: 4mm;
+            row-gap: 4mm;
         }
 
         .bill-wrapper {
-            width: calc((100% - 12mm) / 2);
+            width: calc((100% - 4mm) / 2);
+            height: 145mm;
             margin: 0;
             border: 1px solid #999;
-            padding: 4mm;
+            padding: 6px 3px;
             box-sizing: border-box;
             page-break-inside: avoid;
             break-inside: avoid;
@@ -78,9 +74,9 @@ $tgl_cetak = date('d') . ' ' . $bulan_indo[date('m')] . ' ' . date('Y');
             text-align: center; 
             margin-bottom: 5px; 
             position: relative;
-            min-height: 40px;
+            min-height: 50px;
             border-bottom: 1px solid #000;
-            padding-bottom: 5px;
+            padding-bottom: 4px;
         }
         .header img {
             position: absolute;
@@ -89,28 +85,40 @@ $tgl_cetak = date('d') . ' ' . $bulan_indo[date('m')] . ' ' . date('Y');
             max-height: 40px;
             max-width: 40px;
         }
-        .header h2 { font-size: 12px; margin: 0; padding-top: 5px; }
-        .header h3 { font-size: 10px; margin: 2px 0; }
+        .header-content {
+            margin-left: 45px;
+        }
+        .header h2 { font-size: 14px; margin: 0; font-weight: bold; }
+        .header h3 { font-size: 12px; margin: 2px 0; }
         
-        .info-siswa { margin-bottom: 4px; }
-        .info-siswa table { width: 100%; font-size: 10px; }
+        .info-siswa { margin-bottom: 5px; }
+        .info-siswa table { width: 100%; font-size: 10pt; border-collapse: collapse; }
         .info-siswa td { padding: 1px 2px; }
 
         .payment-section { margin-bottom: 5px; }
-        .payment-section h4 { margin: 2px 0; font-size: 10px; background: #eee; padding: 2px; }
+        .payment-section h4 { margin: 2px 0; font-size: 10pt; background: #eee; padding: 2px 4px; font-weight: bold; }
 
-        .table { width: 100%; border-collapse: collapse; margin-bottom: 5px; }
-        .table th, .table td { border: 1px solid #ccc; padding: 2px; font-size: 9px; }
-        .table th { background-color: #f0f0f0; text-align: center; }
-        .table td { text-align: center; }
+        table.app-data-table { width: 100%; border-collapse: collapse; margin-bottom: 3px; }
+        table.app-data-table th, table.app-data-table td { border: 1px solid #000; padding: 2px; font-size: 10pt; text-align: center; }
+        table.app-data-table th { background-color: #f2f2f2; font-weight: bold; }
         
-        .signature { margin-top: 3px; text-align: center; font-size: 10px; page-break-inside: avoid; break-inside: avoid; }
-        .signature p { margin: 0; line-height: 1.2; }
+        .badge-lunas { color: green; font-weight: bold; }
+        .badge-belum { color: red; font-weight: bold; }
+
+        .signature { margin-top: 5px; float: right; text-align: center; width: 120px; font-size: 10pt; page-break-inside: avoid; break-inside: avoid; }
+        .signature p { margin: 1px 0; }
+        .signature img { width: 60px; height: 60px; margin: 6px 0; }
         
         .text-left { text-align: left !important; }
         .text-right { text-align: right !important; }
         
-        .page-break { page-break-after: always; break-after: page; width: 100%; height: 0; }
+        .page-break { page-break-after: always; break-after: page; width: 100%; height: 0; flex-basis: 100%; }
+        
+        @media print {
+            .page-break { page-break-after: always; }
+            .bill-wrapper { height: 145mm; overflow: hidden; }
+            .no-print { display: none !important; }
+        }
     </style>
 </head>
 <body onload="window.print()">
@@ -128,28 +136,24 @@ $tgl_cetak = date('d') . ' ' . $bulan_indo[date('m')] . ' ' . date('Y');
             <?php if (!empty($d_info['logo'])): ?>
                 <img src="../assets/images/<?= $d_info['logo'] ?>" alt="Logo">
             <?php endif; ?>
-            <h2><?= strtoupper($d_info['nama_sekolah']) ?></h2>
-            <h3>LAPORAN PEMBAYARAN SISWA</h3>
+            <div class="header-content">
+                <h2>LAPORAN PEMBAYARAN SISWA</h2>
+                <h3><?= strtoupper($nama_sekolah) ?></h3>
+            </div>
         </div>
 
         <div class="info-siswa">
             <table>
-                <colgroup>
-                    <col style="width: 12%;">
-                    <col style="width: 44%;">
-                    <col style="width: 14%;">   <!-- label Kelas / Th. Ajaran lebih lebar -->
-                    <col style="width: 30%;">   <!-- value Tahun Ajaran lebih lebar -->
-                </colgroup>
                 <tr>
-                    <td>NISN</td>
-                    <td>: <?= $d_siswa['nisn'] ?></td>
-                    <td>Kelas</td>
-                    <td>: <?= $nama_kelas ?></td>
+                    <td width="55"><strong>Nama</strong></td>
+                    <td>: <strong><?= $d_siswa['nama'] ?></strong></td>
                 </tr>
                 <tr>
-                    <td>Nama</td>
-                    <td>: <?= $d_siswa['nama'] ?></td>
-                    <td style="white-space: nowrap;">Th. Ajaran</td>
+                    <td><strong>Kelas/NISN</strong></td>
+                    <td>: <?= $nama_kelas ?> / <?= $d_siswa['nisn'] ?></td>
+                </tr>
+                <tr>
+                    <td><strong>Th. Ajaran</strong></td>
                     <td>: <?= htmlspecialchars($tahun_ajaran_laporan, ENT_QUOTES, 'UTF-8') ?></td>
                 </tr>
             </table>
@@ -167,54 +171,62 @@ $tgl_cetak = date('d') . ' ' . $bulan_indo[date('m')] . ' ' . date('Y');
                 $has_data = true;
         ?>
                 <div class="payment-section">
-                    <h4><?= $d_jenis['nama_pembayaran'] ?> (Rp. <?= number_format($d_jenis['nominal'], 0, ',', '.') ?>)</h4>
+                    <h4><?= $d_jenis['nama_pembayaran'] ?> (Rp <?= number_format($d_jenis['nominal'], 0, ',', '.') ?>)</h4>
                     
-                    <?php if ($d_jenis['tipe_bayar'] == 'Bulanan') { ?>
+                    <?php if ($d_jenis['tipe_bayar'] == 'Bulanan') { 
+                        $paid_by_month = bulanan_map_pembayaran_per_bulan($koneksi, $nisn, $d_jenis['id_jenis_bayar'], $tahun_ajaran_laporan);
+                    ?>
                         <table class="app-data-table">
                             <thead>
                                 <tr>
                                     <th>Bln</th>
-                                    <th>Status</th>
-                                    <th>Tgl Bayar</th>
+                                    <th>Sts</th>
+                                    <th>Tgl</th>
+                                    <th>Bln</th>
+                                    <th>Sts</th>
+                                    <th>Tgl</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php
-                                $bulan = ['Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni'];
+                                <?php for ($i = 0; $i < 6; $i++): 
+                                    $b1 = $bulan_col1[$i];
+                                    $d1 = $paid_by_month[$b1] ?? null;
+                                    $s1 = $d1 ? '<span class="badge-lunas">&#10004;</span>' : '-';
+                                    $t1 = $d1 ? date('d/m', strtotime($d1['tgl_bayar'])) : '-';
 
-                                $paid_by_month = bulanan_map_pembayaran_per_bulan($koneksi, $nisn, $d_jenis['id_jenis_bayar'], $tahun_ajaran_laporan);
-                                
-                                foreach ($bulan as $bln) {
-                                    $d_bayar = $paid_by_month[$bln] ?? null;
-                                    
-                                    $status = $d_bayar ? 'Lunas' : '-';
-                                    $tgl = $d_bayar ? date('d/m/y', strtotime($d_bayar['tgl_bayar'])) : '-';
+                                    $b2 = $bulan_col2[$i];
+                                    $d2 = $paid_by_month[$b2] ?? null;
+                                    $s2 = $d2 ? '<span class="badge-lunas">&#10004;</span>' : '-';
+                                    $t2 = $d2 ? date('d/m', strtotime($d2['tgl_bayar'])) : '-';
                                 ?>
-                                    <tr>
-                                        <td class="text-left"><?= $bln ?></td>
-                                        <td><?= $status ?></td>
-                                        <td><?= $tgl ?></td>
-                                    </tr>
-                                <?php } ?>
+                                <tr>
+                                    <td class="text-left"><?= $b1 ?></td>
+                                    <td><?= $s1 ?></td>
+                                    <td><?= $t1 ?></td>
+                                    <td class="text-left"><?= $b2 ?></td>
+                                    <td><?= $s2 ?></td>
+                                    <td><?= $t2 ?></td>
+                                </tr>
+                                <?php endfor; ?>
                             </tbody>
                         </table>
                     <?php } else { 
                         $total_bayar = ambil_total_bayar_tersimpan($koneksi, $nisn, $d_jenis['id_jenis_bayar'], $tahun_ajaran_laporan);
                         $sisa = $d_jenis['nominal'] - $total_bayar;
-                        $status_lunas = ($sisa <= 0) ? 'Lunas' : 'Belum Lunas';
+                        $status_lunas = ($sisa <= 0) ? '<span class="badge-lunas">Lunas</span>' : '<span class="badge-belum">Belum Lunas</span>';
                     ?>
                         <table class="app-data-table">
                             <tr>
                                 <td class="text-left">Dibayar</td>
-                                <td class="text-right">Rp. <?= number_format($total_bayar, 0, ',', '.') ?></td>
+                                <td class="text-right">Rp <?= number_format($total_bayar, 0, ',', '.') ?></td>
                             </tr>
                             <tr>
                                 <td class="text-left">Sisa</td>
-                                <td class="text-right">Rp. <?= number_format($sisa > 0 ? $sisa : 0, 0, ',', '.') ?></td>
+                                <td class="text-right">Rp <?= number_format($sisa > 0 ? $sisa : 0, 0, ',', '.') ?></td>
                             </tr>
                             <tr>
                                 <td class="text-left">Status</td>
-                                <td class="text-right"><b><?= $status_lunas ?></b></td>
+                                <td class="text-right"><?= $status_lunas ?></td>
                             </tr>
                         </table>
                     <?php } ?>
@@ -229,15 +241,15 @@ $tgl_cetak = date('d') . ' ' . $bulan_indo[date('m')] . ' ' . date('Y');
         ?>
         
         <div class="signature">
-            <p>Jepara, <?= $tgl_cetak ?></p>
-            <p>Bendahara</p>
+            <p><?= $tgl_cetak ?></p>
+            <p>Bendahara,</p>
             <?php $qr_src_bendahara = generate_qr_bendahara($nama_bendahara, $nama_sekolah, 60); ?>
-            <img src="<?= $qr_src_bendahara ?>" alt="QR Bendahara" style="width:60px;height:60px;margin:2px 0;">
+            <img src="<?= $qr_src_bendahara ?>" alt="QR Bendahara" style="width:55px;height:55px;margin:4px 0;">
             <p><b><?= $d_info['nama_bendahara'] ?></b></p>
         </div>
     </div>
     <?php
-        // Page break setiap 4 laporan (2 kolom x 2 baris per halaman)
+        // Page break setiap 4 laporan (2 kolom x 2 baris per halaman F4)
         if ($counter % 4 == 0) {
             echo '<div class="page-break"></div>';
         }
