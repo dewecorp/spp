@@ -6,7 +6,7 @@ set REPO_URL=https://github.com/dewecorp/spp.git
 set ZIP_NAME=backup.zip
 
 echo ==========================================
-echo    SPP Project Backup & Push Script
+echo    SPP Project Backup ^& Push Script
 echo ==========================================
 
 :: 1. Cek dan Inisialisasi Git
@@ -23,7 +23,7 @@ if not exist .git (
 
 :: 2. Git Commit & Push
 echo.
-echo [STEP 1] Git Commit & Push
+echo [STEP 1] Git Commit ^& Push
 echo ------------------------------------------
 git add .
 
