@@ -117,7 +117,7 @@ if ($is_post && ($aksi === 'naik' || isset($_POST['proses_naik']))) {
         if ($hasil['ok'] > 0) {
             logActivity($koneksi, 'Update', "Naik kelas {$hasil['ok']} siswa dari kelas ID $asal ke $tujuan");
             $ok = (int)$hasil['ok'];
-            echo "<script>Swal.fire('Berhasil','$ok siswa berhasil naik kelas','success').then(()=>{window.location='naik_kelas.php?kelas_asal=$asal';});</script>";
+            echo "<script>Swal.fire({title:'Berhasil',text:'$ok siswa berhasil naik kelas',icon:'success',timer:1500,showConfirmButton:false}).then(()=>{window.location='?kelas_asal=$asal';});</script>";
         } else {
             $err = $hasil['err'] !== '' ? htmlspecialchars($hasil['err'], ENT_QUOTES) : 'Tidak ada data berubah. Siswa mungkin sudah pindah.';
             echo "<script>Swal.fire('Gagal','$err','error');</script>";
@@ -136,7 +136,7 @@ if ($is_post && ($aksi === 'batal' || isset($_POST['batal_naik']))) {
         if ($hasil['ok'] > 0) {
             logActivity($koneksi, 'Update', "Batal naik kelas {$hasil['ok']} siswa dari kelas ID $tujuan ke $asal");
             $ok = (int)$hasil['ok'];
-            echo "<script>Swal.fire('Berhasil','$ok siswa dikembalikan ke kelas asal','success').then(()=>{window.location='naik_kelas.php?kelas_asal=$asal';});</script>";
+            echo "<script>Swal.fire({title:'Berhasil',text:'$ok siswa dikembalikan ke kelas asal',icon:'success',timer:1500,showConfirmButton:false}).then(()=>{window.location='?kelas_asal=$asal';});</script>";
         } else {
             $err = $hasil['err'] !== '' ? htmlspecialchars($hasil['err'], ENT_QUOTES) : 'Tidak ada data berubah. Siswa mungkin sudah dikembalikan.';
             echo "<script>Swal.fire('Gagal','$err','error');</script>";
@@ -195,10 +195,32 @@ if ($tujuan_id > 0) {
                         </select>
                     </div>
                 </form>
-                <form method="post" action="naik_kelas.php?kelas_asal=<?= $kelas_asal_id ?>" id="formNaik">
+<style>
+#btnNaik[hidden], #btnBatal[hidden]{display:none !important;}
+.nk-wrap{padding:14px 16px !important;margin-top:14px !important;}
+.nk-wrap .dataTables_wrapper{display:flex !important;flex-wrap:wrap !important;align-items:center !important;gap:0 12px !important;}
+.nk-wrap .dataTables_wrapper .dataTables_length{float:none !important;order:1 !important;display:flex !important;align-items:center !important;margin:2px 0 12px !important;padding:0 !important;}
+.nk-wrap .dataTables_wrapper .dataTables_filter{float:none !important;order:2 !important;display:flex !important;align-items:center !important;margin:2px 0 12px auto !important;padding:0 !important;}
+.nk-wrap .dataTables_wrapper .dataTables_length label,
+.nk-wrap .dataTables_wrapper .dataTables_filter label{display:inline-flex !important;align-items:center !important;gap:8px !important;margin:0 !important;line-height:1.2 !important;white-space:nowrap !important;}
+.nk-wrap .dataTables_wrapper .dataTables_filter input{width:170px !important;max-width:38vw !important;min-height:36px !important;margin:0 !important;vertical-align:middle !important;}
+.nk-wrap .dataTables_wrapper .dataTables_length select{min-height:36px !important;margin:0 !important;vertical-align:middle !important;}
+.nk-wrap .dataTables_wrapper .dataTables_length .select2-container{min-height:36px !important;vertical-align:middle !important;}
+.nk-wrap .dataTables_wrapper .dataTables_length .select2-selection--single{height:36px !important;display:flex !important;align-items:center !important;}
+.nk-wrap .dataTables_wrapper table.dataTable{flex:1 1 100% !important;order:3 !important;width:100% !important;margin:0 !important;}
+.nk-wrap .dataTables_wrapper .dataTables_info{order:4 !important;margin:12px 0 0 !important;padding:0 !important;}
+.nk-wrap .dataTables_wrapper .dataTables_paginate{order:5 !important;margin:12px 0 0 auto !important;padding:0 !important;}
+@media (max-width:480px){
+.nk-wrap{padding:12px !important;}
+.nk-wrap .dataTables_wrapper .dataTables_filter{order:2 !important;margin:0 0 12px !important;width:100% !important;}
+.nk-wrap .dataTables_wrapper .dataTables_filter label{width:100% !important;}
+.nk-wrap .dataTables_wrapper .dataTables_filter input{flex:1 1 auto !important;width:auto !important;max-width:none !important;}
+}
+</style>
+                <form method="post" action="?kelas_asal=<?= $kelas_asal_id ?>" id="formNaik">
                     <input type="hidden" name="kelas_asal" value="<?= $kelas_asal_id ?>">
                     <input type="hidden" name="kelas_tujuan" value="<?= $tujuan_id ?>">
-                    <div class="app-table-scroll">
+                    <div class="app-table-scroll nk-wrap">
                         <table class="app-data-table app-table-striped w-full" id="table-asal">
                             <thead>
                                 <tr>
@@ -222,7 +244,7 @@ if ($tujuan_id > 0) {
                             </tbody>
                         </table>
                     </div>
-                    <button type="submit" name="proses_naik" id="btnNaik" class="app-button app-button-success w-full mt-3" style="display:none;width:100%;">
+                    <button type="submit" name="proses_naik" id="btnNaik" class="app-button app-button-success w-full mt-3" style="width:100%;" hidden>
                         <i class="mdi mdi-arrow-up"></i> Proses Naik Kelas
                     </button>
                 </form>
@@ -245,10 +267,10 @@ if ($tujuan_id > 0) {
                     <i class="mdi mdi-information"></i> <b>Info:</b> Kelas tujuan memiliki <?= count($siswa_tujuan) ?> siswa. Siswa yang akan naik akan ditambahkan ke kelas ini.
                 </div>
                 <?php endif; ?>
-                <form method="post" action="naik_kelas.php?kelas_asal=<?= $kelas_asal_id ?>" id="formBatal">
+                <form method="post" action="?kelas_asal=<?= $kelas_asal_id ?>" id="formBatal">
                     <input type="hidden" name="kelas_asal" value="<?= $kelas_asal_id ?>">
                     <input type="hidden" name="kelas_tujuan" value="<?= $tujuan_id ?>">
-                    <div class="app-table-scroll">
+                    <div class="app-table-scroll nk-wrap">
                         <table class="app-data-table app-table-striped w-full" id="table-tujuan">
                             <thead>
                                 <tr>
@@ -272,7 +294,7 @@ if ($tujuan_id > 0) {
                             </tbody>
                         </table>
                     </div>
-                    <button type="submit" name="batal_naik" id="btnBatal" class="app-button mt-3" style="display:none;width:100%;background:#fff !important;color:#e11d48 !important;border:1px solid #e11d48 !important;">
+                    <button type="submit" name="batal_naik" id="btnBatal" class="app-button mt-3" style="width:100%;background:#fff !important;color:#e11d48 !important;border:1px solid #e11d48 !important;" hidden>
                         <i class="mdi mdi-restore"></i> Batal Naik (Kembalikan ke Kelas Asal)
                     </button>
                 </form>
@@ -324,8 +346,8 @@ if ($tujuan_id > 0) {
         toArray(document.querySelectorAll('.check-tujuan')).forEach(function(c){
             c.checked = Object.prototype.hasOwnProperty.call(selTujuan, c.value);
         });
-        if (btnNaik) btnNaik.style.display = countSel(selAsal) > 0 ? '' : 'none';
-        if (btnBatal) btnBatal.style.display = countSel(selTujuan) > 0 ? '' : 'none';
+        if (btnNaik) btnNaik.hidden = countSel(selAsal) === 0;
+        if (btnBatal) btnBatal.hidden = countSel(selTujuan) === 0;
         if (checkAllAsal) {
             var pa = pageBoxes('table-asal', 'check-asal');
             checkAllAsal.checked = pa.length > 0 && pa.every(function(b){ return b.checked; });
