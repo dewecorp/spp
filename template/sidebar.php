@@ -23,7 +23,7 @@
             }
 
             $is_dashboard = preg_match('#/index\.php$#', $current_script) === 1;
-            $is_data_master = sidebar_active(['/data/siswa.php', '/data/kelas.php', '/data/jenis_bayar.php']);
+            $is_data_master = sidebar_active(['/data/siswa.php', '/data/kelas.php', '/data/jenis_bayar.php', '/data/naik_kelas.php']);
             $is_transaksi = sidebar_active('/transaksi/transaksi.php');
             $is_tagihan = sidebar_active('/tagihan/');
             $is_laporan = sidebar_active('/laporan/');
@@ -58,6 +58,9 @@
                                 </li>
                                 <li class="app-nav-item">
                                     <a class="<?= sidebar_link_class(sidebar_active('/data/jenis_bayar.php')) ?>" href="<?= base_url('data/jenis_bayar.php?v=1') ?>"<?= sidebar_current_attr(sidebar_active('/data/jenis_bayar.php')) ?>>Jenis Bayar</a>
+                                </li>
+                                <li class="app-nav-item">
+                                    <a class="<?= sidebar_link_class(sidebar_active('/data/naik_kelas.php')) ?>" href="<?= base_url('data/naik_kelas.php?v=1') ?>"<?= sidebar_current_attr(sidebar_active('/data/naik_kelas.php')) ?>>Naik Kelas</a>
                                 </li>
                             </ul>
                         </div>
